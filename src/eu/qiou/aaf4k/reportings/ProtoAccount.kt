@@ -29,7 +29,11 @@ open class ProtoAccount( var id: Int ,   var name: String , value:Long = 0, var 
          return false
     }
 
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+
     override fun toString(): String {
-        return displayUnit.format()(unit.convertTo(displayUnit)(this.value * unit.scale.scale / Math.pow(10.0, decimalPrecision * 1.0))) + displayUnit.scale.token
+        return "[" + localAccountID + " " + name + "] : " + displayUnit.format()(unit.convertTo(displayUnit)(this.value * unit.scale.scale / Math.pow(10.0, decimalPrecision * 1.0))) + displayUnit.scale.token
     }
 }
