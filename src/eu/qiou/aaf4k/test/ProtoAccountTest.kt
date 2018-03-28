@@ -1,6 +1,6 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.ProtoAccount
+import eu.qiou.aaf4k.reportings.ProtoAccount
 import eu.qiou.aaf4k.util.CurrencyUnit
 import eu.qiou.aaf4k.util.PercentageUnit
 import eu.qiou.aaf4k.util.UnitScale

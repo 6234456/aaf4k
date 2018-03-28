@@ -1,4 +1,4 @@
-package eu.qiou.aaf4j.util
+package eu.qiou.aaf4k.util
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit

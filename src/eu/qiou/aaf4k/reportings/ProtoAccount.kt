@@ -1,5 +1,6 @@
-package eu.qiou.aaf4k
+package eu.qiou.aaf4k.reportings
 
+import eu.qiou.aaf4k.reportings.AggregateAccount
 import eu.qiou.aaf4k.reportings.ProtoReportingInfo
 import eu.qiou.aaf4k.util.CurrencyUnit
 import eu.qiou.aaf4k.util.ProtoUnit
@@ -13,14 +14,13 @@ import eu.qiou.aaf4k.util.ProtoUnit
  * @param unit specify the unit stored in the value
  */
 
-open class ProtoAccount( var id: Int ,   var name: String , value:Long = 0, var unit: ProtoUnit = CurrencyUnit(),
-                         var decimalPrecision: Int = 2,var desc: String="",
-                         var reportingInfo: ProtoReportingInfo = ProtoReportingInfo(), var hasSubAccounts: Boolean = false,
+open class ProtoAccount( var id: Int , var name: String , open var value:Long = 0, var unit: ProtoUnit = CurrencyUnit(),
+                         var decimalPrecision: Int = 2, var desc: String="",
+                         var reportingInfo: ProtoReportingInfo = ProtoReportingInfo(), var hasSubAccounts: Boolean = false, var hasSuperAccounts: Boolean = false,
                          var localAccountID: String = id.toString()){
 
     var displayUnit: ProtoUnit = reportingInfo.displayUnit
-    open var value = value
-
+    var superAccount: AggregateAccount? = null
 
     override fun equals(other: Any?): Boolean {
         if( other is ProtoAccount){

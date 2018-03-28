@@ -1,7 +1,7 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.ProtoAccount
 import eu.qiou.aaf4k.reportings.AggregateAccount
+import eu.qiou.aaf4k.reportings.ProtoAccount
 import eu.qiou.aaf4k.reportings.ProtoReportingInfo
 import org.junit.Test
 
@@ -26,6 +26,10 @@ class AggregateAccountTest {
         println(agg1.displayUnit)
         println(agg1.value)
         println(agg1)
+
+        println(agg1.checkDistinct())
+
+        println(agg2.superAccount == agg1)
 
 
 
