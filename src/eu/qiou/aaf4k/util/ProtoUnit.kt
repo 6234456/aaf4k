@@ -1,9 +1,12 @@
 package eu.qiou.aaf4k.util
 
-import eu.qiou.aaf4k.ProtoAccount
+import java.util.*
 
-interface ProtoUnit{
-    fun format(account: ProtoAccount):String
+abstract class ProtoUnit(val scale: UnitScale = UnitScale.UNIT, var locale: Locale = Locale.CHINA){
+    abstract fun format(locale: Locale = this.locale): (Double) -> String
 
-    fun decs():String
+    fun convertTo(unit: ProtoUnit): (Double) -> Double {
+        val f: (Double) -> Double  = { n -> n * (this.scale.scale  / unit.scale.scale) }
+        return f
+    }
 }

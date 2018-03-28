@@ -9,12 +9,14 @@ import org.junit.Test
 class ProtoAccountTest{
     @Test
     fun testProtoAccount(){
-        val account : ProtoAccount = ProtoAccount(id = 1234, name = "test", value = 120100, displayUnit = CurrencyUnit(UnitScale.THOUSAND))
-        val account1 : ProtoAccount = ProtoAccount(id = 1234, name = "test", value = 1214, unit = PercentageUnit())
-        println(account.displayUnit)
-        println(account)
+        val account  = ProtoAccount(id = 1234, name = "test", value = 120100)
+        account.displayUnit = CurrencyUnit(UnitScale.THOUSAND)
 
-        account.displayUnit= CurrencyUnit()
+        val account1  = ProtoAccount(id = 1234, name = "test", value = 1214, unit = PercentageUnit())
+        account1.displayUnit= PercentageUnit()
+
+        println(account.displayUnit)
+
         println(account)
 
         println(account1)

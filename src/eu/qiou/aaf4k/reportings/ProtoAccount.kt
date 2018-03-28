@@ -1,8 +1,35 @@
 package eu.qiou.aaf4k
 
+import eu.qiou.aaf4k.reportings.ProtoReportingInfo
+import eu.qiou.aaf4k.util.CurrencyUnit
 import eu.qiou.aaf4k.util.ProtoUnit
 
-class ProtoAccount(val id: Int, val name: String, var value:Long, var unit: ProtoUnit, var desc: String=""){
-    var hasSuperAccount: Boolean = false
-    var decimalPrecision: Int = 2
+
+/**
+ * @author Qiou Yang
+ * @since 1.0.0
+ * @param id the internal id of the account
+ * @param name the internal name of the account
+ * @param unit specify the unit stored in the value
+ */
+
+open class ProtoAccount( var id: Int ,   var name: String , value:Long = 0, var unit: ProtoUnit = CurrencyUnit(),
+                         var decimalPrecision: Int = 2,var desc: String="",
+                         var reportingInfo: ProtoReportingInfo = ProtoReportingInfo(), var hasSubAccounts: Boolean = false,
+                         var localAccountID: String = id.toString()){
+
+    var displayUnit: ProtoUnit = reportingInfo.displayUnit
+    open var value = value
+
+
+    override fun equals(other: Any?): Boolean {
+        if( other is ProtoAccount){
+             return other.id == this.id
+        }
+         return false
+    }
+
+    override fun toString(): String {
+        return displayUnit.format()(unit.convertTo(displayUnit)(this.value * unit.scale.scale / Math.pow(10.0, decimalPrecision * 1.0))) + displayUnit.scale.token
+    }
 }
