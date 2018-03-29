@@ -1,7 +1,5 @@
 package eu.qiou.aaf4k.reportings
 
-import eu.qiou.aaf4k.reportings.AggregateAccount
-import eu.qiou.aaf4k.reportings.ProtoReportingInfo
 import eu.qiou.aaf4k.util.CurrencyUnit
 import eu.qiou.aaf4k.util.ProtoUnit
 
@@ -17,10 +15,11 @@ import eu.qiou.aaf4k.util.ProtoUnit
 open class ProtoAccount( var id: Int , var name: String , open var value:Long = 0, var unit: ProtoUnit = CurrencyUnit(),
                          var decimalPrecision: Int = 2, var desc: String="",
                          var reportingInfo: ProtoReportingInfo = ProtoReportingInfo(), var hasSubAccounts: Boolean = false, var hasSuperAccounts: Boolean = false,
-                         var localAccountID: String = id.toString()){
-
+                         var localAccountID: String = id.toString()): Comparable<ProtoAccount>{
     var displayUnit: ProtoUnit = reportingInfo.displayUnit
     var superAccount: AggregateAccount? = null
+    var displayValue: Double = 0.0
+    get() = value / Math.pow(10.0, decimalPrecision.toDouble())
 
     override fun equals(other: Any?): Boolean {
         if( other is ProtoAccount){
@@ -33,7 +32,12 @@ open class ProtoAccount( var id: Int , var name: String , open var value:Long = 
         return id.hashCode()
     }
 
-    override fun toString(): String {
-        return "[" + localAccountID + " " + name + "] : " + displayUnit.format()(unit.convertTo(displayUnit)(this.value * unit.scale.scale / Math.pow(10.0, decimalPrecision * 1.0))) + displayUnit.scale.token
+    override fun compareTo(other: ProtoAccount): Int {
+        return id.compareTo(other.id)
     }
+
+    override fun toString(): String {
+        return "[" + localAccountID + " " + name + "] : " + displayUnit.format()(unit.convertTo(displayUnit)(this.displayValue * unit.scale.scale )) + displayUnit.scale.token
+    }
+
 }

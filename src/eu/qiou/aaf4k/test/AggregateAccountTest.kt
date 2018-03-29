@@ -2,15 +2,17 @@ package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.reportings.AggregateAccount
 import eu.qiou.aaf4k.reportings.ProtoAccount
-import eu.qiou.aaf4k.reportings.ProtoReportingInfo
 import org.junit.Test
 
-import org.junit.Assert.*
+import java.util.*
 
 class AggregateAccountTest {
 
     @Test
     fun addSubAccount() {
+
+        java.util.Locale.setDefault(Locale.US)
+
         val acc1 = ProtoAccount(1234, "acc1",120000)
         val acc2 = ProtoAccount(1235, "acc2",220000)
         val acc3 = ProtoAccount(1238, "acc2",220000)

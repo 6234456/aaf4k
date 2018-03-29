@@ -24,7 +24,6 @@ class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccoun
                                     }
                                 }
                             }
-
         return res
     }
 
