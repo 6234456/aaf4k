@@ -1,11 +1,15 @@
 package eu.qiou.aaf4k.util
 
-import java.text.NumberFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 class CurrencyUnit(scale: UnitScale = UnitScale.UNIT) : ProtoUnit(scale) {
     override fun format(locale: Locale): (Double) -> String {
-        val f: (Double) -> String = { n -> NumberFormat.getCurrencyInstance(locale).format(n) }
+        val f: (Double) -> String =
+                  when(scale){
+                            UnitScale.UNIT -> { n -> String.format(locale, "%,.2f", n) }
+                            else -> { n -> String.format(locale, "%,d", n.roundToInt()) }
+                        }
         return f
     }
 

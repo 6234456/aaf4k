@@ -18,8 +18,17 @@ open class ProtoAccount( var id: Int , var name: String , open var value:Long = 
                          var localAccountID: String = id.toString()): Comparable<ProtoAccount>{
     var displayUnit: ProtoUnit = reportingInfo.displayUnit
     var superAccount: AggregateAccount? = null
-    var displayValue: Double = 0.0
+
+    var displayValue: Double
     get() = value / Math.pow(10.0, decimalPrecision.toDouble())
+    set(v) {setDisplayValue(v)}
+
+    private fun setDisplayValue(v : Double) : Double{
+        if(displayUnit.scale.equals(this.unit.scale))
+            this.value = Math.round(v * Math.pow(10.0, decimalPrecision.toDouble()))
+
+        return v
+    }
 
     override fun equals(other: Any?): Boolean {
         if( other is ProtoAccount){
@@ -37,7 +46,7 @@ open class ProtoAccount( var id: Int , var name: String , open var value:Long = 
     }
 
     override fun toString(): String {
-        return "[" + localAccountID + " " + name + "] : " + displayUnit.format()(unit.convertTo(displayUnit)(this.displayValue * unit.scale.scale )) + displayUnit.scale.token
+        return "[" + localAccountID + " " + name + "] : " + displayUnit.format()(unit.convertTo(displayUnit)(this.displayValue * unit.scale.scale ))
     }
 
 }
