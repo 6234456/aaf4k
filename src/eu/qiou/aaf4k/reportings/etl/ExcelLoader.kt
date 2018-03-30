@@ -3,48 +3,31 @@ package eu.qiou.aaf4k.reportings.etl
 import eu.qiou.aaf4k.reportings.AggregateAccount
 import eu.qiou.aaf4k.reportings.ProtoAccount
 import eu.qiou.aaf4k.reportings.ProtoReporting
-import org.apache.poi.hssf.usermodel.HSSFWorkbook
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import java.io.FileInputStream
+import eu.qiou.aaf4k.util.io.ExcelUtil
+import org.apache.poi.ss.usermodel.Row
 
 class ExcelLoader(var path:String, var sheetIndex: Int = 0, var sheetName: String? = null): DataLoader, StructureLoader {
     override fun loadStructure(reporting: ProtoReporting):ProtoReporting{
-
-        val inputStream = FileInputStream(path)
-        val wb = if (path.endsWith(".xls"))
-                    HSSFWorkbook(inputStream)
-                else
-                    XSSFWorkbook(inputStream)
-
-        val sht = if(sheetName != null)
-                wb.getSheet(sheetName)
-            else
-                wb.getSheetAt(sheetIndex)
-
-        val rows = sht.rowIterator()
-
         var tmpAggregateAccount:AggregateAccount? = null
 
-        while (rows.hasNext()){
-            val row = rows.next()
-
+        val f: (Row) -> Unit = {
             var c1 = ""
             var c2 = ""
 
-            if (row.getCell(0) != null)
-                c1 = row.getCell(0).stringCellValue.trim()
+            if (it.getCell(0) != null)
+                c1 = it.getCell(0).stringCellValue.trim()
 
-            if (row.getCell(1) != null)
-                c2 = row.getCell(1).stringCellValue.trim()
+            if (it.getCell(1) != null)
+                c2 = it.getCell(1).stringCellValue.trim()
 
             if(c1.length == 0 && c2.length == 0){
-                continue
+
             }else{
                 if(c1.length != 0){
                     val t1 = parseAccount(c1)
 
                     if(tmpAggregateAccount != null){
-                        reporting.addAggreateAccount(tmpAggregateAccount)
+                        reporting.addAggreateAccount(tmpAggregateAccount!!)
                     }
 
                     tmpAggregateAccount = AggregateAccount(id=t1.first, name = t1.second)
@@ -55,7 +38,7 @@ class ExcelLoader(var path:String, var sheetIndex: Int = 0, var sheetName: Strin
             }
         }
 
-        inputStream.close()
+        ExcelUtil.loopThroughRows(path, sheetIndex, sheetName, f)
 
         reporting.addAggreateAccount(tmpAggregateAccount!!)
 
@@ -74,7 +57,7 @@ class ExcelLoader(var path:String, var sheetIndex: Int = 0, var sheetName: Strin
         return Pair(a.toInt(), b)
     }
 
-    override fun loadData(): Map<Int, Long> {
+    override fun loadData(): Map<Int, Double> {
         return mapOf()
     }
 }

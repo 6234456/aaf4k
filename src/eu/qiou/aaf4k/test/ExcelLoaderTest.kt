@@ -13,7 +13,7 @@ class ExcelLoaderTest {
     @Test
     fun loadStructure() {
         val reporting =ExcelLoader("src/eu/qiou/aaf4k/demo/DemoStructure.xlsx").loadStructure(Balance(2018001, "Demo_Balance", LocalDate.now()))
-        //println(reporting)
+        println(reporting)
 
         val reporting1 =ExcelLoader("src/eu/qiou/aaf4k/demo/DemoStructure.xls",1).loadStructure(ProfitAndLoss(2018001, "Demo_Balance", TimeSpan.forYear(2018)))
         println(reporting1)
