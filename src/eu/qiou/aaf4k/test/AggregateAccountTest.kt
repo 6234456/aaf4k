@@ -18,7 +18,7 @@ class AggregateAccountTest {
         java.util.Locale.setDefault(Locale.GERMAN)
         val reportingInfo = ProtoReportingInfo(CurrencyUnit(UnitScale.THOUSAND))
 
-        val acc1 = ProtoAccount(1234, "acc1",120013, CurrencyUnit(UnitScale.THOUSAND), decimalPrecision = 0, reportingInfo = reportingInfo)
+        val acc1 = ProtoAccount(1234, "acc1",120, CurrencyUnit(UnitScale.THOUSAND), decimalPrecision = 0, reportingInfo = reportingInfo)
         val acc2 = ProtoAccount(1235, "acc2",220000, reportingInfo = reportingInfo)
         val acc3 = ProtoAccount(1238, "acc2",220000, reportingInfo = reportingInfo)
         val agg1 = AggregateAccount(1236, "agg1")
@@ -31,7 +31,7 @@ class AggregateAccountTest {
         agg2.addSubAccount(acc1)
 
         println(agg1.displayUnit)
-        println(agg1.value)
+        println(agg1.displayValue)
         println(agg1)
 
         println(agg1.checkDistinct())

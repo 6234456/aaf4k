@@ -27,7 +27,7 @@ class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccoun
         return res
     }
 
-    fun flatten():MutableList<ProtoAccount>{
+    fun flatten(sorted:Boolean = true):MutableList<ProtoAccount>{
 
         val res : MutableList<ProtoAccount> = mutableListOf()
         this.accounts.forEach{
@@ -39,9 +39,18 @@ class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccoun
             }
         }
 
-        res.sortBy { it.id }
+        if(sorted) res.sortBy { it.id }
 
         return res
+    }
+
+    fun count():Int{
+        return this.accounts.fold(0) { a, e ->
+            a + when{
+                e is AggregateAccount ->  e.count()
+                else -> 1
+            }
+        }
     }
 
     override fun toString(): String {
