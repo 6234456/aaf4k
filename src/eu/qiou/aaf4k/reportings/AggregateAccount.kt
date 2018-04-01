@@ -1,7 +1,7 @@
 package eu.qiou.aaf4k.reportings
 
 class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccount> = mutableSetOf<ProtoAccount>(), desc:String=""):ProtoAccount(
-        id=id, name=name, desc=desc) {
+        id=id, name=name, desc=desc, hasSubAccounts = true) {
 
     override var value = 0L
     get() =  accounts.fold(0L){a , b ->  a + b.value}
@@ -70,6 +70,12 @@ class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccoun
     private fun repeatString(times: Int, token: String ="\t"):String{
         if(times <= 0) return ""
         else return token + repeatString(times - 1)
+    }
+
+    override fun toJSON():String{
+        return "{id: $id, name: '$name', value: $value, displayValue: $displayValue, decimalPrecision: $decimalPrecision, desc: '$desc', hasSubAccounts: $hasSubAccounts, hasSuperAccounts: $hasSuperAccounts, localAccountID: $localAccountID, subAccounts: [" +
+                accounts.fold("") { a, b ->  a + (if(a.length == 0) "" else ",\n") + b.toJSON() } + "]}"
+
     }
 
 }

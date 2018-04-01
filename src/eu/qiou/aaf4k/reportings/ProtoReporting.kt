@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.reportings
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import eu.qiou.aaf4k.reportings.etl.DataLoader
 import eu.qiou.aaf4k.reportings.etl.StructureLoader
 
@@ -12,6 +13,10 @@ open class ProtoReporting(val id:Int, val name: String, var desc: String="",var 
                      var reportingInfo: ProtoReportingInfo = ProtoReportingInfo()) {
     fun getAccountByID(id: Int): ProtoAccount?{
         return accounts.find { it.id == id }
+    }
+
+    fun getComponentAccountByID(id: Int):ProtoAccount?{
+        return structure.find { it.id == id }
     }
 
     fun addAggreateAccount(aggregateAccount: AggregateAccount){
@@ -44,6 +49,11 @@ open class ProtoReporting(val id:Int, val name: String, var desc: String="",var 
         })
 
         return this
+    }
+
+    fun toJSON():String{
+        val mapper = jacksonObjectMapper()
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(structure)
     }
 
     override fun toString(): String {

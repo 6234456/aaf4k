@@ -19,7 +19,9 @@ class ExcelStructureLoaderTest {
         reporting.loadData(dataLoader = ExcelDataLoader("src/eu/qiou/aaf4k/demo/data.xlsx"))
         reporting1.loadData(dataLoader = ExcelDataLoader("src/eu/qiou/aaf4k/demo/data.xlsx", 1))
 
-        println(reporting)
-        println(reporting1)
+        // println(reporting)
+        // println(reporting1)
+        println(reporting.getComponentAccountByID(2)?.toJSON())
+
     }
 }

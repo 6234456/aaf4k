@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.reportings
 
 import eu.qiou.aaf4k.util.CurrencyUnit
+import eu.qiou.aaf4k.util.PercentageUnit
 import eu.qiou.aaf4k.util.ProtoUnit
 
 
@@ -47,6 +48,10 @@ open class ProtoAccount( var id: Int , var name: String , open var value:Long = 
 
     override fun toString(): String {
         return "[$localAccountID $name] : " + displayUnit.format()(unit.convertTo(displayUnit)(this.displayValue * unit.scale.scale ))
+    }
+
+    open fun toJSON():String {
+        return "{id: $id, name: '$name', value: $value, displayValue: $displayValue, decimalPrecision: $decimalPrecision, desc: '$desc', hasSubAccounts: $hasSubAccounts, hasSuperAccounts: $hasSuperAccounts, localAccountID:$localAccountID, scale: ${unit.scale}, isCurrency: ${unit is CurrencyUnit}, isPercentage: ${unit is PercentageUnit}}"
     }
 
 }
