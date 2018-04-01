@@ -58,7 +58,7 @@ class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccoun
     }
 
     private fun _toString(lvl:Int=0):String{
-        return repeatString(lvl) +"["+ id + " " + name + "]: {\n" +
+        return repeatString(lvl) +"[$id $name]: {\n" +
                 accounts.fold("") { a, b -> a +
                         if(b is AggregateAccount)
                             b._toString(lvl+1) + "\n"

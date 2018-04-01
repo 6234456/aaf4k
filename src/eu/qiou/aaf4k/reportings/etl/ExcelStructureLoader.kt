@@ -6,7 +6,7 @@ import eu.qiou.aaf4k.reportings.ProtoReporting
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.ss.usermodel.Row
 
-class ExcelLoader(var path:String, var sheetIndex: Int = 0, var sheetName: String? = null): DataLoader, StructureLoader {
+class ExcelStructureLoader(var path:String, var sheetIndex: Int = 0, var sheetName: String? = null): StructureLoader {
     override fun loadStructure(reporting: ProtoReporting):ProtoReporting{
         var tmpAggregateAccount:AggregateAccount? = null
 
@@ -55,9 +55,5 @@ class ExcelLoader(var path:String, var sheetIndex: Int = 0, var sheetName: Strin
 
         val (a, b) = reg2.split(content,2)
         return Pair(a.toInt(), b)
-    }
-
-    override fun loadData(): Map<Int, Double> {
-        return mapOf()
     }
 }

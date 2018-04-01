@@ -46,7 +46,7 @@ open class ProtoAccount( var id: Int , var name: String , open var value:Long = 
     }
 
     override fun toString(): String {
-        return "[" + localAccountID + " " + name + "] : " + displayUnit.format()(unit.convertTo(displayUnit)(this.displayValue * unit.scale.scale ))
+        return "[$localAccountID $name] : " + displayUnit.format()(unit.convertTo(displayUnit)(this.displayValue * unit.scale.scale ))
     }
 
 }

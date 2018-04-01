@@ -35,7 +35,7 @@ open class ProtoReporting(val id:Int, val name: String, var desc: String="",var 
             val acc = this.getAccountByID(a)
             if(!b.equals(0L)){
                 if(acc == null)
-                    throw Exception("the account id '" + a + "' missing!" )
+                    throw Exception("the account id '$a' missing!" )
                 else {
                     acc.decimalPrecision = dataLoader.getDecimalPrecision()
                     acc.displayValue = b
