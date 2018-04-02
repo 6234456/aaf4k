@@ -21,7 +21,7 @@ class ExcelStructureLoaderTest {
 
         // println(reporting)
         // println(reporting1)
-        println(reporting.getComponentAccountByID(2)?.toJSON())
+        println(reporting.toJSON())
 
     }
 }

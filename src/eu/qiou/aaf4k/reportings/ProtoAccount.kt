@@ -3,6 +3,7 @@ package eu.qiou.aaf4k.reportings
 import eu.qiou.aaf4k.util.CurrencyUnit
 import eu.qiou.aaf4k.util.PercentageUnit
 import eu.qiou.aaf4k.util.ProtoUnit
+import eu.qiou.aaf4k.util.io.JSONable
 
 
 /**
@@ -16,7 +17,7 @@ import eu.qiou.aaf4k.util.ProtoUnit
 open class ProtoAccount( var id: Int , var name: String , open var value:Long = 0, var unit: ProtoUnit = CurrencyUnit(),
                          var decimalPrecision: Int = 2, var desc: String="",
                          var reportingInfo: ProtoReportingInfo = ProtoReportingInfo(), var hasSubAccounts: Boolean = false, var hasSuperAccounts: Boolean = false,
-                         var localAccountID: String = id.toString()): Comparable<ProtoAccount>{
+                         var localAccountID: String = id.toString()): Comparable<ProtoAccount>, JSONable{
     var displayUnit: ProtoUnit = reportingInfo.displayUnit
     var superAccount: AggregateAccount? = null
 
@@ -50,7 +51,7 @@ open class ProtoAccount( var id: Int , var name: String , open var value:Long = 
         return "[$localAccountID $name] : " + displayUnit.format()(unit.convertTo(displayUnit)(this.displayValue * unit.scale.scale ))
     }
 
-    open fun toJSON():String {
+    override fun toJSON():String {
         return "{id: $id, name: '$name', value: $value, displayValue: $displayValue, decimalPrecision: $decimalPrecision, desc: '$desc', hasSubAccounts: $hasSubAccounts, hasSuperAccounts: $hasSuperAccounts, localAccountID:$localAccountID, scale: ${unit.scale}, isCurrency: ${unit is CurrencyUnit}, isPercentage: ${unit is PercentageUnit}}"
     }
 

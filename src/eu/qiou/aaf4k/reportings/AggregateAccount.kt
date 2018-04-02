@@ -1,5 +1,7 @@
 package eu.qiou.aaf4k.reportings
 
+import eu.qiou.aaf4k.util.strings.CollectionToString
+
 class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccount> = mutableSetOf<ProtoAccount>(), desc:String=""):ProtoAccount(
         id=id, name=name, desc=desc, hasSubAccounts = true) {
 
@@ -73,8 +75,8 @@ class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccoun
     }
 
     override fun toJSON():String{
-        return "{id: $id, name: '$name', value: $value, displayValue: $displayValue, decimalPrecision: $decimalPrecision, desc: '$desc', hasSubAccounts: $hasSubAccounts, hasSuperAccounts: $hasSuperAccounts, localAccountID: $localAccountID, subAccounts: [" +
-                accounts.fold("") { a, b ->  a + (if(a.length == 0) "" else ",\n") + b.toJSON() } + "]}"
+        return "{id: $id, name: '$name', value: $value, displayValue: $displayValue, decimalPrecision: $decimalPrecision, desc: '$desc', hasSubAccounts: $hasSubAccounts, hasSuperAccounts: $hasSuperAccounts, localAccountID: $localAccountID, subAccounts: " +
+                CollectionToString.mkJSON(accounts, ",\n")  + "}"
 
     }
 

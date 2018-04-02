@@ -1,8 +1,10 @@
 package eu.qiou.aaf4k.reportings
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import eu.qiou.aaf4k.reportings.etl.AccountingFrameDataLoader
 import eu.qiou.aaf4k.reportings.etl.DataLoader
 import eu.qiou.aaf4k.reportings.etl.StructureLoader
+import eu.qiou.aaf4k.util.io.JSONable
+import eu.qiou.aaf4k.util.strings.CollectionToString
 
 
 /**
@@ -10,7 +12,7 @@ import eu.qiou.aaf4k.reportings.etl.StructureLoader
  * @property structure list of accounts in structure
  */
 open class ProtoReporting(val id:Int, val name: String, var desc: String="",var accounts: MutableSet<ProtoAccount> = mutableSetOf(), var structure: MutableList<AggregateAccount> = mutableListOf(),
-                     var reportingInfo: ProtoReportingInfo = ProtoReportingInfo()) {
+                     var reportingInfo: ProtoReportingInfo = ProtoReportingInfo()) : JSONable {
     fun getAccountByID(id: Int): ProtoAccount?{
         return accounts.find { it.id == id }
     }
@@ -28,11 +30,11 @@ open class ProtoReporting(val id:Int, val name: String, var desc: String="",var 
         return this.accounts.count() != structure.fold(0){a, b -> a + b.count()}
     }
 
-    fun loadStructure(structureLoader: StructureLoader):ProtoReporting {
+    open fun loadStructure(structureLoader: StructureLoader):ProtoReporting {
         return structureLoader.loadStructure(this)
     }
 
-    fun loadData(dataLoader: DataLoader):ProtoReporting{
+    open fun loadData(dataLoader: DataLoader):ProtoReporting{
         if(structure.count() == 0)
             throw Exception("Try to load data into the empty structure!")
 
@@ -51,12 +53,11 @@ open class ProtoReporting(val id:Int, val name: String, var desc: String="",var 
         return this
     }
 
-    fun toJSON():String{
-        val mapper = jacksonObjectMapper()
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(structure)
+    override fun toJSON():String{
+        return CollectionToString.mkJSON(structure)
     }
 
     override fun toString(): String {
-        return structure.fold(""){a, b -> a + b.toString() + "\n"}
+        return CollectionToString.mkString(structure)
     }
 }
