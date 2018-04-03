@@ -2,7 +2,7 @@ package eu.qiou.aaf4k.reportings.accounting
 
 import eu.qiou.aaf4k.reportings.ProtoReporting
 import eu.qiou.aaf4k.reportings.ProtoReportingInfo
-import eu.qiou.aaf4k.util.TimeAttribute
+import eu.qiou.aaf4k.util.time.TimeAttribute
 import java.time.LocalDate
 
 /**

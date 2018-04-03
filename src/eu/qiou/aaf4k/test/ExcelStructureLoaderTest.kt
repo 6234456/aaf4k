@@ -4,7 +4,7 @@ import eu.qiou.aaf4k.reportings.accounting.Balance
 import eu.qiou.aaf4k.reportings.accounting.ProfitAndLoss
 import eu.qiou.aaf4k.reportings.etl.ExcelDataLoader
 import eu.qiou.aaf4k.reportings.etl.ExcelStructureLoader
-import eu.qiou.aaf4k.util.TimeSpan
+import eu.qiou.aaf4k.util.time.TimeSpan
 import org.junit.Test
 
 import java.time.LocalDate
