@@ -4,6 +4,7 @@ import eu.qiou.aaf4k.util.CurrencyUnit
 import eu.qiou.aaf4k.util.PercentageUnit
 import eu.qiou.aaf4k.util.ProtoUnit
 import eu.qiou.aaf4k.util.io.JSONable
+import java.util.*
 
 
 /**
@@ -48,7 +49,7 @@ open class ProtoAccount( var id: Int , var name: String , open var value:Long = 
     }
 
     override fun toString(): String {
-        return "[$localAccountID $name] : " + displayUnit.format()(unit.convertTo(displayUnit)(this.displayValue * unit.scale.scale ))
+        return "[$localAccountID $name] : " +  "${if(displayUnit is CurrencyUnit) (displayUnit as CurrencyUnit).getSymbol() else ""} "  + displayUnit.format()(unit.convertTo(displayUnit)(this.displayValue * unit.scale.scale ))
     }
 
     override fun toJSON():String {
