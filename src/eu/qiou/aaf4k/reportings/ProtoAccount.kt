@@ -22,10 +22,10 @@ open class ProtoAccount(val id: Int, val name: String, open var value:Long = 0, 
     var superAccount: AggregateAccount? = null
 
     var displayValue: Double = 0.0
-    get() = when{
+    get() = Math.round(when{
         unit is CurrencyUnit -> unit.convertFxTo(displayUnit,timeParameters)(value / Math.pow(10.0, decimalPrecision.toDouble()))
         else -> unit.convertTo(displayUnit)(value / Math.pow(10.0, decimalPrecision.toDouble()))
-    }
+        }* Math.pow(10.0, decimalPrecision.toDouble())) / Math.pow(10.0, decimalPrecision.toDouble())
     set(v) {
         if(displayUnit.scalar.equals(this.unit.scalar))
             this.value = Math.round(v * Math.pow(10.0, decimalPrecision.toDouble()))

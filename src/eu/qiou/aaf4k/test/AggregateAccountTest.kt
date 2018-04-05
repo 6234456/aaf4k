@@ -15,7 +15,7 @@ class AggregateAccountTest {
     fun addSubAccount() {
 
         val acc1 = ProtoAccount(1234, "acc1",120, CurrencyUnit(UnitScalar.THOUSAND), decimalPrecision = 0, timeParameters = TimeParameters.realTime())
-        val acc2 = ProtoAccount(1235, "acc2",220000, timeParameters = TimeParameters.realTime())
+        val acc2 = ProtoAccount(1235, "acc2",220000, timeParameters = TimeParameters.realTime(), displayUnit = CurrencyUnit(currency = Currency.getInstance("EUR")))
         val acc3 = ProtoAccount(1238, "acc2",220000, timeParameters = TimeParameters.realTime())
         val agg1 = AggregateAccount(1236, "agg1")
         val agg2 = AggregateAccount(1237, "agg1")
@@ -33,5 +33,6 @@ class AggregateAccountTest {
         println(agg1.checkDistinct())
 
         println(agg2.superAccount == agg1)
+        println(acc2.displayValue)
     }
 }
