@@ -5,9 +5,12 @@ import eu.qiou.aaf4k.util.io.FxUtil
 import eu.qiou.aaf4k.util.time.TimeParameters
 import java.util.*
 
-class ForeignExchange(val functionalCurrency: Currency= Accounting.DEFAULT_CURRENCY, val reportingCurrency: Currency = Accounting.DEFAULT_CURRENCY, var rate: Long? = null, val decimalPrecision: Int = 5, val timeParameters: TimeParameters) {
+data class ForeignExchange(val functionalCurrency: Currency= Accounting.DEFAULT_CURRENCY, val reportingCurrency: Currency = Accounting.DEFAULT_CURRENCY, val timeParameters: TimeParameters) {
+    var rate: Long? = null
+    var decimalPrecision: Int = 5
+
     var displayRate: Double? = null
-        get() = rate!! / Math.pow(10.0, decimalPrecision.toDouble())
+        get() = if(rate == null) null else rate!! / Math.pow(10.0, decimalPrecision.toDouble())
         set(v) {
             rate = Math.round(v!! * Math.pow(10.0, decimalPrecision.toDouble()))
             field = v
@@ -22,12 +25,13 @@ class ForeignExchange(val functionalCurrency: Currency= Accounting.DEFAULT_CURRE
         }
     }
 
-    fun fetchFxRate():Double {
+    fun fetchFxRate(forceRefresh:Boolean = false):Double {
         if (functionalCurrency.equals(reportingCurrency)){
+            displayRate = 1.0
             return 1.0
         }
 
-        return FxUtil.fetch(this)
+        return FxUtil.fetch(this, forceRefresh)
     }
 
     override fun toString(): String {

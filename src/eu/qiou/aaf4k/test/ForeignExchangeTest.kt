@@ -4,15 +4,19 @@ import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.ForeignExchange
 import org.junit.Test
 
-import java.time.LocalDate
 import java.util.*
 
 class ForeignExchangeTest {
     @Test
     fun getDecimalPrecision() {
-        val fx = ForeignExchange(functionalCurrency = Currency.getInstance("EUR"), timeParameters = TimeParameters.realTime(), decimalPrecision = 4)
-        fx.displayRate = 1.123456
-        println(fx.timeParameters)
+        val fx = ForeignExchange(functionalCurrency = Currency.getInstance("EUR"), timeParameters = TimeParameters.realTime())
+        val fx1 = ForeignExchange(functionalCurrency = Currency.getInstance("EUR"), timeParameters = TimeParameters.realTime())
+        fx.decimalPrecision = 3
+        fx.fetchFxRate()
+        fx1.fetchFxRate()
+
         println(fx)
+        println(fx1)
+        println(fx1 == fx)
     }
 }
