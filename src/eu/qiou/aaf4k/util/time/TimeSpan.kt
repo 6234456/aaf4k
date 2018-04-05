@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.util.time
 
 import java.time.LocalDate
+import java.time.Period
 import java.time.temporal.ChronoUnit
 import java.util.ArrayList
 
@@ -13,9 +14,7 @@ import java.util.ArrayList
  */
 data class TimeSpan(var start: LocalDate, var end: LocalDate) {
 
-    private constructor():this(LocalDate.now(), LocalDate.now()){
-
-    }
+    private constructor():this(LocalDate.now(), LocalDate.now()){}
 
     init {
         assert(start.compareTo(end) <= 0)
@@ -23,6 +22,18 @@ data class TimeSpan(var start: LocalDate, var end: LocalDate) {
 
     operator fun contains(date: LocalDate):Boolean{
         return date.compareTo(start) >= 0 && date.compareTo(end) <= 0
+    }
+
+    operator fun contains(span: TimeSpan):Boolean{
+        return span.start.compareTo(start) >= 0 && span.end.compareTo(end) <= 0
+    }
+
+    operator fun plus(period: Period):TimeSpan {
+        return TimeSpan(start.plus(period), end.plus(period))
+    }
+
+    operator fun minus(period: Period):TimeSpan {
+        return TimeSpan(start.minus(period), end.minus(period))
     }
 
     fun drillDown(amount: Long, unit: ChronoUnit): ArrayList<TimeSpan> {
@@ -60,4 +71,13 @@ data class TimeSpan(var start: LocalDate, var end: LocalDate) {
             return TimeSpan(start, LocalDate.of(year, quarter * 3, end.lengthOfMonth()))
         }
     }
+}
+
+operator fun ChronoUnit.times(n: Int):Period = when{
+    this == ChronoUnit.DAYS -> Period.ofDays(n)
+    this == ChronoUnit.WEEKS -> Period.ofWeeks(n)
+    this == ChronoUnit.MONTHS -> Period.ofMonths(n)
+    this == ChronoUnit.YEARS -> Period.ofYears(n)
+    this == ChronoUnit.DECADES -> Period.ofYears(n * 10)
+    else -> throw Exception("unimplemented method")
 }

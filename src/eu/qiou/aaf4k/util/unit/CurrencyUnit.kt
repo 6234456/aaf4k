@@ -13,14 +13,15 @@ data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var c
         val f: (Number) -> String =
                   when(scalar){
                             UnitScalar.UNIT         ->  { n -> currencyCode + " " + String.format(locale, "%,.2f", n) }
-                            else                    ->  { n -> currencyCode + " " + String.format(locale, "%,d", n.toDouble().roundToInt()) + " " + when(scalar){
-                                                                                                                                                                                    UnitScalar.THOUSAND         -> "thousand"
-                                                                                                                                                                                    UnitScalar.TEN_THOUSAND     -> "ten thousand"
-                                                                                                                                                                                    UnitScalar.MILLION          -> "million"
-                                                                                                                                                                                    UnitScalar.HUNDRED_MILLION  -> "hundred million"
-                                                                                                                                                                                    UnitScalar.BILLION          -> "billion"
-                                                                                                                                                                                    else                        -> ""
-                                                                                                                                                                                }
+                            else                    ->  { n -> currencyCode + " " + String.format(locale, "%,d", n.toDouble().roundToInt()) + " "+
+                                when(scalar){
+                                    UnitScalar.THOUSAND         -> "thousand"
+                                    UnitScalar.TEN_THOUSAND     -> "ten thousand"
+                                    UnitScalar.MILLION          -> "million"
+                                    UnitScalar.HUNDRED_MILLION  -> "hundred million"
+                                    UnitScalar.BILLION          -> "billion"
+                                    else                        -> ""
+                                }
                             }
                         }
         return f
@@ -33,7 +34,6 @@ data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var c
     override fun convertTo(unit: ProtoUnit): (Double) -> Double {
         if(!(unit is CurrencyUnit))
             throw Exception("Different Types are not convertible. $unit to Currency")
-
 
         return super.convertTo(unit)
     }

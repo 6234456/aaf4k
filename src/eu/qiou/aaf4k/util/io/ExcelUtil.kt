@@ -49,7 +49,6 @@ class ExcelUtil {
                     callback(row)
                 }
             }
-
             processWorksheet(path, sheetIndex, sheetName, f)
         }
     }
