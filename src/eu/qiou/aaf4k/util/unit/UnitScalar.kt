@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.util.unit
 
 
+
 enum class UnitScalar(val scalar: Double, val token: String){
     UNIT(1.0, ""),
     THOUSAND(1000.0, "k"),

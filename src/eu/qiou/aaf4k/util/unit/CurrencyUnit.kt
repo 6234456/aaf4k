@@ -4,6 +4,7 @@ import eu.qiou.aaf4k.reportings.accounting.Accounting
 import java.util.*
 import kotlin.math.roundToInt
 
+
 data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var currency: Currency =  Accounting.DEFAULT_CURRENCY ) : ProtoUnit(scalar) {
 
     private val currencyCode:String = currency.currencyCode

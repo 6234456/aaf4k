@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.util.unit
 
 import java.util.*
 
+
 class PercentageUnit : ProtoUnit {
     private constructor()
 

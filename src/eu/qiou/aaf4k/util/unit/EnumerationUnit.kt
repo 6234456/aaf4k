@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.util.unit
 
 import java.util.*
 
+
 class EnumerationUnit(val unitSingular:String, var unitPlural:String = unitSingular, var unitNull:String = unitSingular):ProtoUnit() {
     override fun format(locale: Locale): (Number) -> String {
         val f : (Number) -> String = { a->
