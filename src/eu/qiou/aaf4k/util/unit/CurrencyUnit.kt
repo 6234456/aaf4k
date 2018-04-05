@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.util.unit
 
 import eu.qiou.aaf4k.reportings.accounting.Accounting
+import eu.qiou.aaf4k.util.time.TimeParameters
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -36,6 +37,25 @@ data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var c
             throw Exception("Different Types are not convertible. $unit to Currency")
 
         return super.convertTo(unit)
+    }
+
+    fun convertFxTo(targetCurrency: ProtoUnit, timeParameters: TimeParameters?=null): (Double) -> Double {
+        if(!(targetCurrency is CurrencyUnit))
+            throw Exception("Different Types are not convertible. $targetCurrency to Currency")
+
+        if(currency.equals(targetCurrency.currency))
+            return super.convertTo(targetCurrency)
+
+        if(timeParameters == null)
+            throw Exception("Time Parameters should be specified!")
+
+        val fxRate = ForeignExchange(functionalCurrency = currency, reportingCurrency = targetCurrency.currency, timeParameters = timeParameters).fetchFxRate()
+
+        val f : (Double) -> Double = {
+            super.convertTo(targetCurrency)(it * fxRate)
+        }
+
+        return f
     }
 
     fun getSymbol():String {

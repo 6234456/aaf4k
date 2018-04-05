@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.reportings
 
 import eu.qiou.aaf4k.util.strings.CollectionToString
+import eu.qiou.aaf4k.util.time.TimeParameters
 
 class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccount> = mutableSetOf<ProtoAccount>(), desc:String=""):ProtoAccount(
         id=id, name=name, desc=desc, hasSubAccounts = true) {

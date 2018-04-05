@@ -4,6 +4,7 @@ import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.PercentageUnit
 import eu.qiou.aaf4k.util.unit.ProtoUnit
 import eu.qiou.aaf4k.util.io.JSONable
+import eu.qiou.aaf4k.util.time.TimeParameters
 
 
 /**
@@ -14,22 +15,21 @@ import eu.qiou.aaf4k.util.io.JSONable
  * @param unit specify the unit stored in the value
  */
 
-open class ProtoAccount(var id: Int, var name: String, open var value:Long = 0, var unit: ProtoUnit = CurrencyUnit(),
-                        var decimalPrecision: Int = 2, var desc: String="",
-                        var reportingInfo: ProtoReportingInfo = ProtoReportingInfo(), var hasSubAccounts: Boolean = false, var hasSuperAccounts: Boolean = false,
+open class ProtoAccount(val id: Int, val name: String, open var value:Long = 0, val unit: ProtoUnit = CurrencyUnit(),
+                        var decimalPrecision: Int = 2, val desc: String="", var timeParameters: TimeParameters? = null,
+                        var displayUnit:ProtoUnit = CurrencyUnit(), var hasSubAccounts: Boolean = false, var hasSuperAccounts: Boolean = false,
                         var localAccountID: String = id.toString()): Comparable<ProtoAccount>, JSONable{
-    var displayUnit: ProtoUnit = reportingInfo.displayUnit
     var superAccount: AggregateAccount? = null
 
-    var displayValue: Double
-    get() = value / Math.pow(10.0, decimalPrecision.toDouble())
-    set(v) {setDisplayValue(v)}
-
-    private fun setDisplayValue(v : Double) : Double{
+    var displayValue: Double = 0.0
+    get() = when{
+        unit is CurrencyUnit -> unit.convertFxTo(displayUnit,timeParameters)(value / Math.pow(10.0, decimalPrecision.toDouble()))
+        else -> unit.convertTo(displayUnit)(value / Math.pow(10.0, decimalPrecision.toDouble()))
+    }
+    set(v) {
         if(displayUnit.scalar.equals(this.unit.scalar))
             this.value = Math.round(v * Math.pow(10.0, decimalPrecision.toDouble()))
-
-        return v
+        field = v
     }
 
     override fun equals(other: Any?): Boolean {
@@ -43,7 +43,7 @@ open class ProtoAccount(var id: Int, var name: String, open var value:Long = 0, 
         return id.hashCode()
     }
 
-    override fun compareTo(other: ProtoAccount): Int {
+    override operator fun compareTo(other: ProtoAccount): Int {
         return id.compareTo(other.id)
     }
 

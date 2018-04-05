@@ -1,12 +1,11 @@
 package eu.qiou.aaf4k.util.unit
 
 import eu.qiou.aaf4k.reportings.accounting.Accounting
-import eu.qiou.aaf4k.util.time.TimeAttribute
-import eu.qiou.aaf4k.util.time.TimeSpan
-import java.time.LocalDate
+import eu.qiou.aaf4k.util.io.FxUtil
+import eu.qiou.aaf4k.util.time.TimeParameters
 import java.util.*
 
-class ForeignExchange(val functionalCurrency: Currency= Accounting.DEFAULT_CURRENCY, val reportingCurrency: Currency = Accounting.DEFAULT_CURRENCY, var rate: Long? = null, val decimalPrecision: Int = 5, val timeSpan: TimeSpan?=null, val timePoint: LocalDate?=null) {
+class ForeignExchange(val functionalCurrency: Currency= Accounting.DEFAULT_CURRENCY, val reportingCurrency: Currency = Accounting.DEFAULT_CURRENCY, var rate: Long? = null, val decimalPrecision: Int = 5, val timeParameters: TimeParameters) {
     var displayRate: Double? = null
         get() = rate!! / Math.pow(10.0, decimalPrecision.toDouble())
         set(v) {
@@ -14,11 +13,8 @@ class ForeignExchange(val functionalCurrency: Currency= Accounting.DEFAULT_CURRE
             field = v
         }
 
-    val timeAttribute: TimeAttribute = when{
-        timeSpan    != null && timePoint    == null     -> TimeAttribute.TIME_SPAN
-        timePoint   != null && timeSpan     == null     -> TimeAttribute.TIME_POINT
-        else -> throw Exception("Specification Error: One and only one of the attribute timeSpan/timePoint should be specified!")
-    }
+    private val timePoint = timeParameters.timePoint
+    private val timeSpan = timeParameters.timeSpan
 
     init {
         if (functionalCurrency.equals(reportingCurrency)){
@@ -26,7 +22,15 @@ class ForeignExchange(val functionalCurrency: Currency= Accounting.DEFAULT_CURRE
         }
     }
 
+    fun fetchFxRate():Double {
+        if (functionalCurrency.equals(reportingCurrency)){
+            return 1.0
+        }
+
+        return FxUtil.fetch(this)
+    }
+
     override fun toString(): String {
-        return "Exchange rate ${if(timePoint == null) "in ${timeSpan}" else  "on ${timePoint}"} ${reportingCurrency.currencyCode}:${functionalCurrency.currencyCode} is ${String.format(Accounting.DEFAULT_LOCALE, "%.${decimalPrecision}f", displayRate)}."
+        return "Exchange rate ${if(timePoint == null) "in ${timeSpan}" else  "on ${timePoint}"} of ${reportingCurrency.currencyCode}:${functionalCurrency.currencyCode} is ${String.format(Accounting.DEFAULT_LOCALE, "%.${decimalPrecision}f", displayRate)}."
     }
 }

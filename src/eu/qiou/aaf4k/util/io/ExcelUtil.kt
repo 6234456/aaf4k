@@ -7,8 +7,7 @@ import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.FileInputStream
 
-class ExcelUtil {
-    companion object {
+object ExcelUtil {
 
         fun processWorkbook(path: String, callback: (Workbook)-> Unit){
             val inputStream = FileInputStream(path)
@@ -52,4 +51,3 @@ class ExcelUtil {
             processWorksheet(path, sheetIndex, sheetName, f)
         }
     }
-}

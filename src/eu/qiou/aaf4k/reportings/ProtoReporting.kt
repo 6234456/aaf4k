@@ -1,18 +1,21 @@
 package eu.qiou.aaf4k.reportings
 
-import eu.qiou.aaf4k.reportings.etl.AccountingFrameDataLoader
 import eu.qiou.aaf4k.reportings.etl.DataLoader
 import eu.qiou.aaf4k.reportings.etl.StructureLoader
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.strings.CollectionToString
+import eu.qiou.aaf4k.util.time.TimeParameters
+import eu.qiou.aaf4k.util.unit.CurrencyUnit
+import eu.qiou.aaf4k.util.unit.ProtoUnit
 
 
 /**
  * @property accounts flattened set of accounts
  * @property structure list of accounts in structure
  */
-open class ProtoReporting(val id:Int, val name: String, var desc: String="",var accounts: MutableSet<ProtoAccount> = mutableSetOf(), var structure: MutableList<AggregateAccount> = mutableListOf(),
-                     var reportingInfo: ProtoReportingInfo = ProtoReportingInfo()) : JSONable {
+open class ProtoReporting(val id:Int, val name: String, var desc: String="", var accounts: MutableSet<ProtoAccount> = mutableSetOf(), var structure: MutableList<AggregateAccount> = mutableListOf(),
+                          var displayUnit: ProtoUnit = CurrencyUnit(),
+                          val timeParameters: TimeParameters) : JSONable {
     fun getAccountByID(id: Int): ProtoAccount?{
         return accounts.find { it.id == id }
     }

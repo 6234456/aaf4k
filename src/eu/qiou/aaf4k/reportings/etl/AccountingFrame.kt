@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.reportings.etl
 
 import eu.qiou.aaf4k.reportings.ProtoAccount
 import eu.qiou.aaf4k.reportings.ProtoReporting
+import eu.qiou.aaf4k.util.time.TimeParameters
 
 /**
  * in some cases, the account data info is unknown, but the structure is pre-defined based on, for example, the account id.
@@ -11,7 +12,7 @@ import eu.qiou.aaf4k.reportings.ProtoReporting
  * the orginially loosely coupled data and structure are combined in the accounting frame
  */
 
-abstract class AccountingFrame(id: Int, name: String):ProtoReporting(id, name) {
+abstract class AccountingFrame(id: Int, name: String):ProtoReporting(id, name, timeParameters = TimeParameters()) {
 
     abstract fun addAccount(account:ProtoAccount)
 
@@ -21,7 +22,7 @@ abstract class AccountingFrame(id: Int, name: String):ProtoReporting(id, name) {
         }
 
         dataLoader.loadAccountingFrameData().forEach({ it ->
-            val acc = dataLoader.parseAccount(it, this.reportingInfo)
+            val acc = dataLoader.parseAccount(it, this.displayUnit)
             this.addAccount(acc)
         })
 
