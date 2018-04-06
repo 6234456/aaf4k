@@ -1,12 +1,12 @@
 package eu.qiou.aaf4k.util.unit
 
-import eu.qiou.aaf4k.reportings.accounting.Accounting
+import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.util.time.TimeParameters
 import java.util.*
 import kotlin.math.roundToInt
 
 
-data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var currency: Currency =  Accounting.DEFAULT_CURRENCY ) : ProtoUnit(scalar) {
+data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var currency: Currency =  GlobalConfiguration.DEFAULT_CURRENCY ) : ProtoUnit(scalar) {
 
     private val currencyCode:String = currency.currencyCode
 
@@ -47,7 +47,7 @@ data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var c
             return super.convertTo(targetCurrency)
 
         if(timeParameters == null)
-            throw Exception("Time Parameters should be specified!")
+            throw Exception("In case of foreign exchange, time parameters should be specified!")
 
         val fxRate = ForeignExchange(functionalCurrency = currency, reportingCurrency = targetCurrency.currency, timeParameters = timeParameters).fetchFxRate()
 

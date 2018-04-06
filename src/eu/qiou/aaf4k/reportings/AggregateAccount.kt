@@ -1,20 +1,51 @@
 package eu.qiou.aaf4k.reportings
 
 import eu.qiou.aaf4k.util.strings.CollectionToString
-import eu.qiou.aaf4k.util.time.TimeParameters
+import eu.qiou.aaf4k.util.strings.StringUtil.repeatString
 
-class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccount> = mutableSetOf<ProtoAccount>(), desc:String=""):ProtoAccount(
+class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccount> = mutableSetOf<ProtoAccount>(), desc:String=""):ProtoAccount(
         id=id, name=name, desc=desc, hasSubAccounts = true) {
 
     override var value = 0L
     get() =  accounts.fold(0L){a , b ->  a + b.value}
 
-    fun addSubAccount(account: ProtoAccount){
 
+    operator fun contains(account: ProtoAccount):Boolean {
+        return accounts.contains(account)
+    }
+
+    operator fun plus(account: ProtoAccount): AggregateAccount{
+        addSubAccount(account)
+        return this
+    }
+
+    operator fun minus(account: ProtoAccount): AggregateAccount{
+        removeRecursiveSubAccount(account)
+        return this
+    }
+
+    fun addSubAccount(account: ProtoAccount){
         account.hasSuperAccounts = true
         account.superAccount = this
 
         accounts.add(account)
+    }
+
+    fun removeRecursiveSubAccount(account: ProtoAccount): Boolean{
+        this.accounts
+                .forEach{
+                            a -> if(account.equals(a)){
+                                    if(a is AggregateAccount) {
+                                        a.removeRecursiveSubAccount(account)
+                                    }
+                                    else {
+                                        accounts.remove(a)
+                                        return true
+                                    }
+                                }
+                        }
+
+        return false
     }
 
     fun checkDistinct(): MutableSet<ProtoAccount> {
@@ -56,6 +87,7 @@ class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccoun
         }
     }
 
+    // TODO("Extract the recursive toString to util.io")
     override fun toString(): String {
         return _toString()
     }
@@ -68,11 +100,6 @@ class AggregateAccount(id:Int, name:String, var accounts: MutableSet<ProtoAccoun
                         else
                             repeatString(lvl+1) + b.toString() + "\n "} +
                 repeatString(lvl) +"}"
-    }
-
-    private fun repeatString(times: Int, token: String ="\t"):String{
-        if(times <= 0) return ""
-        else return token + repeatString(times - 1)
     }
 
     override fun toJSON():String{

@@ -5,13 +5,11 @@ import eu.qiou.aaf4k.reportings.ProtoAccount
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.UnitScalar
-import org.junit.Test
 
 import java.util.*
 
 class AggregateAccountTest {
 
-    @Test
     fun addSubAccount() {
 
         val acc1 = ProtoAccount(1234, "acc1",120, CurrencyUnit(UnitScalar.THOUSAND), decimalPrecision = 0, timeParameters = TimeParameters.realTime())

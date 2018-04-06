@@ -16,20 +16,29 @@ import eu.qiou.aaf4k.util.time.TimeParameters
  */
 
 open class ProtoAccount(val id: Int, val name: String, open var value:Long = 0, val unit: ProtoUnit = CurrencyUnit(),
-                        var decimalPrecision: Int = 2, val desc: String="", var timeParameters: TimeParameters? = null,
+                        var decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, val desc: String="", var timeParameters: TimeParameters? = null,
                         var displayUnit:ProtoUnit = CurrencyUnit(), var hasSubAccounts: Boolean = false, var hasSuperAccounts: Boolean = false,
                         var localAccountID: String = id.toString()): Comparable<ProtoAccount>, JSONable{
     var superAccount: AggregateAccount? = null
 
     var displayValue: Double = 0.0
-    get() = Math.round(when{
-        unit is CurrencyUnit -> unit.convertFxTo(displayUnit,timeParameters)(value / Math.pow(10.0, decimalPrecision.toDouble()))
-        else -> unit.convertTo(displayUnit)(value / Math.pow(10.0, decimalPrecision.toDouble()))
-        }* Math.pow(10.0, decimalPrecision.toDouble())) / Math.pow(10.0, decimalPrecision.toDouble())
+    get() = roundUpTo(when{
+            unit is CurrencyUnit    -> unit.convertFxTo(displayUnit,timeParameters)(storeToDisplay())
+            else                    -> unit.convertTo(displayUnit)(storeToDisplay())
+        })
+
     set(v) {
         if(displayUnit.scalar.equals(this.unit.scalar))
             this.value = Math.round(v * Math.pow(10.0, decimalPrecision.toDouble()))
         field = v
+    }
+
+    private fun roundUpTo(v: Double, decimalPlace: Int = decimalPrecision):Double{
+        return Math.round(v * Math.pow(10.0, decimalPlace.toDouble())) / Math.pow(10.0, decimalPlace.toDouble())
+    }
+
+    private fun storeToDisplay(v: Long = value, decimalPlace: Int = decimalPrecision): Double {
+        return v.toDouble()/ Math.pow(10.0, decimalPlace.toDouble())
     }
 
     override fun equals(other: Any?): Boolean {
@@ -48,7 +57,7 @@ open class ProtoAccount(val id: Int, val name: String, open var value:Long = 0, 
     }
 
     override fun toString(): String {
-        return "[$localAccountID $name] : " +  displayUnit.format()(unit.convertTo(displayUnit)(this.displayValue * unit.scalar.scalar ))
+        return "[$localAccountID $name] : ${displayUnit.format()(displayValue)}"
     }
 
     override fun toJSON():String {

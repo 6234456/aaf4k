@@ -1,11 +1,11 @@
 package eu.qiou.aaf4k.util.unit
 
-import eu.qiou.aaf4k.reportings.accounting.Accounting
+import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.util.io.FxUtil
 import eu.qiou.aaf4k.util.time.TimeParameters
 import java.util.*
 
-data class ForeignExchange(val functionalCurrency: Currency= Accounting.DEFAULT_CURRENCY, val reportingCurrency: Currency = Accounting.DEFAULT_CURRENCY, val timeParameters: TimeParameters) {
+data class ForeignExchange(val functionalCurrency: Currency= GlobalConfiguration.DEFAULT_CURRENCY, val reportingCurrency: Currency = GlobalConfiguration.DEFAULT_CURRENCY, val timeParameters: TimeParameters) {
     var rate: Long? = null
     var decimalPrecision: Int = 5
 
@@ -35,6 +35,6 @@ data class ForeignExchange(val functionalCurrency: Currency= Accounting.DEFAULT_
     }
 
     override fun toString(): String {
-        return "Exchange rate ${if(timePoint == null) "in ${timeSpan}" else  "on ${timePoint}"} of ${reportingCurrency.currencyCode}:${functionalCurrency.currencyCode} is ${String.format(Accounting.DEFAULT_LOCALE, "%.${decimalPrecision}f", displayRate)}."
+        return "Exchange rate ${if(timePoint == null) "in ${timeSpan}" else  "on ${timePoint}"} of ${reportingCurrency.currencyCode}:${functionalCurrency.currencyCode} is ${String.format(GlobalConfiguration.DEFAULT_LOCALE, "%.${decimalPrecision}f", displayRate)}."
     }
 }
