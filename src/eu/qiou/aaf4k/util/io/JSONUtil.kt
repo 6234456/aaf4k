@@ -28,11 +28,11 @@ object JSONUtil {
         var res:Any? = null
         val f: (JSONObject)->Unit = {
             obj ->
-            val tmp = queryString.split(queryStringSeparator)
-            val lastIndex = tmp.count() - 1
-            res = tmp.take(lastIndex).fold(obj){
-                 a, b -> (a.get(b)!! as JSONObject)
-            }.get(tmp.get(lastIndex))
+                val tmp = queryString.split(queryStringSeparator)
+                val lastIndex = tmp.count() - 1
+                res = tmp.take(lastIndex).fold(obj){
+                            a, b -> (a.get(b)!! as JSONObject)
+                        }.get(tmp.get(lastIndex))
         }
         processDataSource(source, isRawString, f)
 
