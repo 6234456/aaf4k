@@ -30,7 +30,7 @@ object FxUtil {
         return value
     }
 
-    private fun fetchFromURL(target: ForeignExchange):Double {
+    fun fetchFromURL(target: ForeignExchange):Double {
 
         return 0.0
     }
