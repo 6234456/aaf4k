@@ -17,5 +17,8 @@ object RegTest {
 
         val b = Balance(123,"b1", LocalDate.now())
 
+        val reg1 = Regex("""\[\d+\]""")
+
+
     }
 }

@@ -9,29 +9,22 @@ object FxUtil {
     /**
      *  fetch the exchange rate from external source, Internet / Database
      */
-    fun fetch(target: ForeignExchange, forceRefresh:Boolean = false):Double {
+    fun fetch(target: ForeignExchange, source: FxFetcher = OandaFxFetcher(), useCache:Boolean = true):Double {
 
-        if(!forceRefresh){
+        if(useCache){
             if (cache.containsKey(target)){
                 return displayRateAndReturn(target, cache.getValue(target))
             }
         }
+        val rate = source.fetchFx(target, useCache)
 
-        val rate = 1.2345
-
-        return displayRateAndReturn(target, rate, true)
+        return displayRateAndReturn(target, rate)
     }
 
-    private fun displayRateAndReturn(foreignExchange: ForeignExchange, value:Double, toCache:Boolean = false):Double {
-        if(toCache)
-            cache.put(foreignExchange, value)
+    private fun displayRateAndReturn(foreignExchange: ForeignExchange, value:Double):Double {
+        cache.put(foreignExchange, value)
 
         foreignExchange.displayRate = value
         return value
-    }
-
-    fun fetchFromURL(target: ForeignExchange):Double {
-
-        return 0.0
     }
 }

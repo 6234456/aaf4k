@@ -31,10 +31,10 @@ data class ForeignExchange(val functionalCurrency: Currency= GlobalConfiguration
             return 1.0
         }
 
-        return FxUtil.fetch(this, forceRefresh)
+        return FxUtil.fetch(this, useCache = !forceRefresh)
     }
 
     override fun toString(): String {
-        return "Exchange rate ${if(timePoint == null) "in ${timeSpan}" else  "on ${timePoint}"} of ${reportingCurrency.currencyCode}:${functionalCurrency.currencyCode} is ${String.format(GlobalConfiguration.DEFAULT_LOCALE, "%.${decimalPrecision}f", displayRate)}."
+        return "Exchange rate ${if(timePoint == null) "in ${timeSpan}" else  "on ${timePoint}"} of ${functionalCurrency.currencyCode}:${reportingCurrency.currencyCode} is ${String.format(GlobalConfiguration.DEFAULT_LOCALE, "%.${decimalPrecision}f", displayRate)}"
     }
 }
