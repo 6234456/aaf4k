@@ -12,8 +12,8 @@ class ForeignExchangeTest {
         val fx = ForeignExchange(functionalCurrency = Currency.getInstance("EUR"), timeParameters = TimeParameters.realTime())
         val fx1 = ForeignExchange(functionalCurrency = Currency.getInstance("EUR"), timeParameters = TimeParameters.realTime())
         fx.decimalPrecision = 3
-        fx.fetchFxRate()
-        fx1.fetchFxRate()
+        fx.fetch()
+        fx1.fetch()
 
         println(fx)
         println(fx1)

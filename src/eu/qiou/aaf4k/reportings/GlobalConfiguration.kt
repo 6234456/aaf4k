@@ -17,8 +17,9 @@ object GlobalConfiguration {
     val DEFAULT_DECIMAL_PRECISION: Int = 2
 
 
-    val DEFAULT_LOCALE: Locale = Locale.GERMANY
-    val DEFAULT_CURRENCY: Currency = Currency.getInstance("CNY")
+    val DEFAULT_LOCALE: Locale = Locale.CHINA
+    val DEFAULT_CURRENCY: Currency = Currency.getInstance("EUR")
+    val DEFAULT_CURRENCY_CODE: String = DEFAULT_CURRENCY.currencyCode
 
 
 
@@ -27,6 +28,8 @@ object GlobalConfiguration {
     // 1. Oanda
 
     // get the atom data array in json, like[2018-04-06, 0.12936]
-    val FX_OANDA_QUERY_STRING = "widget.0.data.0"
+    const val FX_OANDA_QUERY_STRING_ATOMIC = "widget.0.data.0"
+    // get JSONArray of atomic data
+    const val FX_OANDA_QUERY_STRING_DATA_ARRAY = "widget.0.data"
     val FX_OANDA_URL_FORMAT = ""
 }

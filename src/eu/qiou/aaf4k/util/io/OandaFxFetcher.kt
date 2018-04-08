@@ -1,10 +1,11 @@
 package eu.qiou.aaf4k.util.io
 
-import eu.qiou.aaf4k.reportings.GlobalConfiguration.FX_OANDA_QUERY_STRING
+import eu.qiou.aaf4k.reportings.GlobalConfiguration.FX_OANDA_QUERY_STRING_ATOMIC
+import eu.qiou.aaf4k.reportings.GlobalConfiguration.FX_OANDA_QUERY_STRING_DATA_ARRAY
 import eu.qiou.aaf4k.util.time.TimeAttribute
 import eu.qiou.aaf4k.util.unit.ForeignExchange
 import org.json.simple.JSONArray
-
+import java.time.LocalDate
 
 /**
  * Oanda supports only inquiries of the recent 180 days
@@ -14,17 +15,33 @@ class OandaFxFetcher:FxFetcher() {
 
     override fun fetchFxFromSource(target: ForeignExchange): Double {
 
-        // Check the queryString for update
-        val arr = JSONUtil.fetch<JSONArray>(queryString = FX_OANDA_QUERY_STRING, source = buildURL(target))
-
         if(target.timeParameters.timeAttribute == TimeAttribute.TIME_POINT){
-            if(! (arr.get(0) as Long).toDate().equals(target.timeParameters.timePoint))
-                throw Exception("Date out of scope: Oanda does not support the inquiry of ${target.timeParameters.timePoint}")
+
+            val arr = JSONUtil.fetch<JSONArray>(queryString = FX_OANDA_QUERY_STRING_ATOMIC, source = buildURL(target))
+            checkDateEqual(arr, target.timeParameters.timePoint!!)
+            return getValueFromAtomicJSONArray(arr)
+
+        }else if(target.timeParameters.timeAttribute == TimeAttribute.TIME_SPAN){
+            val arr = JSONUtil.fetch<JSONArray>(queryString = FX_OANDA_QUERY_STRING_DATA_ARRAY, source = buildURL(target)).toList()
+
+            checkDateEqual(arr[0] as JSONArray, target.timeParameters.timeSpan!!.end)
+            checkDateEqual(arr.last() as JSONArray, target.timeParameters.timeSpan!!.start)
+
+            return arr.fold(0.0){a, b -> a + getValueFromAtomicJSONArray(b as JSONArray)} / arr.count()
+
+        }else{
+            throw Exception("Unknown time attribute for foreign exchange: ${target.timeParameters.timeAttribute}")
         }
 
-        // TODO("add support for inquiry of data range")
+    }
 
-        return (arr.get(1) as String).toDouble()
+    private fun checkDateEqual(atomicJSONArray: JSONArray, targetDate: LocalDate){
+        if(! (atomicJSONArray.get(0) as Long).toDate().equals(targetDate))
+            throw Exception("Date out of scope: Oanda does not support the inquiry of ${targetDate}")
+    }
+
+    private fun getValueFromAtomicJSONArray(atomicJSONArray: JSONArray):Double{
+        return (atomicJSONArray.get(1) as String).toDouble()
     }
 
     private fun buildURL(target: ForeignExchange):String{

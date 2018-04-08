@@ -3,6 +3,10 @@ package eu.qiou.aaf4k.util.time
 import java.time.LocalDate
 
 data class TimeParameters(val timeSpan: TimeSpan?=null, val timePoint: LocalDate?=null) {
+    constructor(timeSpan: TimeSpan):this(timeSpan, null)
+
+    constructor(timePoint: LocalDate):this(null, timePoint)
+
     val timeAttribute: TimeAttribute = when{
         timeSpan    != null && timePoint    == null     -> TimeAttribute.TIME_SPAN
         timePoint   != null && timeSpan     == null     -> TimeAttribute.TIME_POINT

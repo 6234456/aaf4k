@@ -49,7 +49,7 @@ data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var c
         if(timeParameters == null)
             throw Exception("In case of foreign exchange, time parameters should be specified!")
 
-        val fxRate = ForeignExchange(functionalCurrency = currency, reportingCurrency = targetCurrency.currency, timeParameters = timeParameters).fetchFxRate()
+        val fxRate = ForeignExchange(functionalCurrency = currency, reportingCurrency = targetCurrency.currency, timeParameters = timeParameters).fetch()
 
         val f : (Double) -> Double = {
             super.convertTo(targetCurrency)(it * fxRate)

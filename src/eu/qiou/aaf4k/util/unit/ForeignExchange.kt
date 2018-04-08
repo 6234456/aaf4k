@@ -1,11 +1,19 @@
 package eu.qiou.aaf4k.util.unit
 
-import eu.qiou.aaf4k.reportings.GlobalConfiguration
+import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_CURRENCY
+import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_CURRENCY_CODE
+import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_LOCALE
 import eu.qiou.aaf4k.util.io.FxUtil
 import eu.qiou.aaf4k.util.time.TimeParameters
+import eu.qiou.aaf4k.util.time.TimeSpan
+import java.time.LocalDate
 import java.util.*
 
-data class ForeignExchange(val functionalCurrency: Currency= GlobalConfiguration.DEFAULT_CURRENCY, val reportingCurrency: Currency = GlobalConfiguration.DEFAULT_CURRENCY, val timeParameters: TimeParameters) {
+data class ForeignExchange(val functionalCurrency: Currency= DEFAULT_CURRENCY, val reportingCurrency: Currency = DEFAULT_CURRENCY, val timeParameters: TimeParameters) {
+
+    constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timeSpan: TimeSpan):this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = TimeParameters(timeSpan))
+    constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timePoint: LocalDate):this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = TimeParameters(timePoint))
+
     var rate: Long? = null
     var decimalPrecision: Int = 5
 
@@ -20,12 +28,12 @@ data class ForeignExchange(val functionalCurrency: Currency= GlobalConfiguration
     private val timeSpan = timeParameters.timeSpan
 
     init {
-        if (functionalCurrency.equals(reportingCurrency)){
-            displayRate = 1.0
+        if (autoFetch){
+            fetch()
         }
     }
 
-    fun fetchFxRate(forceRefresh:Boolean = false):Double {
+    fun fetch(forceRefresh:Boolean = ForeignExchange.forceRefresh):Double {
         if (functionalCurrency.equals(reportingCurrency)){
             displayRate = 1.0
             return 1.0
@@ -35,6 +43,12 @@ data class ForeignExchange(val functionalCurrency: Currency= GlobalConfiguration
     }
 
     override fun toString(): String {
-        return "Exchange rate ${if(timePoint == null) "in ${timeSpan}" else  "on ${timePoint}"} of ${functionalCurrency.currencyCode}:${reportingCurrency.currencyCode} is ${String.format(GlobalConfiguration.DEFAULT_LOCALE, "%.${decimalPrecision}f", displayRate)}"
+        return "Exchange rate ${if(timePoint == null) "in ${timeSpan}" else  "on ${timePoint}"} of ${functionalCurrency.currencyCode}:${reportingCurrency.currencyCode} is ${String.format(DEFAULT_LOCALE, "%.${decimalPrecision}f", displayRate)}"
+    }
+
+    companion object {
+        var autoFetch = true
+        var forceRefresh = false
     }
 }
+

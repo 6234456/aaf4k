@@ -7,21 +7,21 @@ object FxUtil {
     private val cache: MutableMap<ForeignExchange, Double> = mutableMapOf()
 
     /**
-     *  fetch the exchange rate from external source, Internet / Database
+     *  fetch the exchange rate from external source, Internet / Database / File
      */
     fun fetch(target: ForeignExchange, source: FxFetcher = OandaFxFetcher(), useCache:Boolean = true):Double {
 
         if(useCache){
             if (cache.containsKey(target)){
-                return displayRateAndReturn(target, cache.getValue(target))
+                return setDisplayRateAndReturn(target, cache.getValue(target))
             }
         }
-        val rate = source.fetchFx(target, useCache)
 
-        return displayRateAndReturn(target, rate)
+        val rate = source.fetchFx(target, useCache)
+        return setDisplayRateAndReturn(target, rate)
     }
 
-    private fun displayRateAndReturn(foreignExchange: ForeignExchange, value:Double):Double {
+    private fun setDisplayRateAndReturn(foreignExchange: ForeignExchange, value:Double):Double {
         cache.put(foreignExchange, value)
 
         foreignExchange.displayRate = value

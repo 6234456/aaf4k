@@ -17,7 +17,7 @@ object JSONUtil {
 
     fun processDataSource(source:String, isRawString : Boolean = false, callback: (JSONObject)->Unit, useCache: Boolean = true){
 
-        var obj: JSONObject? = null
+        var obj: JSONObject?
 
         if(useCache && cache.containsKey(source)){
 
@@ -60,7 +60,7 @@ object JSONUtil {
         val tmp = queryString.split(queryStringSeparator)
         var initObj:Any = obj
 
-        tmp.forEachIndexed({ i, s ->
+        tmp.forEach({ s ->
             initObj = when{
                 initObj is JSONArray -> (initObj as JSONArray).get(s.toInt())!!
                 initObj is JSONObject -> (initObj as JSONObject).get(s)!!
@@ -80,7 +80,6 @@ object JSONUtil {
     }
 
     fun millisecondsToDate(milliseconds:Long):LocalDate {
-
 
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = milliseconds

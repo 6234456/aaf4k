@@ -81,3 +81,6 @@ operator fun ChronoUnit.times(n: Int):Period = when{
     this == ChronoUnit.DECADES -> Period.ofYears(n * 10)
     else -> throw Exception("unimplemented method")
 }
+
+operator fun LocalDate.plus(period: Period) = this.plus(period)
+operator fun LocalDate.minus(period: Period) = this.minus(period)
