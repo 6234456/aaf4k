@@ -1,10 +1,16 @@
 package eu.qiou.aaf4k.reportings
 
 import eu.qiou.aaf4k.util.strings.CollectionToString
-import eu.qiou.aaf4k.util.strings.StringUtil.repeatString
 
 class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccount> = mutableSetOf<ProtoAccount>(), desc:String=""):ProtoAccount(
-        id=id, name=name, desc=desc, hasSubAccounts = true) {
+        id=id, name=name, desc=desc, hasSubAccounts = true), Drilldownable {
+    override fun <ProtoAccount> getParent(): ProtoAccount? {
+        return superAccount as ProtoAccount?
+    }
+
+    override fun <ProtoAccount> getChildren(): Collection<ProtoAccount>? {
+        return accounts as Collection<ProtoAccount>?
+    }
 
     override var value = 0L
     get() =  accounts.fold(0L){a , b ->  a + b.value}
@@ -40,6 +46,8 @@ class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccoun
                                     }
                                     else {
                                         accounts.remove(a)
+                                        a.hasSuperAccounts = false
+                                        a.superAccount = null
                                         return true
                                     }
                                 }
@@ -87,20 +95,14 @@ class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccoun
         }
     }
 
-    // TODO("Extract the recursive toString to util.io")
-    override fun toString(): String {
-        return _toString()
+    private fun titel():String{
+        return "[$id $name]"
     }
 
-    private fun _toString(lvl:Int=0):String{
-        return repeatString(lvl) +"[$id $name]: {\n" +
-                accounts.fold("") { a, b -> a +
-                        if(b is AggregateAccount)
-                            b._toString(lvl+1) + "\n"
-                        else
-                            repeatString(lvl+1) + b.toString() + "\n "} +
-                repeatString(lvl) +"}"
+    override fun toString(): String {
+        return CollectionToString.structuredToStr<ProtoAccount>(this, 0, ProtoAccount::toString as Drilldownable.() -> String, AggregateAccount::titel as Drilldownable.() -> String)
     }
+
 
     override fun toJSON():String{
         return "{id: $id, name: '$name', value: $value, displayValue: $displayValue, decimalPrecision: $decimalPrecision, desc: '$desc', hasSubAccounts: $hasSubAccounts, hasSuperAccounts: $hasSuperAccounts, localAccountID: $localAccountID, subAccounts: " +

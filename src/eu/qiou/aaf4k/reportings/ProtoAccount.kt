@@ -58,7 +58,7 @@ open class ProtoAccount(val id: Int, val name: String, open var value:Long = 0, 
     }
 
     override fun toString(): String {
-        return "[$localAccountID $name] : ${displayUnit.format()(displayValue)}"
+        return "($localAccountID $name) : ${displayUnit.format()(displayValue)}"
     }
 
     override fun toJSON():String {

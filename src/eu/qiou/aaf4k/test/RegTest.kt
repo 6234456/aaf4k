@@ -1,8 +1,6 @@
 package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.reportings.accounting.Balance
-import eu.qiou.aaf4k.util.io.JSONable
-import eu.qiou.aaf4k.util.strings.CollectionToString
 import java.time.LocalDate
 
 object RegTest {
@@ -18,7 +16,6 @@ object RegTest {
         val b = Balance(123,"b1", LocalDate.now())
 
         val reg1 = Regex("""\[\d+\]""")
-
 
     }
 }
