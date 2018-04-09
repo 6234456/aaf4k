@@ -1,10 +1,10 @@
 package eu.qiou.aaf4k.reportings
 
+import eu.qiou.aaf4k.util.io.JSONable
+import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.PercentageUnit
 import eu.qiou.aaf4k.util.unit.ProtoUnit
-import eu.qiou.aaf4k.util.io.JSONable
-import eu.qiou.aaf4k.util.time.TimeParameters
 
 
 /**
@@ -52,6 +52,7 @@ open class ProtoAccount(val id: Int, val name: String, open var value:Long = 0, 
         return id.hashCode()
     }
 
+    // for sorting
     override operator fun compareTo(other: ProtoAccount): Int {
         return id.compareTo(other.id)
     }
