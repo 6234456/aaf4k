@@ -10,21 +10,25 @@ interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
 
     fun remove(child: ChildType):Drilldownable<ChildType, ParentType>
 
-    fun removeRecursively(child: ChildType):Drilldownable<ChildType, ParentType>{
-        val accouts = this.getChildren()!!
-
-        accouts.forEach{
-            a -> if(child!!.equals(a)){
-                if(a is Drilldownable<*, *>) {
-                    (a as Drilldownable<ChildType, ParentType>).removeRecursively(child)
+    fun findRecursively(child: ChildType, res: MutableSet<ParentType> = mutableSetOf()):MutableSet<ParentType>{
+        this.getChildren()!!.fold(res){
+            b, a ->
+                if(child!!.equals(a)) {
+                    b.add(this as ParentType)
+                } else if(a is Drilldownable<*, *>) {
+                    (a as Drilldownable<ChildType, ParentType>).findRecursively(child, b)
                 }
-                else {
-                    this.remove(child)
-                    return this
-                }
-            }
+            b
         }
-        return this
+        return res
+    }
+
+    fun removeRecursively(child: ChildType):ParentType{
+        this.findRecursively(child).forEach{
+            (it as Drilldownable<ChildType, ParentType>).remove(child)
+        }
+
+        return this as ParentType
     }
 
     fun flatten(sorted:Boolean = true, sortBy: ChildType.() -> Int):MutableList<ChildType>{
@@ -77,7 +81,7 @@ interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
         if(!hasChildren()){
             return false
         }
-        return getChildren()!!.contains(child)
+        return findRecursively(child).count() > 0
     }
 
     operator fun plusAssign(child: ChildType){

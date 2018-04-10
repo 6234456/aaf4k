@@ -42,7 +42,6 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
                 childEntitis!!.remove(child)
             }
         }
-
         return this
     }
 

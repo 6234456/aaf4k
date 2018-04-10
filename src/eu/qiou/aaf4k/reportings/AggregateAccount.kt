@@ -49,11 +49,9 @@ class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccoun
         return CollectionToString.structuredToStr(this, 0, ProtoAccount::toString, AggregateAccount::titel)
     }
 
-
     override fun toJSON():String{
         return "{id: $id, name: '$name', value: $value, displayValue: $displayValue, decimalPrecision: $decimalPrecision, desc: '$desc', hasSubAccounts: $hasSubAccounts, hasSuperAccounts: $hasSuperAccounts, localAccountID: $localAccountID, subAccounts: " +
                 CollectionToString.mkJSON(accounts, ",\n")  + "}"
-
     }
 
 }
