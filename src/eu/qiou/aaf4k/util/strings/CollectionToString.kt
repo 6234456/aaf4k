@@ -16,17 +16,17 @@ object CollectionToString {
         return prefix + iterable.fold(""){a, b -> a + (if(a.isEmpty()) "" else separator) + b.f() } + affix
     }
 
-    fun <ChildType>structuredToStr(drilldownable: Drilldownable, level:Int = 0, asSingleToStr: Drilldownable.()->String, asParentToStr: Drilldownable.()->String):String{
-           if(! drilldownable.hasChildren<ChildType>())
-               return drilldownable.asSingleToStr()
+    fun <ChildType, ParentType:ChildType>structuredToStr(drilldownable: Drilldownable<ChildType, ParentType>, level:Int = 0, asSingleToStr: ChildType.()->String, asParentToStr:  ParentType.()->String):String{
+           if(! drilldownable.hasChildren())
+               return (drilldownable as ChildType).asSingleToStr()
            else{
-               return "\t"* level + drilldownable.asParentToStr() + ":{\n" + drilldownable.getChildren<ChildType>()!!.fold(""){
+               return "\t"* level + (drilldownable as ParentType).asParentToStr() + ":{\n" + drilldownable.getChildren()!!.fold(""){
                    acc: String, childType: ChildType -> acc +
                         (
-                           if(childType is Drilldownable && childType.hasChildren<ChildType>())
-                            structuredToStr<ChildType>(childType, level+1, asSingleToStr, asParentToStr)
-                        else
-                            "\t" * (level + 1) + childType.toString()
+                            if(childType is Drilldownable<*,*> && childType.hasChildren())
+                                structuredToStr(childType as Drilldownable<ChildType, ParentType>, level+1, asSingleToStr, asParentToStr)
+                            else
+                                "\t" * (level + 1) + childType.toString()
                         )+ "\n"
                } + "\t"* level + "}"
            }

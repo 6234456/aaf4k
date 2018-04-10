@@ -2,63 +2,35 @@ package eu.qiou.aaf4k.reportings
 
 import eu.qiou.aaf4k.util.strings.CollectionToString
 
-class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccount> = mutableSetOf<ProtoAccount>(), desc:String=""):ProtoAccount(
-        id=id, name=name, desc=desc, hasSubAccounts = true), Drilldownable {
-    override fun <ProtoAccount> getParent(): ProtoAccount? {
-        return superAccount as ProtoAccount?
-    }
-
-    override fun <ProtoAccount> getChildren(): Collection<ProtoAccount>? {
-        return accounts as Collection<ProtoAccount>?
-    }
+class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccount> = mutableSetOf(), desc:String=""):ProtoAccount(
+        id=id, name=name, desc=desc), Drilldownable<ProtoAccount, AggregateAccount> {
 
     override var value = 0L
     get() =  accounts.fold(0L){a , b ->  a + b.value}
 
-
-    operator fun contains(account: ProtoAccount):Boolean {
-        return accounts.contains(account)
+    override fun getParent(): Collection<AggregateAccount>? {
+        return superAccounts
     }
 
-    operator fun plus(account: ProtoAccount): AggregateAccount{
-        addSubAccount(account)
-        return this
+    override fun  getChildren(): Collection<ProtoAccount>? {
+        return accounts
     }
 
-    operator fun minus(account: ProtoAccount): AggregateAccount{
-        removeRecursiveSubAccount(account)
-        return this
-    }
-
-    fun addSubAccount(account: ProtoAccount){
-        account.hasSuperAccounts = true
-        account.superAccount = this
-
+    override fun add(account: ProtoAccount):AggregateAccount{
+        account.register(this)
         accounts.add(account)
+        return this
     }
 
-    fun removeRecursiveSubAccount(account: ProtoAccount): Boolean{
-        this.accounts
-                .forEach{
-                            a -> if(account.equals(a)){
-                                    if(a is AggregateAccount) {
-                                        a.removeRecursiveSubAccount(account)
-                                    }
-                                    else {
-                                        accounts.remove(a)
-                                        a.hasSuperAccounts = false
-                                        a.superAccount = null
-                                        return true
-                                    }
-                                }
-                        }
-
-        return false
+    override fun remove(account: ProtoAccount): AggregateAccount{
+        account.unregister(this)
+        accounts.remove(account)
+        return this
     }
 
-    fun checkDistinct(): MutableSet<ProtoAccount> {
+    fun checkDuplicated(): MutableSet<ProtoAccount> {
         val res : MutableSet<ProtoAccount> = mutableSetOf()
-        val flat : MutableList<ProtoAccount> = flatten()
+        val flat : MutableList<ProtoAccount> = flatten(true, {this.id})
 
         flat.forEachIndexed { index, protoAccount ->  if(index > 0){
                                     if(flat[index-1].equals(protoAccount)){
@@ -69,38 +41,12 @@ class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccoun
         return res
     }
 
-    fun flatten(sorted:Boolean = true):MutableList<ProtoAccount>{
-
-        val res : MutableList<ProtoAccount> = mutableListOf()
-        this.accounts.forEach{
-            a -> if(a is AggregateAccount) {
-                res.addAll(a.flatten())
-            }
-            else {
-                res.add(a)
-            }
-        }
-
-        if(sorted) res.sortBy { it.id }
-
-        return res
-    }
-
-    fun count():Int{
-        return this.accounts.fold(0) { a, e ->
-            a + when{
-                e is AggregateAccount ->  e.count()
-                else -> 1
-            }
-        }
-    }
-
     private fun titel():String{
         return "[$id $name]"
     }
 
     override fun toString(): String {
-        return CollectionToString.structuredToStr<ProtoAccount>(this, 0, ProtoAccount::toString as Drilldownable.() -> String, AggregateAccount::titel as Drilldownable.() -> String)
+        return CollectionToString.structuredToStr(this, 0, ProtoAccount::toString, AggregateAccount::titel)
     }
 
 

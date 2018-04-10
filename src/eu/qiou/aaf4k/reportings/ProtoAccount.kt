@@ -17,9 +17,20 @@ import eu.qiou.aaf4k.util.unit.ProtoUnit
 
 open class ProtoAccount(val id: Int, val name: String, open var value:Long = 0, val unit: ProtoUnit = CurrencyUnit(),
                         var decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, val desc: String="", var timeParameters: TimeParameters? = null,
-                        var displayUnit:ProtoUnit = CurrencyUnit(), var hasSubAccounts: Boolean = false, var hasSuperAccounts: Boolean = false,
-                        var localAccountID: String = id.toString()): Comparable<ProtoAccount>, JSONable{
-    var superAccount: AggregateAccount? = null
+                        var displayUnit:ProtoUnit = CurrencyUnit()): Comparable<ProtoAccount>, JSONable{
+    var hasSubAccounts: Boolean = false
+
+
+    var hasSuperAccounts: Boolean = false
+    get() {
+        if(superAccounts == null)
+           return false
+
+        return superAccounts!!.count() > 0
+    }
+
+    var localAccountID: String = id.toString()
+    var superAccounts: MutableSet<AggregateAccount>? = null
 
     var displayValue: Double = 0.0
     get() = roundUpTo(when{
@@ -31,6 +42,20 @@ open class ProtoAccount(val id: Int, val name: String, open var value:Long = 0, 
         if(displayUnit.scalar.equals(this.unit.scalar))
             this.value = Math.round(v * Math.pow(10.0, decimalPrecision.toDouble()))
         field = v
+    }
+
+    fun register(superAccount: AggregateAccount){
+        if(superAccounts == null){
+            superAccounts = mutableSetOf(superAccount)
+        }else{
+            superAccounts!!.add(superAccount)
+        }
+    }
+
+    fun unregister(superAccount: AggregateAccount){
+        if(superAccounts != null){
+            superAccounts!!.remove(superAccount)
+        }
     }
 
     private fun roundUpTo(v: Double, decimalPlace: Int = decimalPrecision):Double{

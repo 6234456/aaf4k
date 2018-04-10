@@ -19,11 +19,11 @@ class AggregateAccountTest {
         val agg1 = AggregateAccount(1236, "agg1")
         val agg2 = AggregateAccount(1237, "agg2")
 
-        agg1.addSubAccount(acc1)
-        agg1.addSubAccount(acc2)
-        agg1.addSubAccount(acc3)
-        agg1.addSubAccount(agg2)
-        agg2.addSubAccount(acc1)
+        agg1.add(acc1)
+        agg1.add(acc2)
+        agg1.add(acc3)
+        agg1.add(agg2)
+        agg2.add(acc1)
 
       /*  println(agg1.displayUnit)
         println(agg1.displayValue)
@@ -36,6 +36,10 @@ class AggregateAccountTest {
     */
 
         println(agg1)
+        println(agg1.checkDuplicated())
+        agg1.remove(acc1)
+
+        println(acc1.superAccounts)
 
     }
 }

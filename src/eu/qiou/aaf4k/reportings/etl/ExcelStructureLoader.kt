@@ -33,7 +33,7 @@ class ExcelStructureLoader(var path:String, var sheetIndex: Int = 0, var sheetNa
                     tmpAggregateAccount = AggregateAccount(id=t1.first, name = t1.second)
                 }else{
                     val t1 = parseAccount(c2)
-                    tmpAggregateAccount?.addSubAccount(ProtoAccount(id = t1.first, name = t1.second))
+                    tmpAggregateAccount?.add(ProtoAccount(id = t1.first, name = t1.second))
                 }
             }
         }

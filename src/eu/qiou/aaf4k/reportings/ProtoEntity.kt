@@ -7,44 +7,44 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
  *  can be a department, a cost center, a subsidiary, a product line or a conglomerate
  */
 
-data class ProtoEntity(val id: Int, var name: String, var abbreviation: String = name, var desc:String = "", var contactPerson: Person? = null, var address: Address? = null): Drilldownable {
-    override fun <ProtoEntity> getChildren(): Collection<ProtoEntity>? {
-        return childEntitis as Collection<ProtoEntity>?
+data class ProtoEntity(val id: Int, var name: String, var abbreviation: String = name, var desc:String = "",
+                       var contactPerson: Person? = null, var address: Address? = null): Drilldownable<ProtoEntity, ProtoEntity> {
+
+    var childEntitis: MutableSet<ProtoEntity> ? = null
+    var parentEntitis: MutableSet<ProtoEntity> ? = null
+
+    override fun getChildren(): Collection<ProtoEntity>? {
+        return childEntitis
     }
 
-    override fun <ProtoEntity> getParent(): ProtoEntity? {
-        return parentEntity as ProtoEntity?
+    override fun getParent(): Collection<ProtoEntity>? {
+        return parentEntitis
     }
 
-    var parentEntity: ProtoEntity? = null
-    val childEntitis: MutableSet<ProtoEntity> = mutableSetOf()
+    override fun add(child: ProtoEntity):ProtoEntity{
+        if (childEntitis == null){
+            childEntitis = mutableSetOf()
+        }
+        childEntitis!!.add(child)
 
-    fun add(child: ProtoEntity):ProtoEntity{
-        childEntitis.add(child)
-        child.parentEntity = this
+        if(child.parentEntitis == null){
+            child.parentEntitis = mutableSetOf()
+        }
+        child.parentEntitis!!.add(this)
 
         return this
     }
 
-    operator fun plusAssign(child: ProtoEntity){
-        this.add(child)
-    }
+    override fun remove(child: ProtoEntity):ProtoEntity{
+        if(childEntitis != null){
+            if(childEntitis!!.contains(child)){
+                child.parentEntitis!!.remove(this)
+                childEntitis!!.remove(child)
+            }
+        }
 
-    operator fun plus(child: ProtoEntity) = this.add(child)
-
-    fun remove(child: ProtoEntity):ProtoEntity{
-        childEntitis.remove(child)
         return this
     }
-
-    operator fun minusAssign(child: ProtoEntity){
-        this.remove(child)
-    }
-
-    operator fun minus(child: ProtoEntity) = this.remove(child)
-
-    operator fun contains(child: ProtoEntity) = childEntitis.contains(child)
-
 
     override fun equals(other: Any?): Boolean {
         if( other is ProtoEntity){
@@ -66,6 +66,6 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
     }
 
     override fun toString(): String {
-        return CollectionToString.structuredToStr<ProtoEntity>(this, 0, ProtoEntity::lower as Drilldownable.() -> String, ProtoEntity::upper as Drilldownable.() -> String)
+        return CollectionToString.structuredToStr(this, 0, ProtoEntity::lower , ProtoEntity::upper )
     }
 }

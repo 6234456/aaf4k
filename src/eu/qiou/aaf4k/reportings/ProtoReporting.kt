@@ -26,7 +26,7 @@ open class ProtoReporting(val id:Int, val name: String, var desc: String="", var
 
     fun addAggreateAccount(aggregateAccount: AggregateAccount){
         structure.add(aggregateAccount)
-        accounts.addAll(aggregateAccount.flatten())
+        accounts.addAll(aggregateAccount.flatten(false,{this.id}))
     }
 
     fun existsDuplicateAccounts():Boolean {
