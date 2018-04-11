@@ -3,7 +3,7 @@ package eu.qiou.aaf4k.util.time
 import java.time.LocalDate
 import java.time.Period
 import java.time.temporal.ChronoUnit
-import java.util.ArrayList
+import java.util.*
 
 
 /**
@@ -12,9 +12,9 @@ import java.util.ArrayList
  * @since    1.0.0
  * @version  1.0.0
  */
-data class TimeSpan(var start: LocalDate, var end: LocalDate) {
+data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
-    private constructor():this(LocalDate.now(), LocalDate.now()){}
+    private constructor():this(LocalDate.now(), LocalDate.now())
 
     init {
         assert(start.compareTo(end) <= 0)
@@ -36,13 +36,14 @@ data class TimeSpan(var start: LocalDate, var end: LocalDate) {
         return TimeSpan(start.minus(period), end.minus(period))
     }
 
-    fun drillDown(amount: Long, unit: ChronoUnit): ArrayList<TimeSpan> {
+    fun drillDown(interval: Long, unit: ChronoUnit): ArrayList<TimeSpan> {
         val res = ArrayList<TimeSpan>()
+        var start = start
 
         var tmp: LocalDate
 
         while (start.compareTo(end) <= 0) {
-            tmp = start.plus(amount, unit)
+            tmp = start.plus(interval, unit)
             res.add(TimeSpan(start, tmp.minus(1, ChronoUnit.DAYS)))
             start = tmp
         }
