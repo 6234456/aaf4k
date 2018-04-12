@@ -10,6 +10,7 @@ interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
 
     fun remove(child: ChildType):Drilldownable<ChildType, ParentType>
 
+    @Suppress("UNCHECKED_CAST")
     fun findRecursively(child: ChildType, res: MutableSet<ParentType> = mutableSetOf()):MutableSet<ParentType>{
         this.getChildren()!!.fold(res){
             b, a ->
@@ -23,6 +24,7 @@ interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
         return res
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun removeRecursively(child: ChildType):ParentType{
         this.findRecursively(child).forEach{
             (it as Drilldownable<ChildType, ParentType>).remove(child)
@@ -31,6 +33,7 @@ interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
         return this as ParentType
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun flatten(sorted:Boolean = true, sortBy: ChildType.() -> Int):MutableList<ChildType>{
         val res : MutableList<ChildType> = mutableListOf()
         this.getChildren()!!.forEach{

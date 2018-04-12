@@ -1,5 +1,7 @@
-package eu.qiou.aaf4k.util.io
+package eu.qiou.aaf4k.test
 
+import eu.qiou.aaf4k.util.io.OandaFxFetcher
+import eu.qiou.aaf4k.util.io.XEFxFetcher
 import eu.qiou.aaf4k.util.strings.times
 import eu.qiou.aaf4k.util.time.TimeSpan
 import eu.qiou.aaf4k.util.unit.ForeignExchange
