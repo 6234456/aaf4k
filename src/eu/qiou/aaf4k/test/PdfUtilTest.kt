@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.test
 
+import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.io.PdfUtil
 import org.junit.Test
 import java.awt.Rectangle
@@ -56,13 +57,29 @@ class PdfUtilTest {
 
         val a1 = PdfUtil.extractText(
                 PdfUtil.readFile("src/eu/qiou/aaf4k/test/credentials.SKR 04 2017.pdf"),
-                pageFilter = {i, _ -> i == 19},
+                pageFilter = {_ ,_-> true},
                 regions = mutableMapOf(
                         "a" to Rectangle(130,50,690,750)
                 )
                 , stringProcessor = f
         )
 
-        println(a1)
+        val l = mutableListOf<String>()
+        a1.forEach {
+            it.forEach(
+                    {
+                        _, s ->
+                            l.addAll(s.split("\n"))
+                    }
+            )
+        }
+
+        val map = l.mapIndexed { index: Int, s: String ->
+            index.toString() to listOf(s)
+        }.toMap()
+
+        ExcelUtil.writeData("skr4.xls", data = map)
+
+
     }
 }
