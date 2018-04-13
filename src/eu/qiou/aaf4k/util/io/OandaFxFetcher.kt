@@ -11,7 +11,7 @@ import java.time.LocalDate
  * Oanda supports only inquiries of the recent 180 days
  * val url = "https://www.oanda.com/fx-for-business/historical-rates/api/data/update/?&source=OANDA&adjustment=0&base_currency=CNY&start_date=2017-10-8&end_date=2018-4-6&period=daily&price=bid&view=graph&quote_currency_0=EUR"
  */
-class OandaFxFetcher:FxFetcher() {
+object OandaFxFetcher:FxFetcher() {
 
     override fun fetchFxFromSource(target: ForeignExchange): Double {
 
@@ -25,7 +25,7 @@ class OandaFxFetcher:FxFetcher() {
             val arr = JSONUtil.fetch<JSONArray>(queryString = FX_OANDA_QUERY_STRING_DATA_ARRAY, source = buildURL(target)).toList()
 
             checkDateEqual(arr[0] as JSONArray, target.timeParameters.timeSpan!!.end)
-            checkDateEqual(arr.last() as JSONArray, target.timeParameters.timeSpan!!.start)
+            checkDateEqual(arr.last() as JSONArray, target.timeParameters.timeSpan.start)
 
             return arr.fold(0.0){a, b -> a + getValueFromAtomicJSONArray(b as JSONArray)} / arr.count()
 

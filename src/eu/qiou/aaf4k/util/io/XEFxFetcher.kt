@@ -5,7 +5,7 @@ import eu.qiou.aaf4k.util.unit.ForeignExchange
 import org.jsoup.Jsoup
 import java.time.temporal.ChronoUnit
 
-class XEFxFetcher:FxFetcher() {
+object XEFxFetcher:FxFetcher() {
     override fun fetchFxFromSource(target: ForeignExchange): Double {
         val urls = buildURL(target)
         var failsCnt = 0

@@ -9,7 +9,7 @@ import java.nio.channels.Channels
 import java.util.*
 
 
-class ECBFxFetcher :FxFetcher() {
+object ECBFxFetcher :FxFetcher() {
 
     override fun fetchFxFromSource(target: ForeignExchange): Double {
         var res = parseURL(target)

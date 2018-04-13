@@ -15,9 +15,9 @@ class XEFxFetcherTest {
 
     @Test
     fun fetchFxFromSource() {
-        val fetcher = XEFxFetcher()
-        val fetcher1 = OandaFxFetcher()
-        val ecb = ECBFxFetcher()
+        val fetcher = XEFxFetcher
+        val fetcher1 = OandaFxFetcher
+        val ecb = ECBFxFetcher
 
         val f1 = ForeignExchange("EUR","CNY", LocalDate.of(2017,12,27))
 
@@ -40,7 +40,7 @@ class XEFxFetcherTest {
 
         ForeignExchange.autoFetch = false
 
-        val ecb = ECBFxFetcher()
+        val ecb = ECBFxFetcher
         val f1 = ForeignExchange("EUR","CNY", TimeSpan.forMonth(2017,12))
         //val f2 = ForeignExchange("EUR","CNY", LocalDate.of(2016,12,31))
 
