@@ -1,14 +1,14 @@
 package eu.qiou.aaf4k.util.io
 
 import com.google.api.client.http.GenericUrl
+import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.javanet.NetHttpTransport
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
 import java.io.FileReader
 import java.time.LocalDate
-import java.util.Calendar
-
+import java.util.*
 
 
 object JSONUtil {
@@ -33,6 +33,7 @@ object JSONUtil {
             else if(source.startsWith("http", true)){
                 val requestFactory =  NetHttpTransport().createRequestFactory()
                 val request = requestFactory.buildGetRequest(GenericUrl(source))
+                request.headers = HttpHeaders().setAccept("application/json")
                 obj =  parser.parse(request.execute().parseAsString()) as JSONObject
             } else {
                 obj = parser.parse(FileReader(source)) as JSONObject
@@ -57,16 +58,19 @@ object JSONUtil {
     }
 
     fun <T> query(obj:JSONObject, queryString: String, queryStringSeparator: String = ".") : T {
-        val tmp = queryString.split(queryStringSeparator)
         var initObj:Any = obj
 
-        tmp.forEach({ s ->
-            initObj = when{
-                initObj is JSONArray -> (initObj as JSONArray).get(s.toInt())!!
-                initObj is JSONObject -> (initObj as JSONObject).get(s)!!
-                else-> throw Exception("Type Error")
-            }
-        })
+        if (!queryString.isEmpty()){
+            val tmp = queryString.split(queryStringSeparator)
+
+            tmp.forEach({ s ->
+                initObj = when{
+                    initObj is JSONArray -> (initObj as JSONArray).get(s.toInt())!!
+                    initObj is JSONObject -> (initObj as JSONObject).get(s)!!
+                    else-> throw Exception("Type Error")
+                }
+            })
+        }
 
         return (initObj as T)
     }

@@ -2,34 +2,27 @@ package eu.qiou.aaf4k.util.io
 
 import eu.qiou.aaf4k.util.time.TimeAttribute
 import eu.qiou.aaf4k.util.unit.ForeignExchange
-import org.jsoup.Jsoup
-import org.jsoup.parser.Parser
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.net.URL
 import java.nio.channels.Channels
-import java.time.LocalDate
+import java.util.*
 
 
 class ECBFxFetcher :FxFetcher() {
 
     override fun fetchFxFromSource(target: ForeignExchange): Double {
-         var res = 0.0
-         val m = parseURL(target)
+        var res = parseURL(target)
+        if(target.reportingCurrency.equals(Currency.getInstance("EUR")))
+            return 1/res
 
-         m.forEach { t, u ->
-             res += u
-         }
-
-        return res / m.count()
+        return res
     }
 
-    private fun parseURL(target: ForeignExchange):Map<LocalDate, Double> {
-       return Jsoup.parse(downloadXMLFile(buildURL(target)), "UTF-8", "", Parser.xmlParser())
-               .select("generic:Series generic:Obs")
-               .map{
-                   LocalDate.parse(it.select("generic:ObsDimension").attr("value")) to it.select("generic:ObsValue").attr("value").toDouble()
-               }.toMap()
+    private fun parseURL(target: ForeignExchange):Double {
+
+        return JSONUtil.fetch<Double>(buildURL(target),false, "dataSets.0.series.0:0:0:0:0.observations.0.0")
+
     }
 
     private fun downloadXMLFile(url:String): FileInputStream{
