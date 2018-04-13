@@ -18,7 +18,7 @@ class PdfUtilTest {
             val regexDoubleBracket = Regex("""\([^)]+\)""")
             val lines = it.split("\n")
 
-    lines.foldIndexed(""){
+            lines.foldIndexed(""){
                 i, r, e ->
                     val tmpE = e.trim()
                     var dash = when{

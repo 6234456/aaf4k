@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.test
 
+import eu.qiou.aaf4k.util.io.ECBFxFetcher
 import eu.qiou.aaf4k.util.io.OandaFxFetcher
 import eu.qiou.aaf4k.util.io.XEFxFetcher
 import eu.qiou.aaf4k.util.strings.times
@@ -14,8 +15,9 @@ class XEFxFetcherTest {
     fun fetchFxFromSource() {
         val fetcher = XEFxFetcher()
         val fetcher1 = OandaFxFetcher()
+        val ecb = ECBFxFetcher()
 
-        val f1 = ForeignExchange("CNY","EUR", LocalDate.of(2018,1,1))
+        val f1 = ForeignExchange("CNY","EUR", LocalDate.of(2018,4,11))
 
         val d1 = fetcher.fetchFxFromSource(f1)
         val d2 = fetcher1.fetchFxFromSource(f1)
@@ -25,7 +27,7 @@ class XEFxFetcherTest {
 
         val f2 = ForeignExchange("CNY","EUR", TimeSpan.forMonth(2018,1))
 
-        println("${fetcher.fetchFxFromSource(f2)}  ${fetcher1.fetchFxFromSource(f2)}")
+        println("${fetcher.fetchFxFromSource(f1)}  ${fetcher1.fetchFxFromSource(f1)} ${ecb.fetchFxFromSource(f1)}")
 
     }
 }
