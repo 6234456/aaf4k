@@ -19,9 +19,12 @@ class ECBFxFetcher :FxFetcher() {
         return res
     }
 
+    /**
+     * TODO( average of dataSets needed )
+     */
     private fun parseURL(target: ForeignExchange):Double {
-
-        return JSONUtil.fetch<Double>(buildURL(target),false, "dataSets.0.series.0:0:0:0:0.observations.0.0")
+        println(JSONUtil.fetch<Any>(buildURL(target),false, ""))
+        return JSONUtil.fetch(buildURL(target),false, "dataSets.0.series.0:0:0:0:0.observations.0.0")
 
     }
 

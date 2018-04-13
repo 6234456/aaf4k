@@ -19,7 +19,7 @@ class XEFxFetcherTest {
         val fetcher1 = OandaFxFetcher()
         val ecb = ECBFxFetcher()
 
-        val f1 = ForeignExchange("CNY","EUR", LocalDate.of(2018,4,11))
+        val f1 = ForeignExchange("EUR","CNY", LocalDate.of(2017,12,27))
 
         val d1 = fetcher.fetchFxFromSource(f1)
         val d2 = fetcher1.fetchFxFromSource(f1)
@@ -28,11 +28,27 @@ class XEFxFetcherTest {
         println("$d1  $d2  $d3")
         println("^*" * 21)
 
-        val f2 = ForeignExchange("CNY","EUR", TimeSpan.forMonth(2018,1))
+    //    val f2 = ForeignExchange("CNY","EUR", TimeSpan.forMonth(2018,1))
 
-        println("${fetcher.fetchFxFromSource(f2)}  ${fetcher1.fetchFxFromSource(f2)} ${ecb.fetchFxFromSource(f2)}")
+      //  println("${fetcher.fetchFxFromSource(f2)}  ${fetcher1.fetchFxFromSource(f2)} ${ecb.fetchFxFromSource(f2)}")
 
     }
+
+
+    @Test
+    fun fetchFxECB() {
+
+        ForeignExchange.autoFetch = false
+
+        val ecb = ECBFxFetcher()
+        val f1 = ForeignExchange("EUR","CNY", TimeSpan.forMonth(2017,12))
+        //val f2 = ForeignExchange("EUR","CNY", LocalDate.of(2016,12,31))
+
+        println("${ecb.fetchFxFromSource(f1)}")
+
+    }
+
+
 
     @Test
     fun redirectTest(){
