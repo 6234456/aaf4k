@@ -1,8 +1,8 @@
-package eu.qiou.aaf4k.reportings
+package eu.qiou.aaf4k.reportings.model
 
 import eu.qiou.aaf4k.util.strings.CollectionToString
 
-class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccount> = mutableSetOf(), desc:String=""):ProtoAccount(
+class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccount> = mutableSetOf(), desc:String=""): ProtoAccount(
         id=id, name=name, desc=desc), Drilldownable<ProtoAccount, AggregateAccount> {
 
     override var value = 0L
@@ -16,13 +16,13 @@ class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccoun
         return accounts
     }
 
-    override fun add(account: ProtoAccount):AggregateAccount{
+    override fun add(account: ProtoAccount): AggregateAccount {
         account.register(this)
         accounts.add(account)
         return this
     }
 
-    override fun remove(account: ProtoAccount): AggregateAccount{
+    override fun remove(account: ProtoAccount): AggregateAccount {
         account.unregister(this)
         accounts.remove(account)
         return this

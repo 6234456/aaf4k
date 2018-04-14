@@ -1,6 +1,6 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.reportings.ProtoEntity
+import eu.qiou.aaf4k.reportings.model.ProtoEntity
 import eu.qiou.aaf4k.util.strings.times
 import org.junit.Test
 

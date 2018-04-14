@@ -1,8 +1,8 @@
 package eu.qiou.aaf4k.reportings.accounting
 
-import eu.qiou.aaf4k.reportings.ProtoReporting
+import eu.qiou.aaf4k.reportings.model.ProtoReporting
 
-class ReportingPackage() {
+class ReportingPackage {
     var reportings: MutableSet<ProtoReporting> = mutableSetOf()
 
     fun addComponent(reporting : ProtoReporting){

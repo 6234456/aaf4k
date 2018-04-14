@@ -27,11 +27,6 @@ class XEFxFetcherTest {
 
         println("$d1  $d2  $d3")
         println("^*" * 21)
-
-    //    val f2 = ForeignExchange("CNY","EUR", TimeSpan.forMonth(2018,1))
-
-      //  println("${fetcher.fetchFxFromSource(f2)}  ${fetcher1.fetchFxFromSource(f2)} ${ecb.fetchFxFromSource(f2)}")
-
     }
 
 
@@ -41,10 +36,16 @@ class XEFxFetcherTest {
         ForeignExchange.autoFetch = false
 
         val ecb = ECBFxFetcher
-        val f1 = ForeignExchange("EUR","CNY", TimeSpan.forMonth(2017,12))
-        //val f2 = ForeignExchange("EUR","CNY", LocalDate.of(2016,12,31))
+        val f1 = ForeignExchange("EUR","CNY", TimeSpan.forMonth(2018,2))
+        val f2 = ForeignExchange("EUR","CNY", LocalDate.of(2018,3, 22))
+        val f3 = ForeignExchange("EUR","CNY", TimeSpan.forYear(2017))
 
-        println("${ecb.fetchFxFromSource(f1)}")
+        val oanda = OandaFxFetcher
+
+        println("${ecb.fetchFxFromSource(f1)}  ${oanda.fetchFxFromSource(f1)}")
+        println("${f2.fetch(src = ECBFxFetcher)}  ${f2.fetch(OandaFxFetcher)}")
+        println("${f2.fetch(src = ECBFxFetcher)}  ${f2.fetch(OandaFxFetcher)}")
+        println("${f3.fetch(src = ECBFxFetcher)} ")
 
     }
 
@@ -60,8 +61,6 @@ class XEFxFetcherTest {
         conn.setRequestProperty("Accept", "application/json")
 
         System.out.println("Request URL ... " + url)
-
-        var redirect = true
 
         // normally, 3xx is redirect
         val status = conn.responseCode

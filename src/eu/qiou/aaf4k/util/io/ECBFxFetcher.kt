@@ -2,13 +2,20 @@ package eu.qiou.aaf4k.util.io
 
 import eu.qiou.aaf4k.util.time.TimeAttribute
 import eu.qiou.aaf4k.util.unit.ForeignExchange
+import org.json.simple.JSONArray
+import org.json.simple.JSONObject
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.net.URL
 import java.nio.channels.Channels
 import java.util.*
 
-
+/**
+ * fetch exchange rate record from data service of ECB
+ *
+ * @author Qiou Yang
+ *
+ */
 object ECBFxFetcher :FxFetcher() {
 
     override fun fetchFxFromSource(target: ForeignExchange): Double {
@@ -19,13 +26,18 @@ object ECBFxFetcher :FxFetcher() {
         return res
     }
 
-    /**
-     * TODO( average of dataSets needed )
-     */
     private fun parseURL(target: ForeignExchange):Double {
-        println(JSONUtil.fetch<Any>(buildURL(target),false, ""))
-        return JSONUtil.fetch(buildURL(target),false, "dataSets.0.series.0:0:0:0:0.observations.0.0")
 
+        var cnt = 0
+        var res = 0.0
+
+        JSONUtil.fetch<JSONObject>(buildURL(target),false, "dataSets.0.series.0:0:0:0:0.observations").forEach({
+            _, v ->
+            res += (v as JSONArray).get(0) as Double
+            cnt++
+        })
+
+        return res/cnt
     }
 
     private fun downloadXMLFile(url:String): FileInputStream{

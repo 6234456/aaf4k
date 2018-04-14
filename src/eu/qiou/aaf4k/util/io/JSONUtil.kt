@@ -11,11 +11,21 @@ import java.time.LocalDate
 import java.util.*
 
 
+/**
+ * Singleton to parse the JSON-String
+ *
+ * @sample  JSONUtil.get(...).query(...)
+ */
+
 object JSONUtil {
 
     private val cache:MutableMap<String, JSONObject> = mutableMapOf()
 
     fun processDataSource(source:String, isRawString : Boolean = false, callback: (JSONObject)->Unit, useCache: Boolean = true){
+        callback(get(source, isRawString, useCache = useCache))
+    }
+
+    fun get(source:String, isRawString : Boolean = false, useCache: Boolean = true): JSONObject{
 
         var obj: JSONObject?
 
@@ -42,8 +52,10 @@ object JSONUtil {
             cache.put(source, obj)
         }
 
-        callback(obj!!)
+        return obj!!
     }
+
+
 
     fun <T>fetch(source:String, isRawString : Boolean = false, queryString: String, queryStringSeparator: String = ".", useCache: Boolean = true):T {
         var res:Any? = null

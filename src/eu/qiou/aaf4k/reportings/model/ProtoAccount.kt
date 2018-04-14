@@ -1,5 +1,6 @@
-package eu.qiou.aaf4k.reportings
+package eu.qiou.aaf4k.reportings.model
 
+import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit

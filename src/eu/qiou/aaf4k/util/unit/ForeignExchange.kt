@@ -3,7 +3,9 @@ package eu.qiou.aaf4k.util.unit
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_CURRENCY
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_CURRENCY_CODE
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_LOCALE
+import eu.qiou.aaf4k.util.io.FxFetcher
 import eu.qiou.aaf4k.util.io.FxUtil
+import eu.qiou.aaf4k.util.io.OandaFxFetcher
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.time.TimeSpan
 import java.time.LocalDate
@@ -33,13 +35,13 @@ data class ForeignExchange(val functionalCurrency: Currency= DEFAULT_CURRENCY, v
         }
     }
 
-    fun fetch(forceRefresh:Boolean = ForeignExchange.forceRefresh):Double {
+    fun fetch(src:FxFetcher = ForeignExchange.source ,forceRefresh:Boolean = ForeignExchange.forceRefresh):Double {
         if (functionalCurrency.equals(reportingCurrency)){
             displayRate = 1.0
             return 1.0
         }
 
-        return FxUtil.fetch(this, useCache = !forceRefresh)
+        return FxUtil.fetch(this, source = src, useCache = !forceRefresh)
     }
 
     override fun toString(): String {
@@ -49,6 +51,7 @@ data class ForeignExchange(val functionalCurrency: Currency= DEFAULT_CURRENCY, v
     companion object {
         var autoFetch = true
         var forceRefresh = false
+        var source:FxFetcher = OandaFxFetcher
     }
 }
 

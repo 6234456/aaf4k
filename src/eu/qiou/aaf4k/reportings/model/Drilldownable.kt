@@ -1,4 +1,4 @@
-package eu.qiou.aaf4k.reportings
+package eu.qiou.aaf4k.reportings.model
 
 interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
 
@@ -6,9 +6,9 @@ interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
 
     fun getParent():Collection<ParentType>?
 
-    fun add(child: ChildType):Drilldownable<ChildType, ParentType>
+    fun add(child: ChildType): Drilldownable<ChildType, ParentType>
 
-    fun remove(child: ChildType):Drilldownable<ChildType, ParentType>
+    fun remove(child: ChildType): Drilldownable<ChildType, ParentType>
 
     @Suppress("UNCHECKED_CAST")
     fun findRecursively(child: ChildType, res: MutableSet<ParentType> = mutableSetOf()):MutableSet<ParentType>{
@@ -37,7 +37,7 @@ interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
     fun flatten(sorted:Boolean = true, sortBy: ChildType.() -> Int):MutableList<ChildType>{
         val res : MutableList<ChildType> = mutableListOf()
         this.getChildren()!!.forEach{
-            a -> if(a is Drilldownable<*,*>) {
+            a -> if(a is Drilldownable<*, *>) {
                     res.addAll((a as Drilldownable<ChildType, ParentType>).flatten(false, sortBy))
                 }
                 else {
@@ -53,7 +53,7 @@ interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
         if(hasChildren()){
             return this.getChildren()!!.fold(0) { a, e ->
                 a + when{
-                    e is Drilldownable<*,*> ->  e.countRecursively()
+                    e is Drilldownable<*, *> ->  e.countRecursively()
                     else -> 1
                 }
             }

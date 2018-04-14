@@ -1,4 +1,4 @@
-package eu.qiou.aaf4k.reportings
+package eu.qiou.aaf4k.reportings.model
 
 import eu.qiou.aaf4k.util.strings.CollectionToString
 
@@ -21,7 +21,7 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
         return parentEntitis
     }
 
-    override fun add(child: ProtoEntity):ProtoEntity{
+    override fun add(child: ProtoEntity): ProtoEntity {
         if (childEntitis == null){
             childEntitis = mutableSetOf()
         }
@@ -35,7 +35,7 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
         return this
     }
 
-    override fun remove(child: ProtoEntity):ProtoEntity{
+    override fun remove(child: ProtoEntity): ProtoEntity {
         if(childEntitis != null){
             if(childEntitis!!.contains(child)){
                 child.parentEntitis!!.remove(this)

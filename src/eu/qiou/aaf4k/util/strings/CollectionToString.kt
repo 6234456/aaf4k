@@ -1,6 +1,6 @@
 package eu.qiou.aaf4k.util.strings
 
-import eu.qiou.aaf4k.reportings.Drilldownable
+import eu.qiou.aaf4k.reportings.model.Drilldownable
 import eu.qiou.aaf4k.util.io.JSONable
 
 object CollectionToString {
@@ -23,7 +23,7 @@ object CollectionToString {
                return "\t"* level + (drilldownable as ParentType).asParentToStr() + ":{\n" + drilldownable.getChildren()!!.fold(""){
                    acc: String, childType: ChildType -> acc +
                         (
-                            if(childType is Drilldownable<*,*> && childType.hasChildren())
+                            if(childType is Drilldownable<*, *> && childType.hasChildren())
                                 structuredToStr(childType as Drilldownable<ChildType, ParentType>, level+1, asSingleToStr, asParentToStr)
                             else
                                 "\t" * (level + 1) + childType.toString()

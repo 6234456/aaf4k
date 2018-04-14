@@ -1,6 +1,6 @@
 package eu.qiou.aaf4k.reportings.translate
 
-import eu.qiou.aaf4k.reportings.ProtoReporting
+import eu.qiou.aaf4k.reportings.model.ProtoReporting
 
 
 /**
@@ -9,5 +9,5 @@ import eu.qiou.aaf4k.reportings.ProtoReporting
  * or the translation between financial and managerial accounting
  */
 interface ReportingAdaptor {
-    fun mapping(input: ProtoReporting):ProtoReporting
+    fun mapping(input: ProtoReporting): ProtoReporting
 }

@@ -1,4 +1,4 @@
-package eu.qiou.aaf4k.reportings
+package eu.qiou.aaf4k.reportings.model
 
 import java.util.*
 

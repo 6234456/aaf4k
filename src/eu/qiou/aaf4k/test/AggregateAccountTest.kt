@@ -1,7 +1,7 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.reportings.AggregateAccount
-import eu.qiou.aaf4k.reportings.ProtoAccount
+import eu.qiou.aaf4k.reportings.model.AggregateAccount
+import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.UnitScalar
@@ -13,9 +13,9 @@ class AggregateAccountTest {
     @Test
     fun addSubAccount() {
 
-        val acc1 = ProtoAccount(1234, "acc1",120, CurrencyUnit(UnitScalar.THOUSAND), decimalPrecision = 0, timeParameters = TimeParameters.realTime())
-        val acc2 = ProtoAccount(1235, "acc2",220000, timeParameters = TimeParameters.realTime(), displayUnit = CurrencyUnit(currency = Currency.getInstance("EUR")))
-        val acc3 = ProtoAccount(1238, "acc3",220000, timeParameters = TimeParameters.realTime())
+        val acc1 = ProtoAccount(1234, "acc1", 120, CurrencyUnit(UnitScalar.THOUSAND), decimalPrecision = 0, timeParameters = TimeParameters.realTime())
+        val acc2 = ProtoAccount(1235, "acc2", 220000, timeParameters = TimeParameters.realTime(), displayUnit = CurrencyUnit(currency = Currency.getInstance("EUR")))
+        val acc3 = ProtoAccount(1238, "acc3", 220000, timeParameters = TimeParameters.realTime())
         val agg1 = AggregateAccount(1236, "agg1")
         val agg2 = AggregateAccount(1237, "agg2")
 

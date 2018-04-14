@@ -1,7 +1,7 @@
 package eu.qiou.aaf4k.reportings.etl
 
-import eu.qiou.aaf4k.reportings.ProtoAccount
-import eu.qiou.aaf4k.reportings.ProtoReporting
+import eu.qiou.aaf4k.reportings.model.ProtoAccount
+import eu.qiou.aaf4k.reportings.model.ProtoReporting
 import eu.qiou.aaf4k.util.time.TimeParameters
 
 /**
@@ -12,9 +12,9 @@ import eu.qiou.aaf4k.util.time.TimeParameters
  * the orginially loosely coupled data and structure are combined in the accounting frame
  */
 
-abstract class AccountingFrame(id: Int, name: String):ProtoReporting(id, name, timeParameters = TimeParameters()) {
+abstract class AccountingFrame(id: Int, name: String): ProtoReporting(id, name, timeParameters = TimeParameters()) {
 
-    abstract fun addAccount(account:ProtoAccount)
+    abstract fun addAccount(account: ProtoAccount)
 
     override fun loadData(dataLoader: DataLoader): ProtoReporting {
         if(! (dataLoader is AccountingFrameDataLoader) ){

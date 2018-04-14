@@ -1,6 +1,6 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.reportings.ProtoAccount
+import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.util.io.FxUtil
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.time.TimeSpan
@@ -30,8 +30,8 @@ class FxUtilTest {
 
         // Convert
 
-        val acc1 = ProtoAccount(1000, "CNY", 100000000, CurrencyUnit(currency = Currency.getInstance("CNY")),2,"",
-                TimeParameters(timePoint = LocalDate.of(2018,1,1)), CurrencyUnit( scalar = UnitScalar.THOUSAND ,currency = Currency.getInstance("EUR")))
+        val acc1 = ProtoAccount(1000, "CNY", 100000000, CurrencyUnit(currency = Currency.getInstance("CNY")), 2, "",
+                TimeParameters(timePoint = LocalDate.of(2018, 1, 1)), CurrencyUnit(scalar = UnitScalar.THOUSAND, currency = Currency.getInstance("EUR")))
 
         println(acc1)
 
