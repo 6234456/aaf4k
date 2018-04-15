@@ -8,6 +8,7 @@
 
     <properties>
         <kotlin.version>1.2.31</kotlin.version>
+        <ktor.version>0.9.1</ktor.version>
     </properties>
 
     <dependencies>
@@ -61,6 +62,7 @@
         </dependency>
 
 
+
         <!-- https://mvnrepository.com/artifact/junit/junit -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -78,7 +80,38 @@
             <artifactId>junit</artifactId>
             <version>RELEASE</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-server-core</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.ktor/ktor-server-netty -->
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-server-netty</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+
+
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>ktor</id>
+            <url>http://dl.bintray.com/kotlin/ktor</url>
+        </repository>
+        <repository>
+            <id>kotlinx</id>
+            <url>http://dl.bintray.com/kotlin/kotlinx</url>
+        </repository>
+        <repository>
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
+
 
     <build>
         <sourceDirectory>src</sourceDirectory>
