@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.util.time
 
+import eu.qiou.aaf4k.reportings.model.Drilldownable
 import java.time.LocalDate
 import java.time.Period
 import java.time.temporal.ChronoUnit
@@ -12,7 +13,10 @@ import java.util.*
  * @since    1.0.0
  * @version  1.0.0
  */
-data class TimeSpan(val start: LocalDate, val end: LocalDate) {
+data class TimeSpan(val start: LocalDate, val end: LocalDate):Drilldownable<TimeSpan, TimeSpan> {
+
+    var drillDownTo = Pair<Long, ChronoUnit>(1, ChronoUnit.MONTHS)
+    var rollUpTo = setOf<Pair<Long, ChronoUnit>>(Pair(1, ChronoUnit.YEARS))
 
     private constructor():this(LocalDate.now(), LocalDate.now())
 
@@ -20,11 +24,27 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
         assert(start.compareTo(end) <= 0)
     }
 
+    override fun getChildren(): Collection<TimeSpan>? {
+        return this.drillDown(drillDownTo.first, drillDownTo.second)
+    }
+
+    override fun getParent(): Collection<TimeSpan>? {
+        return rollUp()
+    }
+
+    override fun add(child: TimeSpan): Drilldownable<TimeSpan, TimeSpan> {
+        throw Exception("TimeSpan Object is immutable!")
+    }
+
+    override fun remove(child: TimeSpan): Drilldownable<TimeSpan, TimeSpan> {
+        throw Exception("TimeSpan Object is immutable!")
+    }
+
     operator fun contains(date: LocalDate):Boolean{
         return date.compareTo(start) >= 0 && date.compareTo(end) <= 0
     }
 
-    operator fun contains(span: TimeSpan):Boolean{
+    override operator fun contains(span: TimeSpan):Boolean{
         return span.start.compareTo(start) >= 0 && span.end.compareTo(end) <= 0
     }
 
@@ -50,6 +70,71 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
         return res
     }
 
+    fun rollUp(): List<TimeSpan> {
+        return rollUpTo.map{
+            when(it) {
+                Pair<Long, ChronoUnit>(1, ChronoUnit.YEARS) -> getContainingYear()
+                Pair<Long, ChronoUnit>(6, ChronoUnit.MONTHS) ->getContainingHalfYear()
+                Pair<Long, ChronoUnit>(4, ChronoUnit.MONTHS) ->getContainingQuarter()
+                Pair<Long, ChronoUnit>(1, ChronoUnit.MONTHS) ->getContainingMonth()
+                Pair<Long, ChronoUnit>(1, ChronoUnit.WEEKS) ->getContainingWeek()
+                else -> throw Exception("Unknow Unit: ${it}.")
+            }
+        }
+    }
+
+    fun isInOneDay():Boolean {
+        return this.start == this.end
+    }
+
+    fun isInOneYear():Boolean {
+        return this.start.year == this.end.year
+    }
+
+    fun isInOneWeek():Boolean {
+        return drillDown(1, ChronoUnit.DAYS).count() <= 7 && start.dayOfWeek <= end.dayOfWeek
+    }
+
+    fun isInOneHalfYear():Boolean {
+        return isInOneYear() && (this.start.month.value * 1.0 - 6.5) * (this.end.month.value *1.0 - 6.5) > 0
+    }
+
+    fun isInOneMonth():Boolean {
+        return isInOneYear() && this.start.month == this.end.month
+    }
+
+    fun isInOneQuarter():Boolean {
+        return isInOneYear() &&
+                this.end.month.value - this.start.month.value <= 2 &&
+                (this.end.monthValue.rem(3) == 0 || this.end.monthValue.rem(3) >= this.start.monthValue.rem(3))
+    }
+
+    fun getContainingYear():TimeSpan {
+        if(! isInOneYear()) throw Exception("${this} expands across multiple years")
+        return TimeSpan.forYear(this.start.year)
+    }
+
+    fun getContainingHalfYear():TimeSpan {
+        if(! isInOneHalfYear()) throw Exception("${this} expands across multiple half-years")
+        return TimeSpan.forHalfYear(this.start.year, this.start.month.value <= 6)
+    }
+
+    fun getContainingMonth():TimeSpan {
+        if(! isInOneMonth()) throw Exception("${this} expands across multiple months")
+        return TimeSpan.forMonth(this.start.year, this.start.monthValue)
+    }
+
+    fun getContainingWeek():TimeSpan {
+        if(! isInOneWeek()) throw Exception("${this} expands across multiple weeks")
+        val mondayOftheWeek = this.start + ChronoUnit.DAYS * (this.start.dayOfWeek.value - 1 )
+        return TimeSpan(mondayOftheWeek, mondayOftheWeek + ChronoUnit.DAYS * 6)
+    }
+
+    fun getContainingQuarter():TimeSpan {
+        if(! isInOneQuarter()) throw Exception("${this} expands across multiple quarters")
+        return TimeSpan.forQuarter(this.start.year, Math.ceil(this.start.monthValue * 1.0 / 3.0).toInt() )
+    }
+
     override fun toString(): String {
         return "[$start, $end]"
     }
@@ -58,6 +143,11 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
         fun forYear(year: Int): TimeSpan {
             return TimeSpan(LocalDate.of(year, 1, 1), LocalDate.of(year, 12, 31))
+        }
+
+        fun forHalfYear(year: Int, firstHalf: Boolean = true): TimeSpan {
+            return if(firstHalf) TimeSpan(LocalDate.of(year, 1, 1), LocalDate.of(year, 6, 30))
+                        else TimeSpan(LocalDate.of(year, 7, 1), LocalDate.of(year, 12, 31))
         }
 
         fun forMonth(year: Int, month: Int): TimeSpan {

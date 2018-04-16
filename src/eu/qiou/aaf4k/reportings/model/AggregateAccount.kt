@@ -12,7 +12,7 @@ class AggregateAccount(id:Int, name:String, val accounts: MutableSet<ProtoAccoun
         return superAccounts
     }
 
-    override fun  getChildren(): Collection<ProtoAccount>? {
+    override fun getChildren(): Collection<ProtoAccount>? {
         return accounts
     }
 

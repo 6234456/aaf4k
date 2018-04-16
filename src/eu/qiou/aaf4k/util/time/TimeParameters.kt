@@ -13,12 +13,41 @@ data class TimeParameters(val timeSpan: TimeSpan?=null, val timePoint: LocalDate
 
     constructor(year: Int, month: Int, dayOfMonth:Int):this(null, LocalDate.of(year, month, dayOfMonth))
 
+    val end: LocalDate
+    get() {
+        return when(this.timeAttribute){
+            TimeAttribute.TIME_POINT -> this.timePoint!!
+            TimeAttribute.TIME_SPAN  -> this.timeSpan!!.end
+            else -> throw Exception("Specification Error: One and only one of the attribute timeSpan/timePoint should be specified!")
+        }
+    }
+
+    val start: LocalDate
+    get() {
+        return when(this.timeAttribute){
+            TimeAttribute.TIME_POINT -> this.timePoint!!
+            TimeAttribute.TIME_SPAN  -> this.timeSpan!!.start
+            else -> throw Exception("Specification Error: One and only one of the attribute timeSpan/timePoint should be specified!")
+        }
+    }
 
     val timeAttribute: TimeAttribute = when{
         timeSpan    != null && timePoint    == null     -> TimeAttribute.TIME_SPAN
         timePoint   != null && timeSpan     == null     -> TimeAttribute.TIME_POINT
         timePoint   == null && timeSpan     == null     -> TimeAttribute.CONSTANT
         else -> throw Exception("Specification Error: One and only one of the attribute timeSpan/timePoint should be specified!")
+    }
+
+    operator fun contains(timeParameters: TimeParameters):Boolean{
+        return this.start <= timeParameters.start && this.end >= timeParameters.end
+    }
+
+    operator fun contains(date: LocalDate):Boolean{
+        return this.start <= date && this.end >= date
+    }
+
+    operator fun contains(timeSpan: TimeSpan):Boolean{
+        return this.start <= timeSpan.start && this.end >= timeSpan.end
     }
 
     companion object {

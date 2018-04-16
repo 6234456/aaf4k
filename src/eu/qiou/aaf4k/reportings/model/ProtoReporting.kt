@@ -10,6 +10,13 @@ import eu.qiou.aaf4k.util.unit.ProtoUnit
 
 
 /**
+ * Class of ProtoReporting
+ *
+ * initial value of ProtoReporting of either 0, or loaded from external source.
+ * ProtoReporting = ProtoReporting + ProtoCategory
+ *
+ * ProtoCategory is a collection of ProtoEntries, which represent the delta of ProtoReporting.
+ *
  * @property accounts flattened set of accounts
  * @property structure list of accounts in structure
  */

@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.reportings
 
+import eu.qiou.aaf4k.util.time.TimeParameters
 import java.util.*
 
 /**
@@ -20,6 +21,10 @@ object GlobalConfiguration {
     val DEFAULT_LOCALE: Locale = Locale.CHINA
     val DEFAULT_CURRENCY: Currency = Currency.getInstance("EUR")
     val DEFAULT_CURRENCY_CODE: String = DEFAULT_CURRENCY.currencyCode
+
+    val DEFAULT_TIME_PARAMETERS = TimeParameters(2017)
+
+
 
 
 
