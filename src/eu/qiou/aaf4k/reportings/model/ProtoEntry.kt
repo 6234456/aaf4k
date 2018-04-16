@@ -11,7 +11,7 @@ class ProtoEntry<T : ProtoAccount>(val id:Int, val desc:String= "", val timePara
     var isVisible:Boolean = true
 
     val accounts: MutableList<T> = mutableListOf()
-    val parameterList : MutableList<Drilldownable<*,*>> = mutableListOf()
+    val parameterList : MutableList<Drilldownable> = mutableListOf()
 
     operator fun contains(protoEntry: ProtoEntry<*>):Boolean{
         if(this.timeParameters == null || protoEntry.timeParameters == null)

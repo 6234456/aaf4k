@@ -1,44 +1,52 @@
 package eu.qiou.aaf4k.reportings.model
 
-interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
+interface Drilldownable{
 
-    fun getChildren():Collection<ChildType>?
+    fun getChildren():Collection<Drilldownable>?
 
-    fun getParent():Collection<ParentType>?
+    fun getParent():Collection<Drilldownable>?
 
-    fun add(child: ChildType): Drilldownable<ChildType, ParentType>
+    fun add(child: Drilldownable): Drilldownable
 
-    fun remove(child: ChildType): Drilldownable<ChildType, ParentType>
+    fun remove(child: Drilldownable): Drilldownable
 
-    @Suppress("UNCHECKED_CAST")
-    fun findRecursively(child: ChildType, res: MutableSet<ParentType> = mutableSetOf()):MutableSet<ParentType>{
+    fun findRecursively(child: Drilldownable, res: MutableSet<Drilldownable> = mutableSetOf()):MutableSet<Drilldownable>{
         this.getChildren()!!.fold(res){
             b, a ->
-                if(child!!.equals(a)) {
-                    b.add(this as ParentType)
-                } else if(a is Drilldownable<*, *>) {
-                    (a as Drilldownable<ChildType, ParentType>).findRecursively(child, b)
+                if(child.equals(a)) {
+                    b.add(this)
+                } else  {
+                    a.findRecursively(child, b)
                 }
             b
         }
         return res
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun removeRecursively(child: ChildType):ParentType{
+    fun removeRecursively(child: Drilldownable):Drilldownable{
         this.findRecursively(child).forEach{
-            (it as Drilldownable<ChildType, ParentType>).remove(child)
+            it.remove(child)
         }
 
-        return this as ParentType
+        return this
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun flatten(sorted:Boolean = true, sortBy: ChildType.() -> Int):MutableList<ChildType>{
-        val res : MutableList<ChildType> = mutableListOf()
+    fun hasParent():Boolean{
+        return getParent() == null
+    }
+
+    fun hasChildren():Boolean{
+        if(getChildren() == null)
+            return false
+        else
+            return getChildren()!!.count() > 0
+    }
+
+    fun flatten(sorted:Boolean = true, sortBy: Drilldownable.() -> Int):MutableList<Drilldownable>{
+        val res : MutableList<Drilldownable> = mutableListOf()
         this.getChildren()!!.forEach{
-            a -> if(a is Drilldownable<*, *>) {
-                    res.addAll((a as Drilldownable<ChildType, ParentType>).flatten(false, sortBy))
+            a -> if(a.hasChildren()) {
+                    res.addAll(a.flatten(false, sortBy))
                 }
                 else {
                     res.add(a)
@@ -53,7 +61,7 @@ interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
         if(hasChildren()){
             return this.getChildren()!!.fold(0) { a, e ->
                 a + when{
-                    e is Drilldownable<*, *> ->  e.countRecursively()
+                    e.hasChildren() ->  e.countRecursively()
                     else -> 1
                 }
             }
@@ -69,34 +77,23 @@ interface Drilldownable<ChildType, ParentType> where ParentType: ChildType{
     }
 
 
-    fun hasChildren():Boolean{
-        if(getChildren() == null)
-            return false
-        else
-            return getChildren()!!.count() > 0
-    }
-
-    fun hasParent():Boolean{
-        return getParent() == null
-    }
-
-    operator fun contains(child:ChildType):Boolean {
+    operator fun contains(child:Drilldownable):Boolean {
         if(!hasChildren()){
             return false
         }
         return findRecursively(child).count() > 0
     }
 
-    operator fun plusAssign(child: ChildType){
+    operator fun plusAssign(child: Drilldownable){
         this.add(child)
     }
 
-    operator fun plus(child: ChildType) = this.add(child)
+    operator fun plus(child: Drilldownable) = this.add(child)
 
-    operator fun minusAssign(child: ChildType){
+    operator fun minusAssign(child: Drilldownable){
         this.remove(child)
     }
 
-    operator fun minus(child: ChildType) = this.remove(child)
+    operator fun minus(child: Drilldownable) = this.remove(child)
 
 }

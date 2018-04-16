@@ -8,7 +8,7 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
  */
 
 data class ProtoEntity(val id: Int, var name: String, var abbreviation: String = name, var desc:String = "",
-                       var contactPerson: Person? = null, var address: Address? = null): Drilldownable<ProtoEntity, ProtoEntity> {
+                       var contactPerson: Person? = null, var address: Address? = null): Drilldownable {
 
     var childEntitis: MutableSet<ProtoEntity> ? = null
     var parentEntitis: MutableSet<ProtoEntity> ? = null
@@ -21,27 +21,32 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
         return parentEntitis
     }
 
-    override fun add(child: ProtoEntity): ProtoEntity {
-        if (childEntitis == null){
-            childEntitis = mutableSetOf()
-        }
-        childEntitis!!.add(child)
+    override fun add(child: Drilldownable): ProtoEntity {
+        if(child is ProtoEntity){
+            if (childEntitis == null){
+                childEntitis = mutableSetOf()
+            }
+            childEntitis!!.add(child)
 
-        if(child.parentEntitis == null){
-            child.parentEntitis = mutableSetOf()
+            if(child.parentEntitis == null){
+                child.parentEntitis = mutableSetOf()
+            }
+            child.parentEntitis!!.add(this)
         }
-        child.parentEntitis!!.add(this)
 
         return this
     }
 
-    override fun remove(child: ProtoEntity): ProtoEntity {
-        if(childEntitis != null){
-            if(childEntitis!!.contains(child)){
-                child.parentEntitis!!.remove(this)
-                childEntitis!!.remove(child)
+    override fun remove(child: Drilldownable): ProtoEntity {
+        if(child is ProtoEntity){
+            if(childEntitis != null){
+                if(childEntitis!!.contains(child)){
+                    child.parentEntitis!!.remove(this)
+                    childEntitis!!.remove(child)
+                }
             }
         }
+
         return this
     }
 

@@ -1,6 +1,5 @@
 package eu.qiou.aaf4k.reportings.etl
 
-import eu.qiou.aaf4k.reportings.model.AggregateAccount
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.reportings.model.ProtoReporting
 import eu.qiou.aaf4k.util.io.ExcelUtil
@@ -8,7 +7,7 @@ import org.apache.poi.ss.usermodel.Row
 
 class ExcelStructureLoader(var path:String, var sheetIndex: Int = 0, var sheetName: String? = null): StructureLoader {
     override fun loadStructure(reporting: ProtoReporting): ProtoReporting {
-        var tmpAggregateAccount: AggregateAccount? = null
+        var tmpAggregateAccount: ProtoAccount? = null
 
         val f: (Row) -> Unit = {
             var c1 = ""
@@ -30,7 +29,7 @@ class ExcelStructureLoader(var path:String, var sheetIndex: Int = 0, var sheetNa
                         reporting.addAggreateAccount(tmpAggregateAccount!!)
                     }
 
-                    tmpAggregateAccount = AggregateAccount(id = t1.first, name = t1.second)
+                    tmpAggregateAccount = ProtoAccount(id = t1.first, name = t1.second)
                 }else{
                     val t1 = parseAccount(c2)
                     tmpAggregateAccount?.add(ProtoAccount(id = t1.first, name = t1.second))

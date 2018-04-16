@@ -13,12 +13,21 @@ import java.util.*
  * @since    1.0.0
  * @version  1.0.0
  */
-data class TimeSpan(val start: LocalDate, val end: LocalDate):Drilldownable<TimeSpan, TimeSpan> {
+data class TimeSpan(val start: LocalDate, val end: LocalDate):Drilldownable {
 
     var drillDownTo = Pair<Long, ChronoUnit>(1, ChronoUnit.MONTHS)
     var rollUpTo = setOf<Pair<Long, ChronoUnit>>(Pair(1, ChronoUnit.YEARS))
 
     private constructor():this(LocalDate.now(), LocalDate.now())
+
+    override fun add(child: Drilldownable): Drilldownable {
+        throw Exception("TimeSpan immutable!")
+    }
+
+    override fun remove(child: Drilldownable): Drilldownable {
+        throw Exception("TimeSpan immutable!")
+    }
+
 
     init {
         assert(start.compareTo(end) <= 0)
@@ -32,20 +41,16 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate):Drilldownable<Time
         return rollUp()
     }
 
-    override fun add(child: TimeSpan): Drilldownable<TimeSpan, TimeSpan> {
-        throw Exception("TimeSpan Object is immutable!")
-    }
-
-    override fun remove(child: TimeSpan): Drilldownable<TimeSpan, TimeSpan> {
-        throw Exception("TimeSpan Object is immutable!")
-    }
 
     operator fun contains(date: LocalDate):Boolean{
         return date.compareTo(start) >= 0 && date.compareTo(end) <= 0
     }
 
-    override operator fun contains(span: TimeSpan):Boolean{
-        return span.start.compareTo(start) >= 0 && span.end.compareTo(end) <= 0
+    override operator fun contains(span: Drilldownable):Boolean{
+        if (span is TimeSpan)
+            return span.start.compareTo(start) >= 0 && span.end.compareTo(end) <= 0
+
+        return false
     }
 
     operator fun plus(period: Period):TimeSpan {

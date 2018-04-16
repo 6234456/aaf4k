@@ -20,7 +20,7 @@ import eu.qiou.aaf4k.util.unit.ProtoUnit
  * @property accounts flattened set of accounts
  * @property structure list of accounts in structure
  */
-open class ProtoReporting(val id:Int, val name: String, var desc: String="", var accounts: MutableSet<ProtoAccount> = mutableSetOf(), var structure: MutableList<AggregateAccount> = mutableListOf(),
+open class ProtoReporting(val id:Int, val name: String, var desc: String="", var accounts: MutableSet<ProtoAccount> = mutableSetOf(), var structure: MutableList<ProtoAccount> = mutableListOf(),
                           var displayUnit: ProtoUnit = CurrencyUnit(),
                           val timeParameters: TimeParameters) : JSONable {
     fun getAccountByID(id: Int): ProtoAccount?{
@@ -31,9 +31,9 @@ open class ProtoReporting(val id:Int, val name: String, var desc: String="", var
         return structure.find { it.id == id }
     }
 
-    fun addAggreateAccount(aggregateAccount: AggregateAccount){
+    fun addAggreateAccount(aggregateAccount: ProtoAccount){
         structure.add(aggregateAccount)
-        accounts.addAll(aggregateAccount.flatten(false,{this.id}))
+        accounts.addAll(aggregateAccount.flatten(false, {id}) as Collection<ProtoAccount>)
     }
 
     fun existsDuplicateAccounts():Boolean {
