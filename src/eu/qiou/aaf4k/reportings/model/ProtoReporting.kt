@@ -54,8 +54,8 @@ open class ProtoReporting(val id:Int, val name: String, var desc: String="", var
                 if(acc == null)
                     throw Exception("the account id '$a' missing!" )
                 else {
-                    acc.decimalPrecision = dataLoader.getDecimalPrecision()
-                    acc.displayValue = b
+                  //  acc.decimalPrecision = dataLoader.getDecimalPrecision()
+                 //   acc.displayValue = b
                 }
             }
         })

@@ -17,11 +17,17 @@ class ProtoAccountTest{
         assert(account2.value == 2200L)
         assert(account2.displayValue == 22.0)
 
-        account2.displayValue = 2.1
         assert(account2.displayValue == 22.0)
 
-
         println(account2)
+    }
 
+    @Test
+    fun testBuilder(){
+        val a1 = ProtoAccount.builder().setBasicInfo(1234, "test1").setValue(1234.45, 2).build()
+        val a2 = ProtoAccount.builder().setBasicInfo(1235, "test1").setValue(2323445).build()
+        val a3 = ProtoAccount.builder().setBasicInfo(123, "test1").setValue(mutableSetOf(a1, a2)).build()
+
+        println(a3.toJSON())
     }
 }

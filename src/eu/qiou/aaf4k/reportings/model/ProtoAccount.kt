@@ -89,7 +89,6 @@ open class ProtoAccount(val id: Int, val name: String,
         })
     private set
 
-
     val isAggregate:Boolean = subAccounts != null
 
     var decimalValue: Double = 0.0
@@ -162,6 +161,101 @@ open class ProtoAccount(val id: Int, val name: String,
         }
 
         return "{id: $id, name: '$name', value: $decimalValue, displayValue: $displayValue, decimalPrecision: $decimalPrecision, desc: '$desc', hasSubAccounts: $hasSubAccounts, hasSuperAccounts: $hasSuperAccounts, localAccountID:$localAccountID, scalar: ${unit.scalar}, isCurrency: ${unit is CurrencyUnit}, isPercentage: ${unit is PercentageUnit}}"
+    }
+
+    class Builder {
+        var id: Int? = null
+        var name: String? = null
+        var subAccounts: MutableSet<ProtoAccount>? = null
+        var decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION
+        var value:Long? = null
+        var unit: ProtoUnit = CurrencyUnit()
+        var desc: String = ""
+        var timeParameters: TimeParameters? = null
+        var entity: ProtoEntity? = null
+
+        private var type:Int = 0
+
+        fun setValue(v:Long):Builder{
+            if(type != VALUE_SETTER_UNDETERMINED)
+                throw Exception("method 'setValue' can be evoked only once.")
+
+            this.value = v
+            type = VALUE_SETTER_BASIC
+            return this
+        }
+
+        fun setValue(v:Double, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION):Builder{
+            if(type != VALUE_SETTER_UNDETERMINED)
+                throw Exception("method 'setValue' can be evoked only once.")
+
+            this.decimalPrecision = decimalPrecision
+            value = (v * Math.pow(10.0, decimalPrecision.toDouble())).toLong()
+            type = VALUE_SETTER_EXTERNAL
+            return this
+        }
+
+        fun setValue(subAccounts: MutableSet<ProtoAccount>):Builder{
+            if(type != VALUE_SETTER_UNDETERMINED)
+                throw Exception("method 'setValue' can be evoked only once.")
+
+            this.subAccounts = subAccounts
+            type = VALUE_SETTER_AGGREGATE
+            return this
+        }
+
+        fun setBasicInfo(id: Int, name: String):Builder{
+            this.id = id
+            this.name = name
+            return this
+        }
+
+        fun setDecimalPrecision(decimalPrecision: Int):Builder{
+            this.decimalPrecision = decimalPrecision
+            return this
+        }
+
+        fun setDesc(desc: String):Builder{
+            this.desc = desc
+            return this
+        }
+
+        fun setUnit(unit: ProtoUnit):Builder{
+            this.unit = unit
+            return this
+        }
+
+        fun setTimeParameters(timeParameters: TimeParameters):Builder{
+            this.timeParameters = timeParameters
+            return this
+        }
+
+        fun setEntity(entity: ProtoEntity):Builder{
+            this.entity = entity
+            return this
+        }
+
+        fun build():ProtoAccount{
+            return when{
+                type == VALUE_SETTER_BASIC || type == VALUE_SETTER_EXTERNAL -> ProtoAccount(id!!, name!!, null, decimalPrecision = decimalPrecision, value= value, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity)
+                type == VALUE_SETTER_AGGREGATE -> ProtoAccount(id!!, name!!, subAccounts = subAccounts, decimalPrecision = decimalPrecision, value= null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity)
+                else -> throw Exception("Please evoke setValue at first!")
+            }
+        }
+
+        companion object {
+            val VALUE_SETTER_BASIC = 1
+            val VALUE_SETTER_EXTERNAL = 2
+            val VALUE_SETTER_AGGREGATE = 3
+            val VALUE_SETTER_UNDETERMINED = 0
+        }
+
+    }
+
+    companion object {
+        fun builder():Builder{
+            return Builder()
+        }
     }
 
 }
