@@ -92,9 +92,12 @@ open class ProtoAccount(val id: Int, val name: String,
             else                    -> unit.convertTo(displayUnit)(storeToDisplay())
         })
     set(v) {
-        if(displayUnit.scalar.equals(this.unit.scalar))
-            this.value = Math.round(v * Math.pow(10.0, decimalPrecision.toDouble()))
-        field = v
+        // display value of the drilldownables are not settable
+        if(subAccounts == null){
+            if(displayUnit.scalar.equals(this.unit.scalar))
+                this.value = Math.round(v * Math.pow(10.0, decimalPrecision.toDouble()))
+            field = v
+        }
     }
 
     fun register(superAccount: ProtoAccount){
@@ -141,7 +144,7 @@ open class ProtoAccount(val id: Int, val name: String,
 
     override fun toString(): String {
         if (this.hasChildren()){
-            return CollectionToString.structuredToStr(this, 0, ProtoAccount::toString, ProtoAccount::titel)
+            return CollectionToString.structuredToStr(this, 0, ProtoAccount::toString as Drilldownable.() -> String, ProtoAccount::titel as Drilldownable.() -> String)
         }
 
         return "($localAccountID $name) : ${displayUnit.format()(displayValue)}"

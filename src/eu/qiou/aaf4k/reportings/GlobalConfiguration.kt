@@ -16,6 +16,7 @@ object GlobalConfiguration {
      */
     val RESULT_ACCOUNT_ID : Int = 0
     val DEFAULT_DECIMAL_PRECISION: Int = 2
+    val DEFAULT_FX_DECIMAL_PRECISION: Int = 4
 
 
     val DEFAULT_LOCALE: Locale = Locale.CHINA
@@ -23,10 +24,6 @@ object GlobalConfiguration {
     val DEFAULT_CURRENCY_CODE: String = DEFAULT_CURRENCY.currencyCode
 
     val DEFAULT_TIME_PARAMETERS = TimeParameters(2017)
-
-
-
-
 
     // Foreign Exchange Rate
 

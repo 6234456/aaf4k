@@ -16,15 +16,15 @@ object CollectionToString {
         return prefix + iterable.fold(""){a, b -> a + (if(a.isEmpty()) "" else separator) + b.f() } + affix
     }
 
-    fun <ChildType, ParentType:ChildType>structuredToStr(drilldownable: Drilldownable<ChildType, ParentType>, level:Int = 0, asSingleToStr: ChildType.()->String, asParentToStr:  ParentType.()->String):String{
+    fun structuredToStr(drilldownable: Drilldownable, level:Int = 0, asSingleToStr: Drilldownable.()->String, asParentToStr:  Drilldownable.()->String):String{
            if(! drilldownable.hasChildren())
-               return (drilldownable as ChildType).asSingleToStr()
+               return drilldownable .asSingleToStr()
            else{
-               return "\t"* level + (drilldownable as ParentType).asParentToStr() + ":{\n" + drilldownable.getChildren()!!.fold(""){
-                   acc: String, childType: ChildType -> acc +
+               return "\t"* level + drilldownable.asParentToStr() + ":{\n" + drilldownable.getChildren()!!.fold(""){
+                   acc: String, childType -> acc +
                         (
-                            if(childType is Drilldownable<*, *> && childType.hasChildren())
-                                structuredToStr(childType as Drilldownable<ChildType, ParentType>, level+1, asSingleToStr, asParentToStr)
+                            if(childType is Drilldownable && childType.hasChildren())
+                                structuredToStr(childType, level+1, asSingleToStr, asParentToStr)
                             else
                                 "\t" * (level + 1) + childType.toString()
                         )+ "\n"

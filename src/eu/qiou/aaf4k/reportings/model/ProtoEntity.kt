@@ -70,6 +70,6 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
     }
 
     override fun toString(): String {
-        return CollectionToString.structuredToStr(this, 0, ProtoEntity::lower , ProtoEntity::upper )
+        return CollectionToString.structuredToStr(this, 0, ProtoEntity::lower as Drilldownable.() -> String , ProtoEntity::upper as Drilldownable.() -> String )
     }
 }
