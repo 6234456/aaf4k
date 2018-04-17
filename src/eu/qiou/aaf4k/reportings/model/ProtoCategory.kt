@@ -10,7 +10,7 @@ import eu.qiou.aaf4k.util.time.TimeParameters
  */
 class ProtoCategory<E : ProtoEntry<*>>(val name:String, val id:Int, val timeParameters: TimeParameters):Drilldownable
 {
-    override fun getParent(): Collection<Drilldownable>? {
+    override fun getParents(): Collection<Drilldownable>? {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

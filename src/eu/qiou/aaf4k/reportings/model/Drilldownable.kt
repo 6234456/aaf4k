@@ -4,7 +4,7 @@ interface Drilldownable{
 
     fun getChildren():Collection<Drilldownable>?
 
-    fun getParent():Collection<Drilldownable>?
+    fun getParents():Collection<Drilldownable>?
 
     fun add(child: Drilldownable): Drilldownable
 
@@ -32,14 +32,11 @@ interface Drilldownable{
     }
 
     fun hasParent():Boolean{
-        return getParent() == null
+        return getParents() != null && getParents()!!.count() > 0
     }
 
     fun hasChildren():Boolean{
-        if(getChildren() == null)
-            return false
-        else
-            return getChildren()!!.count() > 0
+        return getChildren() != null && getChildren()!!.count() > 0
     }
 
     fun flatten(sorted:Boolean = true, sortBy: Drilldownable.() -> Int):MutableList<Drilldownable>{

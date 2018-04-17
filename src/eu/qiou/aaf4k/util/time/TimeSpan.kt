@@ -37,7 +37,7 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate):Drilldownable {
         return this.drillDown(drillDownTo.first, drillDownTo.second)
     }
 
-    override fun getParent(): Collection<TimeSpan>? {
+    override fun getParents(): Collection<TimeSpan>? {
         return rollUp()
     }
 

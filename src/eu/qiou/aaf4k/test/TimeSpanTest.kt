@@ -16,7 +16,7 @@ class TimeSpanTest {
 
     @Test
     fun getParent() {
-        println(timeSpan.getParent())
+        println(timeSpan.getParents())
     }
 
     @Test

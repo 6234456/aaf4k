@@ -17,7 +17,7 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
         return childEntitis
     }
 
-    override fun getParent(): Collection<ProtoEntity>? {
+    override fun getParents(): Collection<ProtoEntity>? {
         return parentEntitis
     }
 
