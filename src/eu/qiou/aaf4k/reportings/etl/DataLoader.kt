@@ -5,8 +5,4 @@ package eu.qiou.aaf4k.reportings.etl
  */
 interface DataLoader {
     fun loadData():MutableMap<Int, Double>
-
-    fun getDecimalPrecision():Int {
-        return 2
-    }
 }

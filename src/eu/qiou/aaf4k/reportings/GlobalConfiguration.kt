@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.reportings
 
+import eu.qiou.aaf4k.reportings.model.ProtoEntity
 import eu.qiou.aaf4k.util.time.TimeParameters
 import java.util.*
 
@@ -24,6 +25,7 @@ object GlobalConfiguration {
     val DEFAULT_CURRENCY_CODE: String = DEFAULT_CURRENCY.currencyCode
 
     val DEFAULT_TIME_PARAMETERS = TimeParameters(2017)
+    val DEFAULT_ENTITY = ProtoEntity(0, "Demo GmbH", "Demo", "a fictive company")
 
     // Foreign Exchange Rate
 

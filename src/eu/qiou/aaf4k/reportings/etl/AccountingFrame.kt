@@ -12,20 +12,4 @@ import eu.qiou.aaf4k.util.time.TimeParameters
  * the orginially loosely coupled data and structure are combined in the accounting frame
  */
 
-abstract class AccountingFrame(id: Int, name: String): ProtoReporting(id, name, timeParameters = TimeParameters()) {
-
-    abstract fun addAccount(account: ProtoAccount)
-
-    override fun loadData(dataLoader: DataLoader): ProtoReporting {
-        if(! (dataLoader is AccountingFrameDataLoader) ){
-            throw Exception("")
-        }
-
-        dataLoader.loadAccountingFrameData().forEach({ it ->
-            val acc = dataLoader.parseAccount(it, this.displayUnit)
-            this.addAccount(acc)
-        })
-
-        return this
-    }
-}
+abstract class AccountingFrame(id: Int, name: String, accounts: List<ProtoAccount>) : ProtoReporting(id, name, timeParameters = TimeParameters(), structure = accounts)

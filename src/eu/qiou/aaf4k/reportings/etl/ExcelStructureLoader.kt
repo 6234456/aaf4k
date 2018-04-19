@@ -1,12 +1,12 @@
 package eu.qiou.aaf4k.reportings.etl
 
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
-import eu.qiou.aaf4k.reportings.model.ProtoReporting
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.ss.usermodel.Row
 
 class ExcelStructureLoader(var path:String, var sheetIndex: Int = 0, var sheetName: String? = null): StructureLoader {
-    override fun loadStructure(reporting: ProtoReporting): ProtoReporting {
+    override fun loadStructure(): List<ProtoAccount> {
+        var res: MutableList<ProtoAccount> = mutableListOf()
         var tmpAggregateAccount: ProtoAccount? = null
 
         val f: (Row) -> Unit = {
@@ -26,7 +26,7 @@ class ExcelStructureLoader(var path:String, var sheetIndex: Int = 0, var sheetNa
                     val t1 = parseAccount(c1)
 
                     if(tmpAggregateAccount != null){
-                        reporting.addAggreateAccount(tmpAggregateAccount!!)
+                        res.add(tmpAggregateAccount!!)
                     }
 
                     tmpAggregateAccount = ProtoAccount(id = t1.first, name = t1.second)
@@ -39,9 +39,9 @@ class ExcelStructureLoader(var path:String, var sheetIndex: Int = 0, var sheetNa
 
         ExcelUtil.loopThroughRows(path, sheetIndex, sheetName, f)
 
-        reporting.addAggreateAccount(tmpAggregateAccount!!)
+        res.add(tmpAggregateAccount!!)
 
-        return  reporting
+        return res
     }
 
     private fun parseAccount(content:String):Pair<Int, String>{

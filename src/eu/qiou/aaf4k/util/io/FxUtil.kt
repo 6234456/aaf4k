@@ -17,7 +17,7 @@ object FxUtil {
             }
         }
 
-        val rate = source.fetchFx(target, useCache)
+        val rate = source.fetch(target, useCache)
         return setDisplayRateAndReturn(target, rate)
     }
 

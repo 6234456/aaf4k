@@ -10,13 +10,13 @@ interface Drilldownable{
 
     fun remove(child: Drilldownable): Drilldownable
 
-    fun findRecursively(child: Drilldownable, res: MutableSet<Drilldownable> = mutableSetOf()):MutableSet<Drilldownable>{
+    fun findParentRecursively(child: Drilldownable, res: MutableSet<Drilldownable> = mutableSetOf()): MutableSet<Drilldownable> {
         this.getChildren()!!.fold(res){
             b, a ->
                 if(child.equals(a)) {
                     b.add(this)
                 } else  {
-                    a.findRecursively(child, b)
+                    a.findParentRecursively(child, b)
                 }
             b
         }
@@ -24,7 +24,7 @@ interface Drilldownable{
     }
 
     fun removeRecursively(child: Drilldownable):Drilldownable{
-        this.findRecursively(child).forEach{
+        this.findParentRecursively(child).forEach {
             it.remove(child)
         }
 
@@ -32,25 +32,27 @@ interface Drilldownable{
     }
 
     fun hasParent():Boolean{
-        return getParents() != null && getParents()!!.count() > 0
+        val parents = getParents()
+        return parents != null && parents.count() > 0
     }
 
     fun hasChildren():Boolean{
-        return getChildren() != null && getChildren()!!.count() > 0
+        val children = getChildren()
+        return children != null && children.count() > 0
     }
 
-    fun flatten(sorted:Boolean = true, sortBy: Drilldownable.() -> Int):MutableList<Drilldownable>{
+    fun flatten(): MutableList<Drilldownable> {
         val res : MutableList<Drilldownable> = mutableListOf()
-        this.getChildren()!!.forEach{
-            a -> if(a.hasChildren()) {
-                    res.addAll(a.flatten(false, sortBy))
-                }
-                else {
+
+        if (hasChildren())
+            getChildren()!!.forEach { a ->
+                if (a.hasChildren()) {
+                    res.addAll(a.flatten())
+                } else {
                     res.add(a)
                 }
-        }
+            }
 
-        if(sorted) res.sortBy { it.sortBy() }
         return res
     }
 
@@ -78,7 +80,7 @@ interface Drilldownable{
         if(!hasChildren()){
             return false
         }
-        return findRecursively(child).count() > 0
+        return findParentRecursively(child).count() > 0
     }
 
     operator fun plusAssign(child: Drilldownable){

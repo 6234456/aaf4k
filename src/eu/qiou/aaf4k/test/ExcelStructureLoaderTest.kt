@@ -1,27 +1,32 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.reportings.accounting.Balance
-import eu.qiou.aaf4k.reportings.accounting.ProfitAndLoss
 import eu.qiou.aaf4k.reportings.etl.ExcelDataLoader
-import eu.qiou.aaf4k.reportings.etl.ExcelStructureLoader
-import eu.qiou.aaf4k.util.time.TimeSpan
+import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import org.junit.Test
 
-import java.time.LocalDate
 
 class ExcelStructureLoaderTest {
 
     @Test
     fun loadStructure() {
-        val reporting =ExcelStructureLoader("src/eu/qiou/aaf4k/demo/DemoStructure.xls").loadStructure(Balance(2018001, "Demo_Balance", LocalDate.now()))
-        val reporting1 =ExcelStructureLoader("src/eu/qiou/aaf4k/demo/DemoStructure.xlsx",1).loadStructure(ProfitAndLoss(2018001, "Demo_Profit & Loss", TimeSpan.forYear(2018)))
+        val data = ExcelDataLoader("src/eu/qiou/aaf4k/demo/data.xlsx").loadData()
+        val acc = ProtoAccount(0, "test1")
+        val subAcc1 = ProtoAccount.builder().setValue(2.0).setBasicInfo(400, "a").build()
 
-        reporting.loadData(dataLoader = ExcelDataLoader("src/eu/qiou/aaf4k/demo/data.xlsx"))
-        reporting1.loadData(dataLoader = ExcelDataLoader("src/eu/qiou/aaf4k/demo/data.xlsx", 1))
+        acc.add(subAcc1)
+        println(acc)
 
-        // println(reporting)
-        // println(reporting1)
-        println(reporting.toJSON())
+        val acc1 = acc.deepCopy(data)
+
+        println(acc1.value)
+        println(acc1.decimalValue)
+        println(acc1.hasSuperAccounts)
+        println(acc1.hasSubAccounts)
+
+        println(subAcc1.hasSuperAccounts)
+        println(subAcc1.decimalValue)
+
+
 
     }
 }

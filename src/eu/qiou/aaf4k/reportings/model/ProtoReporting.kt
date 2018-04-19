@@ -1,7 +1,6 @@
 package eu.qiou.aaf4k.reportings.model
 
-import eu.qiou.aaf4k.reportings.etl.DataLoader
-import eu.qiou.aaf4k.reportings.etl.StructureLoader
+import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.strings.CollectionToString
 import eu.qiou.aaf4k.util.time.TimeParameters
@@ -12,55 +11,30 @@ import eu.qiou.aaf4k.util.unit.ProtoUnit
 /**
  * Class of ProtoReporting
  *
- * initial value of ProtoReporting of either 0, or loaded from external source.
+ * Reporting can be deemed as a list of <b>structured</b> ProtoAccounts
+ * while Category is a set of Entries, which is not structured
+ *
+ * initial value of ProtoReporting is null, each state of the Reporting is immutable. The Reporting is updated by means of Category
  * ProtoReporting = ProtoReporting + ProtoCategory
  *
  * ProtoCategory is a collection of ProtoEntries, which represent the delta of ProtoReporting.
  *
- * @property accounts flattened set of accounts
  * @property structure list of accounts in structure
  */
-open class ProtoReporting(val id:Int, val name: String, var desc: String="", var accounts: MutableSet<ProtoAccount> = mutableSetOf(), var structure: MutableList<ProtoAccount> = mutableListOf(),
-                          var displayUnit: ProtoUnit = CurrencyUnit(),
-                          val timeParameters: TimeParameters) : JSONable {
-    fun getAccountByID(id: Int): ProtoAccount?{
-        return accounts.find { it.id == id }
+open class ProtoReporting(val id: Int, val name: String, val desc: String = "", val structure: List<ProtoAccount>,
+                          val displayUnit: ProtoUnit = CurrencyUnit(), val entity: ProtoEntity = GlobalConfiguration.DEFAULT_ENTITY,
+                          val timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : JSONable {
+
+    fun update(entry: ProtoEntry): ProtoReporting {
+        return ProtoReporting(id, name, desc,
+                structure.map { it.deepCopy(entry) }
+                , displayUnit, entity, timeParameters)
     }
 
-    fun getComponentAccountByID(id: Int): ProtoAccount?{
-        return structure.find { it.id == id }
-    }
-
-    fun addAggreateAccount(aggregateAccount: ProtoAccount){
-        structure.add(aggregateAccount)
-        accounts.addAll(aggregateAccount.flatten(false, {id}) as Collection<ProtoAccount>)
-    }
-
-    fun existsDuplicateAccounts():Boolean {
-        return this.accounts.count() != structure.fold(0){a, b -> a + b.count()}
-    }
-
-    open fun loadStructure(structureLoader: StructureLoader): ProtoReporting {
-        return structureLoader.loadStructure(this)
-    }
-
-    open fun loadData(dataLoader: DataLoader): ProtoReporting {
-        if(structure.count() == 0)
-            throw Exception("Try to load data into the empty structure!")
-
-        dataLoader.loadData().forEach({ a, b ->
-            val acc = this.getAccountByID(a)
-            if(!b.equals(0L)){
-                if(acc == null)
-                    throw Exception("the account id '$a' missing!" )
-                else {
-                  //  acc.decimalPrecision = dataLoader.getDecimalPrecision()
-                 //   acc.displayValue = b
-                }
-            }
-        })
-
-        return this
+    fun update(category: ProtoCategory): ProtoReporting {
+        return ProtoReporting(id, name, desc,
+                structure.map { it.deepCopy(category) }
+                , displayUnit, entity, timeParameters)
     }
 
     override fun toJSON():String{

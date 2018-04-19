@@ -7,7 +7,10 @@ abstract class FxFetcher {
 
     abstract fun fetchFxFromSource(target: ForeignExchange):Double
 
-    fun fetchFx(target: ForeignExchange, useCache:Boolean = true):Double {
+    fun fetch(target: ForeignExchange, useCache: Boolean = true): Double {
+        if (target.functionalCurrency.equals(target.reportingCurrency))
+            return 1.0
+
         if(useCache){
             if (cache.containsKey(target)){
                 return cache.get(target)!!

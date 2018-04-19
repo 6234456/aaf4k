@@ -1,21 +1,15 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.reportings.accounting.Balance
-import java.time.LocalDate
+import eu.qiou.aaf4k.util.mergeReduce
 
 object RegTest {
     @JvmStatic
     fun main(args: Array<String>) {
-        /*val r = Regex("\\s+")
-        val reg1 = Regex("""^\d+\s+""")
-        println(r.split("123 wd 23", 2))
-        println(reg1.containsMatchIn("1 s 1"))*/
 
-        print(with(listOf<Int>(1,2,4)) { toString() })
+        val m1: Map<Int, Double> = mapOf(1 to 2.0, 2 to 3.0, 0 to 1.0)
+        val m2: Map<Int, Double> = mapOf(1 to 2.0, 2 to 3.0, 4 to 1.0)
 
-        val b = Balance(123,"b1", LocalDate.now())
-
-        val reg1 = Regex("""\[\d+\]""")
+        println(m1.mergeReduce(m2, { a, b -> a + b }))
 
     }
 }
