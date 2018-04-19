@@ -362,5 +362,4 @@ open class ProtoAccount(val id: Int, val name: String,
             }
         }
     }
-
 }

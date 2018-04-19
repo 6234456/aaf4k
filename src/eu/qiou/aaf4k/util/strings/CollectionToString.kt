@@ -23,7 +23,7 @@ object CollectionToString {
                return "\t"* level + drilldownable.asParentToStr() + ":{\n" + drilldownable.getChildren()!!.fold(""){
                    acc: String, childType -> acc +
                         (
-                            if(childType is Drilldownable && childType.hasChildren())
+                            if(childType.hasChildren())
                                 structuredToStr(childType, level+1, asSingleToStr, asParentToStr)
                             else
                                 "\t" * (level + 1) + childType.toString()
