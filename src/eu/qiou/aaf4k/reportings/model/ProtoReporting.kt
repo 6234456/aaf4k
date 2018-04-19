@@ -11,6 +11,12 @@ import eu.qiou.aaf4k.util.unit.ProtoUnit
 /**
  * Class of ProtoReporting
  *
+ * the object model of the reporting
+ *
+ * ProtoReporting - ProtoCategory - ProtoEntry - (ProtoAccount)
+ *
+ * ProtoAccount is not always attached to a ProtoEntry
+ *
  * Reporting can be deemed as a list of <b>structured</b> ProtoAccounts
  * while Category is a set of Entries, which is not structured
  *
@@ -25,6 +31,8 @@ open class ProtoReporting(val id: Int, val name: String, val desc: String = "", 
                           val displayUnit: ProtoUnit = CurrencyUnit(), val entity: ProtoEntity = GlobalConfiguration.DEFAULT_ENTITY,
                           val timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : JSONable {
 
+    val categories: MutableSet<ProtoCategory> = mutableSetOf()
+
     fun update(entry: ProtoEntry): ProtoReporting {
         return ProtoReporting(id, name, desc,
                 structure.map { it.deepCopy(entry) }
@@ -34,6 +42,12 @@ open class ProtoReporting(val id: Int, val name: String, val desc: String = "", 
     fun update(category: ProtoCategory): ProtoReporting {
         return ProtoReporting(id, name, desc,
                 structure.map { it.deepCopy(category) }
+                , displayUnit, entity, timeParameters)
+    }
+
+    fun update(data: Map<Int, Double>): ProtoReporting {
+        return ProtoReporting(id, name, desc,
+                structure.map { it.deepCopy(data) }
                 , displayUnit, entity, timeParameters)
     }
 

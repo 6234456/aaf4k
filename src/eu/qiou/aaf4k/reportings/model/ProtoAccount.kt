@@ -119,6 +119,8 @@ open class ProtoAccount(val id: Int, val name: String,
     }
     private set
 
+    var textValue: String = displayUnit.format()(displayValue)
+
     fun register(superAccount: ProtoAccount){
         if(superAccounts == null){
             superAccounts = mutableSetOf(superAccount)
@@ -147,11 +149,10 @@ open class ProtoAccount(val id: Int, val name: String,
 
     // the general method to transform a ProtoAccount
     fun deepCopy(callbackAtomicAccount: (ProtoAccount) -> ProtoAccount): ProtoAccount {
-        if (isAggregate) {
-            val copiedSubAccounts = subAccounts!!.map { e ->
-                e.deepCopy(callbackAtomicAccount)
-            }.toMutableSet()
-            return toBuilder().setType(VALUE_SETTER_AGGREGATE).setValue(copiedSubAccounts).build()
+        if (this.isAggregate) {
+            return this.toBuilder().setType(VALUE_SETTER_AGGREGATE).setValue(
+                    this.subAccounts!!.map { it.deepCopy(callbackAtomicAccount) }.toMutableSet()
+            ).build()
         } else {
             return callbackAtomicAccount(this)
         }
@@ -210,7 +211,7 @@ open class ProtoAccount(val id: Int, val name: String,
             return CollectionToString.structuredToStr(this, 0, ProtoAccount::toString as Drilldownable.() -> String, ProtoAccount::titel as Drilldownable.() -> String)
         }
 
-        return "($localAccountID $name) : ${displayUnit.format()(displayValue)}"
+        return "($localAccountID $name) : ${textValue}"
     }
 
     override fun toJSON():String {

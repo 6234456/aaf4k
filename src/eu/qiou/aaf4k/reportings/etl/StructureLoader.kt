@@ -6,5 +6,5 @@ interface StructureLoader {
     /**
      * load the structure to the reporting
      */
-    fun loadStructure(): List<ProtoAccount>
+    fun load(): List<ProtoAccount>
 }

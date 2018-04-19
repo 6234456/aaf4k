@@ -4,35 +4,26 @@ import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.ss.usermodel.Row
 
-class ExcelStructureLoader(var path:String, var sheetIndex: Int = 0, var sheetName: String? = null): StructureLoader {
-    override fun loadStructure(): List<ProtoAccount> {
+class ExcelStructureLoader(val path: String, val sheetIndex: Int = 0, val sheetName: String? = null, val keyCol: Int = 1, val secondaryKeyCol: Int = 2) : StructureLoader {
+    override fun load(): List<ProtoAccount> {
         var res: MutableList<ProtoAccount> = mutableListOf()
         var tmpAggregateAccount: ProtoAccount? = null
 
         val f: (Row) -> Unit = {
-            var c1 = ""
-            var c2 = ""
 
-            if (it.getCell(0) != null)
-                c1 = it.getCell(0).stringCellValue.trim()
+            it.getCell(keyCol - 1)?.stringCellValue?.trim()?.let {
+                if (!it.isEmpty()) {
+                    val t1 = parseAccount(it)
 
-            if (it.getCell(1) != null)
-                c2 = it.getCell(1).stringCellValue.trim()
-
-            if(c1.length == 0 && c2.length == 0){
-
-            }else{
-                if(c1.length != 0){
-                    val t1 = parseAccount(c1)
-
-                    if(tmpAggregateAccount != null){
-                        res.add(tmpAggregateAccount!!)
-                    }
-
+                    tmpAggregateAccount?.let { res.add(it) }
                     tmpAggregateAccount = ProtoAccount(id = t1.first, name = t1.second)
-                }else{
-                    val t1 = parseAccount(c2)
-                    tmpAggregateAccount?.add(ProtoAccount(id = t1.first, name = t1.second))
+                }
+            }
+
+            it.getCell(secondaryKeyCol - 1)?.stringCellValue?.trim()?.let {
+                if (!it.isEmpty()) {
+                    val t1 = parseAccount(it)
+                    tmpAggregateAccount?.add(ProtoAccount(id = t1.first, name = t1.second, value = 0L))
                 }
             }
         }

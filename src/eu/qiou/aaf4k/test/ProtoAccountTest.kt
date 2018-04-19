@@ -30,4 +30,16 @@ class ProtoAccountTest{
 
         println(a3.toJSON())
     }
+
+    @Test
+    fun testUpdate() {
+        val a1 = ProtoAccount(1, "a1", mutableSetOf(ProtoAccount(2, "a2", 1000L)))
+        val a3 = ProtoAccount(3, "a3", 2000L)
+        a1.add(a3)
+
+        val a0 = ProtoAccount(0, "total")
+        a0.add(a1)
+        a0.add(a3)
+        println(a0.deepCopy(mapOf(2 to 200.0, 3 to 100.0)))
+    }
 }

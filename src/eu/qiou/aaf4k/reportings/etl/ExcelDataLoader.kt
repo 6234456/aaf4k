@@ -4,7 +4,7 @@ import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.ss.usermodel.Row
 
 class ExcelDataLoader(var path:String, var sheetIndex: Int = 0, var sheetName: String? = null, var keyCol:Int = 1, var valCol:Int = 2, var hasHeading:Boolean = false): DataLoader {
-    override fun loadData(): MutableMap<Int, Double> {
+    override fun load(): MutableMap<Int, Double> {
         val res: MutableMap<Int, Double> = mutableMapOf()
         val f:(Row) -> Unit = {
 

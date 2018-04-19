@@ -9,7 +9,7 @@ class ExcelStructureLoaderTest {
 
     @Test
     fun loadStructure() {
-        val data = ExcelDataLoader("src/eu/qiou/aaf4k/demo/data.xlsx").loadData()
+        val data = ExcelDataLoader("src/eu/qiou/aaf4k/demo/data.xlsx").load()
         val acc = ProtoAccount(0, "test1")
         val subAcc1 = ProtoAccount.builder().setValue(2.0).setBasicInfo(400, "a").build()
 
@@ -25,8 +25,5 @@ class ExcelStructureLoaderTest {
 
         println(subAcc1.hasSuperAccounts)
         println(subAcc1.decimalValue)
-
-
-
     }
 }
