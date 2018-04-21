@@ -14,9 +14,15 @@ class ProtoCategory(val name: String, val id: Int, val desc: String, val reporti
     }
 
     fun toDataMap(): Map<Int, Double> {
-        return entries.map { it.toDataMap() }.reduce({ acc, map ->
-            acc.mergeReduce(map, { a, b -> a + b })
-        })
+        return entries
+                .map { it.toDataMap() }
+                .fold(mapOf()) { acc, map ->
+                    acc.mergeReduce(map, { a, b -> a + b })
+                }
+    }
+
+    fun searchForEntriesWith(id: Int): List<ProtoEntry> {
+        return entries.filter { it.existsId(id) }
     }
 
     fun remove(id: Int): ProtoCategory {

@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.reportings.model
 
 import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.util.io.JSONable
+import eu.qiou.aaf4k.util.mergeReduce
 import eu.qiou.aaf4k.util.strings.CollectionToString
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
@@ -32,6 +33,30 @@ open class ProtoReporting(val id: Int, val name: String, val desc: String = "", 
                           val timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : JSONable {
 
     val categories: MutableSet<ProtoCategory> = mutableSetOf()
+
+    fun mergeCategories(): Map<Int, Double> {
+        return categories.map { it.toDataMap() }.reduce { acc, map ->
+            acc.mergeReduce(map, { a, b -> a + b })
+        }
+    }
+
+    /**
+     * return one dimensional array of atomic accounts
+     */
+    fun flatten(): List<ProtoAccount> {
+        return structure.filter { !it.isStatistical }.map { it.flatten() }.reduce { acc, mutableList ->
+            acc.addAll(mutableList)
+            acc
+        } as List<ProtoAccount>
+    }
+
+    /**
+     * after update through the categories
+     * get the reporting
+     */
+    fun generate(): ProtoReporting {
+        return update(mergeCategories())
+    }
 
     fun update(entry: ProtoEntry): ProtoReporting {
         return ProtoReporting(id, name, desc,

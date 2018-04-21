@@ -1,5 +1,7 @@
 package eu.qiou.aaf4k.reportings.model
 
+import eu.qiou.aaf4k.util.mkString
+
 
 /**
  *  all the attribute at atomic level
@@ -14,10 +16,12 @@ class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCategory
 
     // in an entry there might be multiple accounts with the same id
     val accounts: MutableList<ProtoAccount> = mutableListOf()
+    var isEmpty = true
+        get() = accounts.count() == 0
 
     fun toDataMap(): Map<Int, Double> {
-        if(! isActive)
-            return mutableMapOf()
+        if (!isActive || isEmpty)
+            return mapOf()
 
         return accounts.filter { ! it.isStatistical }.groupBy({ it.id }).mapValues {
             it.value.fold(0.0) { acc, e ->
@@ -39,12 +43,33 @@ class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCategory
         return this
     }
 
+    fun remove(account: List<ProtoAccount>): ProtoEntry {
+        accounts.removeAll { it in account }
+        return this
+    }
+
     fun remove(id: Int): ProtoEntry {
         return remove(findById(id))
     }
 
-    fun findById(id: Int): ProtoAccount? {
-        return accounts.find { it.id == id }
+    fun findById(id: Int): List<ProtoAccount> {
+        return accounts.filter { it.id == id }
+    }
+
+    fun existsId(id: Int): Boolean {
+        return findById(id).count() > 0
+    }
+
+    operator fun plusAssign(account: ProtoAccount) {
+        add(account)
+    }
+
+    operator fun minusAssign(account: ProtoAccount) {
+        remove(account)
+    }
+
+    override fun toString(): String {
+        return accounts.mkString(separator = ",\n", prefix = "<", affix = ">")
     }
 
 }
