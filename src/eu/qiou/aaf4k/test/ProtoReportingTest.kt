@@ -18,6 +18,8 @@ class ProtoReportingTest {
 
         val reporting = ProtoReporting(0, "Demo", structure = structure).update(data)
 
+        println(reporting.toJSON())
+
         val c1 = ProtoCategory("KapKons", 1, "Kapitalkonsolidierung", reporting)
         val c2 = ProtoCategory("SchuldenKons", 2, "Schukonsolidierung", reporting)
 

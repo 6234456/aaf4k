@@ -211,16 +211,16 @@ open class ProtoAccount(val id: Int, val name: String,
             return CollectionToString.structuredToStr(this, 0, ProtoAccount::toString as Drilldownable.() -> String, ProtoAccount::titel as Drilldownable.() -> String)
         }
 
-        return "($localAccountID $name) : ${textValue}"
+        return "($localAccountID $name) : $textValue"
     }
 
     override fun toJSON():String {
         if(this.hasChildren()){
-            return "{id: $id, name: '$name', value: $decimalValue, displayValue: $displayValue, decimalPrecision: $decimalPrecision, desc: '$desc', hasSubAccounts: $hasSubAccounts, hasSuperAccounts: $hasSuperAccounts, localAccountID: $localAccountID, subAccounts: " +
+            return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": $hasSubAccounts, "hasSuperAccounts": $hasSuperAccounts, "localAccountID": $localAccountID, "subAccounts": """ +
                     CollectionToString.mkJSON(subAccounts as Iterable<JSONable>, ",\n")  + "}"
         }
 
-        return "{id: $id, name: '$name', value: $decimalValue, displayValue: $displayValue, decimalPrecision: $decimalPrecision, desc: '$desc', hasSubAccounts: $hasSubAccounts, hasSuperAccounts: $hasSuperAccounts, localAccountID:$localAccountID, scalar: ${unit.scalar}, isCurrency: ${unit is CurrencyUnit}, isPercentage: ${unit is PercentageUnit}}"
+        return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": $hasSubAccounts, "hasSuperAccounts": $hasSuperAccounts, "localAccountID":$localAccountID, "scalar": ${unit.scalar}, "isCurrency": ${unit is CurrencyUnit}, "isPercentage": ${unit is PercentageUnit}}"""
     }
 
     class Builder(var id: Int? = null,

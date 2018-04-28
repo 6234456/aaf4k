@@ -94,6 +94,13 @@
             <version>${ktor.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.ktor/ktor-html-builder -->
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-html-builder</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+
 
     </dependencies>
 

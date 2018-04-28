@@ -1,9 +1,11 @@
 package eu.qiou.aaf4k.reportings.model
 
+import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.mergeReduce
+import eu.qiou.aaf4k.util.strings.CollectionToString
 
 
-class ProtoCategory(val name: String, val id: Int, val desc: String, val reporting: ProtoReporting)
+class ProtoCategory(val name: String, val id: Int, val desc: String, val reporting: ProtoReporting) : JSONable
 {
     val entries: MutableSet<ProtoEntry> = mutableSetOf()
     val entity = reporting.entity
@@ -42,4 +44,13 @@ class ProtoCategory(val name: String, val id: Int, val desc: String, val reporti
     fun findById(id: Int): ProtoEntry? {
         return entries.find { it.id == id }
     }
+
+    override fun toJSON(): String {
+        return CollectionToString.mkJSON(entries)
+    }
+
+    override fun toString(): String {
+        return CollectionToString.mkString(entries, prefix = "{@", affix = "@}")
+    }
+
 }

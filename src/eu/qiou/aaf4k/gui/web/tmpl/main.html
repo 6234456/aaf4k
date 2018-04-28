@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css"
+          href="https://docs.handsontable.com/pro/bower_components/handsontable-pro/dist/handsontable.full.min.css">
+    <link rel="stylesheet" type="text/css" href="https://handsontable.com/static/css/main.css">
+    <script src="https://docs.handsontable.com/pro/bower_components/handsontable-pro/dist/handsontable.full.min.js"></script>
+</head>
+<body>
+<div id="hot"></div>
+<script>
+var hotElement = document.querySelector('#hot');
+var hotElementContainer = hotElement.parentNode;
+
+let xmlhttp = new XMLHttpRequest();
+xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var myObj = JSON.parse(this.responseText);
+
+var hotSettings = {
+  data: myObj,
+  columns: [
+    {
+      data: 'id',
+      type: 'text',
+      width: 40
+    },
+    {
+      data: 'name',
+      type: 'text'
+    },
+    {
+      data: 'value',
+      type: 'numeric',
+      numericFormat: {
+        pattern: '0.00'
+      }
+    },
+    {
+      data: 'displayValue',
+      type: 'text',
+    },
+  ],
+  manualRowResize: true,
+  manualColumnResize: true,
+  rowHeaders: true,
+  colHeaders: [
+    'ID',
+    'Name',
+    'Value',
+    'Display',
+  ],
+  contextMenu: true,
+  columnSorting: true,
+  sortIndicator: true
+};
+var hot = new Handsontable(hotElement, hotSettings);
+    }
+};
+xmlhttp.open("GET", "/data", true);
+xmlhttp.send();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>

@@ -1,12 +1,14 @@
 package eu.qiou.aaf4k.reportings.model
 
+import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.mkString
+import eu.qiou.aaf4k.util.strings.CollectionToString
 
 
 /**
  *  all the attribute at atomic level
  */
-class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCategory) {
+class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCategory) : JSONable {
 
     init {
         category.entries.add(this)
@@ -70,6 +72,10 @@ class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCategory
 
     override fun toString(): String {
         return accounts.mkString(separator = ",\n", prefix = "<", affix = ">")
+    }
+
+    override fun toJSON(): String {
+        return CollectionToString.mkJSON(accounts)
     }
 
 }
