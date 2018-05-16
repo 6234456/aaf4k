@@ -21,15 +21,15 @@ import eu.qiou.aaf4k.util.unit.ProtoUnit
  * @param isStatistical for aggregate account, will not be checked for duplicity
  */
 
-open class ProtoAccount(val id: Int, val name: String,
-                        val subAccounts: MutableSet<ProtoAccount>? = null,
-                        val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION,
-                        val value:Long? = null,
-                        val unit: ProtoUnit = CurrencyUnit(),
-                        val desc: String="",
-                        val timeParameters: TimeParameters? = null,
-                        val entity: ProtoEntity? = null,
-                        val isStatistical: Boolean = false
+open class ProtoAccount(open val id: Int, open val name: String,
+                        open val subAccounts: MutableSet<out ProtoAccount>? = null,
+                        open val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION,
+                        open val value: Long? = null,
+                        open val unit: ProtoUnit = CurrencyUnit(),
+                        open val desc: String = "",
+                        open val timeParameters: TimeParameters? = null,
+                        open val entity: ProtoEntity? = null,
+                        open val isStatistical: Boolean = false
                         ): Comparable<ProtoAccount>, JSONable, Drilldownable{
 
     /**
@@ -60,7 +60,7 @@ open class ProtoAccount(val id: Int, val name: String,
         if (isAggregate) {
             if(child is ProtoAccount){
                 child.register(this)
-                subAccounts!!.add(child)
+                (subAccounts!! as MutableSet<ProtoAccount>).add(child)
             }
         }
         return this
@@ -100,7 +100,7 @@ open class ProtoAccount(val id: Int, val name: String,
     var displayUnit:ProtoUnit = CurrencyUnit()
     var displayValue: Double = 0.0
     get() = roundUpTo(when{
-            unit is CurrencyUnit    -> unit.convertFxTo(displayUnit,timeParameters)(decimalValue)
+        unit is CurrencyUnit -> (unit as CurrencyUnit).convertFxTo(displayUnit, timeParameters)(decimalValue)
             else                    -> unit.convertTo(displayUnit)(decimalValue)
         })
     private set
@@ -246,8 +246,8 @@ open class ProtoAccount(val id: Int, val name: String,
          *  for the aggregate account, specify subAccounts
          *  if ignore the parameter subAccounts, empty set by default
          */
-        constructor(id: Int, name: String, subAccounts: MutableSet<ProtoAccount>, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false) :
-                this(id, name, subAccounts = subAccounts, decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical)
+        constructor(id: Int, name: String, subAccounts: MutableSet<out ProtoAccount>, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false) :
+                this(id, name, subAccounts = subAccounts as MutableSet<ProtoAccount>, decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical)
 
         constructor(id: Int, name: String, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false) :
                 this(id, name, subAccounts = mutableSetOf(), decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical)
@@ -282,11 +282,11 @@ open class ProtoAccount(val id: Int, val name: String,
             return this
         }
 
-        fun setValue(subAccounts: MutableSet<ProtoAccount>):Builder{
+        fun setValue(subAccounts: MutableSet<out ProtoAccount>): Builder {
             if (type != VALUE_SETTER_UNDETERMINED && type != VALUE_SETTER_AGGREGATE)
                 throw Exception("method 'setValue' for aggregate account can not be evoked for the atomic account.")
 
-            this.subAccounts = subAccounts
+            this.subAccounts = subAccounts as MutableSet<ProtoAccount>
             this.value = null
             type = VALUE_SETTER_AGGREGATE
             return this

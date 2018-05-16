@@ -4,9 +4,13 @@ import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.ss.usermodel.Row
 
+/**
+ *  The Implementation of 2-level account structure differentiated with indent hierarchy
+ */
+
 class ExcelStructureLoader(val path: String, val sheetIndex: Int = 0, val sheetName: String? = null, val keyCol: Int = 1, val secondaryKeyCol: Int = 2) : StructureLoader {
     override fun load(): List<ProtoAccount> {
-        var res: MutableList<ProtoAccount> = mutableListOf()
+        val res: MutableList<ProtoAccount> = mutableListOf()
         var tmpAggregateAccount: ProtoAccount? = null
 
         val f: (Row) -> Unit = {
@@ -35,6 +39,9 @@ class ExcelStructureLoader(val path: String, val sheetIndex: Int = 0, val sheetN
         return res
     }
 
+    /**
+     * @param content the String represents the account like the form "1200 Account Receivables"
+     */
     private fun parseAccount(content:String):Pair<Int, String>{
         val reg1 = Regex("""^\d+\s+""")
         val reg2 = Regex("""\s+""")
