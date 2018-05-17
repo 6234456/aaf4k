@@ -3,8 +3,8 @@ package eu.qiou.aaf4k.util.unit
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_CURRENCY
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_CURRENCY_CODE
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_LOCALE
-import eu.qiou.aaf4k.util.io.ECBFxFetcher
-import eu.qiou.aaf4k.util.io.FxFetcher
+import eu.qiou.aaf4k.util.io.ECBFxProvider
+import eu.qiou.aaf4k.util.io.FxProvider
 import eu.qiou.aaf4k.util.io.FxUtil
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.time.TimeSpan
@@ -15,6 +15,7 @@ data class ForeignExchange(val functionalCurrency: Currency= DEFAULT_CURRENCY, v
 
     constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timeSpan: TimeSpan):this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = TimeParameters(timeSpan))
     constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timePoint: LocalDate):this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = TimeParameters(timePoint))
+    constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timeParameters: TimeParameters) : this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = timeParameters)
 
     var rate: Long? = null
     var decimalPrecision: Int = 5
@@ -35,7 +36,7 @@ data class ForeignExchange(val functionalCurrency: Currency= DEFAULT_CURRENCY, v
         }
     }
 
-    fun fetch(src:FxFetcher = ForeignExchange.source ,forceRefresh:Boolean = ForeignExchange.forceRefresh):Double {
+    fun fetch(src: FxProvider = ForeignExchange.source, forceRefresh: Boolean = ForeignExchange.forceRefresh): Double {
         if (functionalCurrency.equals(reportingCurrency)){
             displayRate = 1.0
             return 1.0
@@ -51,7 +52,7 @@ data class ForeignExchange(val functionalCurrency: Currency= DEFAULT_CURRENCY, v
     companion object {
         var autoFetch = true
         var forceRefresh = false
-        var source:FxFetcher = ECBFxFetcher
+        var source: FxProvider = ECBFxProvider
     }
 }
 

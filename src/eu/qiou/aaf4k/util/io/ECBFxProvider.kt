@@ -4,10 +4,6 @@ import eu.qiou.aaf4k.util.time.TimeAttribute
 import eu.qiou.aaf4k.util.unit.ForeignExchange
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.net.URL
-import java.nio.channels.Channels
 import java.util.*
 
 /**
@@ -16,62 +12,47 @@ import java.util.*
  * @author Qiou Yang
  *
  */
-object ECBFxFetcher :FxFetcher() {
+object ECBFxProvider : FxProvider() {
 
     override fun fetchFxFromSource(target: ForeignExchange): Double {
         var res = parseURL(target)
-        if(target.reportingCurrency.equals(Currency.getInstance("EUR")))
-            return 1/res
+        if (target.reportingCurrency.equals(Currency.getInstance("EUR")))
+            return 1 / res
 
         return res
     }
 
-    private fun parseURL(target: ForeignExchange):Double {
+    private fun parseURL(target: ForeignExchange): Double {
 
         var cnt = 0
         var res = 0.0
 
-        JSONUtil.fetch<JSONObject>(buildURL(target),false, "dataSets.0.series.0:0:0:0:0.observations").forEach({
-            _, v ->
+        JSONUtil.fetch<JSONObject>(buildURL(target), false, "dataSets.0.series.0:0:0:0:0.observations").forEach({ _, v ->
             res += (v as JSONArray).get(0) as Double
             cnt++
         })
 
-        return res/cnt
+        return res / cnt
     }
 
-    private fun downloadXMLFile(url:String): FileInputStream{
-        val name = "tmp.xml"
-
-        val website = URL(url)
-        val rbc = Channels.newChannel(website.openStream())
-        val fos = FileOutputStream(name)
-        fos.channel.transferFrom(rbc, 0, java.lang.Long.MAX_VALUE)
-        fos.flush()
-        fos.close()
-
-        val fis = FileInputStream(name)
-        return fis
-    }
-
-    private fun buildURL(target: ForeignExchange):String{
+    private fun buildURL(target: ForeignExchange): String {
 
         var baseCurrency = target.functionalCurrency.currencyCode
         val targetCurrency = target.reportingCurrency.currencyCode
 
-        if(! (baseCurrency.equals("EUR") || targetCurrency.equals("EUR")) ){
+        if (!(baseCurrency.equals("EUR") || targetCurrency.equals("EUR"))) {
             throw Exception("Only EUR related exchange rate supported.")
-        }else if(baseCurrency.equals("EUR")){
+        } else if (baseCurrency.equals("EUR")) {
             baseCurrency = targetCurrency
         }
 
-        val startDate = when(target.timeParameters.timeAttribute){
+        val startDate = when (target.timeParameters.timeAttribute) {
             TimeAttribute.TIME_POINT -> target.timeParameters.timePoint
             TimeAttribute.TIME_SPAN -> target.timeParameters.timeSpan!!.start
             else -> throw Exception("time profile defined error!")
         }
 
-        val endDate = when(target.timeParameters.timeAttribute){
+        val endDate = when (target.timeParameters.timeAttribute) {
             TimeAttribute.TIME_POINT -> target.timeParameters.timePoint
             TimeAttribute.TIME_SPAN -> target.timeParameters.timeSpan!!.end
             else -> throw Exception("time profile defined error!")

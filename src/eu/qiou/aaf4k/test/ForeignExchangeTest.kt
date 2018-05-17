@@ -1,22 +1,18 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.ForeignExchange
 import org.junit.Test
-
-import java.util.*
+import java.time.LocalDate
 
 class ForeignExchangeTest {
     @Test
     fun getDecimalPrecision() {
-        val fx = ForeignExchange(functionalCurrency = Currency.getInstance("CHF"), timeParameters = TimeParameters.realTime())
-        val fx1 = ForeignExchange(functionalCurrency = Currency.getInstance("EUR"), timeParameters = TimeParameters.realTime())
-        fx.decimalPrecision = 3
-        fx.fetch()
-        fx1.fetch()
-
+        ForeignExchange.autoFetch = true
+        val fx = ForeignExchange(reportingCurrencyCode = "CHF", timePoint = LocalDate.of(2018, 5, 16))
+        val fx1 = ForeignExchange(reportingCurrencyCode = "GBP", timePoint = LocalDate.of(2018, 5, 16))
+        val fx2 = ForeignExchange(reportingCurrencyCode = "USD", timePoint = LocalDate.of(2018, 5, 16))
         println(fx)
         println(fx1)
-        println(fx1 == fx)
+        println(fx2)
     }
 }

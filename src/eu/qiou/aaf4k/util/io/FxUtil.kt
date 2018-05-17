@@ -9,7 +9,7 @@ object FxUtil {
     /**
      *  fetch the exchange rate from external source, Internet / Database / File
      */
-    fun fetch(target: ForeignExchange, source: FxFetcher = OandaFxFetcher, useCache:Boolean = true):Double {
+    fun fetch(target: ForeignExchange, source: FxProvider = OandaFxProvider, useCache: Boolean = true): Double {
 
         if(useCache){
             if (cache.containsKey(target)){

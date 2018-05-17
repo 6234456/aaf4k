@@ -8,16 +8,16 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
 /**
  *  all the attribute at atomic level
  */
-class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCategory) : JSONable {
+open class ProtoEntry(open val id: Int, open val desc: String = "", open val category: ProtoCategory) : JSONable {
 
     init {
-        category.entries.add(this)
+        ((category.entries) as MutableSet<ProtoEntry>).add(this)
     }
 
     var isActive:Boolean = true
 
     // in an entry there might be multiple accounts with the same id
-    val accounts: MutableList<ProtoAccount> = mutableListOf()
+    open val accounts: MutableList<out ProtoAccount> = mutableListOf()
     var isEmpty = true
         get() = accounts.count() == 0
 
@@ -34,7 +34,7 @@ class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCategory
 
     fun add(account: ProtoAccount): ProtoEntry {
         if (!account.isAggregate)
-            accounts.add(account)
+            (accounts as MutableSet<ProtoAccount>).add(account)
 
         return this
     }
