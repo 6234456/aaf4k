@@ -34,7 +34,6 @@ object ExcelUtil {
 
                 callback(sht)
             }
-
             processWorkbook(path, f)
         }
 
@@ -60,9 +59,7 @@ object ExcelUtil {
         fun createWorkbookIfNotExists(path:String, callback: (Workbook) -> Unit = {}){
 
             if(fileExists(path)){
-
                 processWorkbook(path, callback)
-
             } else {
 
                 val workbook =  if (path.endsWith(".xls"))
@@ -71,80 +68,98 @@ object ExcelUtil {
                     XSSFWorkbook()
 
                 callback(workbook)
-
-                val stream = FileOutputStream(path)
-                workbook.write(stream)
-
-                stream.flush()
-                stream.close()
-                workbook.close()
+                saveWorkbook(path, workbook)
             }
         }
 
-        fun createWorksheetIfNotExists(path: String, sheetName: String = "src", callback: (Sheet) -> Unit){
+    fun saveWorkbook(path: String, workbook: Workbook) {
+        val stream = FileOutputStream(path)
+        workbook.write(stream)
 
-            if(fileExists(path)){
+        stream.flush()
+        stream.close()
+        workbook.close()
+        }
 
-                processWorksheet(path, sheetName = sheetName, callback = callback)
+    fun existsWorksheet(wb: Workbook, sheetName: String): Boolean {
+        return (0 until wb.numberOfSheets).map { wb.getSheetName(it) }.any({ it.equals(sheetName) })
+    }
 
-            } else {
-                val f: (Workbook) -> Unit = {
-                    callback(
-                            it.createSheet(sheetName)
-                    )
+    fun createWorksheetIfNotExists(path: String, sheetName: String = "src", callback: (Sheet) -> Unit, readOnly: Boolean = false) {
+        if(fileExists(path)){
+            processWorkbook(path, { wb ->
+                if (existsWorksheet(wb, sheetName))
+                    callback(wb.getSheet(sheetName))
+                else
+                    callback(wb.createSheet(sheetName))
+
+                if (!readOnly) {
+                    saveWorkbook(path, wb)
                 }
-                createWorkbookIfNotExists(path, f)
+            })
+        } else {
+            val f: (Workbook) -> Unit = {
+                callback(
+                        it.createSheet(sheetName)
+                )
             }
+            createWorkbookIfNotExists(path, f)
         }
+    }
 
         private fun styles():Map<String, String> {
             return mapOf(
                     "Int" to "#.#",
                     "Date" to "mmm dd, yyyy",
                     "Number" to "#.00",
-                    "Boolean" to "#"
+                    "Boolean" to "#",
+                    "String" to ""
             )
         }
 
-        fun getPredefinedStyle(type:String, cell: Cell) {
+    fun getPredefinedStyle(type: String, cell: Cell, callback: (cellStyle: CellStyle) -> Unit = {}) {
             val wb = cell.sheet.workbook
             val createHelper = wb.creationHelper
             val cellStyle = wb.createCellStyle()
+
             cellStyle.dataFormat = createHelper.createDataFormat().getFormat(styles().getValue(type))
+        callback(cellStyle)
+
             cell.cellStyle = cellStyle
         }
 
-        fun setCellFormatAndValue(cell:Cell, value: Any){
+    fun setCellFormatAndValue(cell: Cell, value: Any, callback: (cellStyle: CellStyle) -> Unit = {}) {
             when{
                 value is Int -> {
                     cell.setCellValue(value.toDouble())
-                    getPredefinedStyle("Int", cell)
+                    getPredefinedStyle("Int", cell, callback)
                 }
                 value is Double -> {
                     cell.setCellValue(value.toDouble())
-                    getPredefinedStyle("Number", cell)
+                    getPredefinedStyle("Number", cell, callback)
                     cell.setCellType(CellType.NUMERIC)
                 }
                 value is Boolean -> {
                     cell.setCellValue(value)
-                    getPredefinedStyle("Boolean", cell)
+                    getPredefinedStyle("Boolean", cell, callback)
                     cell.setCellType(CellType.BOOLEAN)
                 }
                 value is Date  -> {
                     cell.setCellValue(value)
-                    getPredefinedStyle("Date", cell)
+                    getPredefinedStyle("Date", cell, callback)
                     cell.setCellType(CellType.NUMERIC)
                 }
                 value is Calendar -> {
                     cell.setCellValue(value)
-                    getPredefinedStyle("Date", cell)
+                    getPredefinedStyle("Date", cell, callback)
                 }
                 value is LocalDate -> {
                     cell.setCellValue(java.sql.Date.valueOf(value))
-                    getPredefinedStyle("Date", cell)
+                    getPredefinedStyle("Date", cell, callback)
                 }
                 else -> {
                     cell.setCellValue(value.toString())
+                    getPredefinedStyle("String", cell, callback)
                     cell.setCellType(CellType.STRING)
                 }
             }
@@ -162,8 +177,6 @@ object ExcelUtil {
                     }
                 }
             }
-
             createWorksheetIfNotExists(path, sheetName, f)
         }
-
     }

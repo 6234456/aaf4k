@@ -2,6 +2,8 @@ package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
+import org.apache.poi.ss.usermodel.FillPatternType
+import org.apache.poi.ss.usermodel.IndexedColors
 import org.junit.Test
 import java.io.FileOutputStream
 import java.time.LocalDate
@@ -13,6 +15,18 @@ class ExcelUtilTest {
     @Test
     fun writeData() {
         ExcelUtil.writeData("src/eu/qiou/aaf4k/test/demo1.xls",data = mapOf("1" to listOf(23.4, LocalDate.now()), "2" to listOf(234.123123)))
+    }
+
+    @Test
+    fun formatExcel() {
+        ExcelUtil.createWorksheetIfNotExists("src/eu/qiou/aaf4k/test/demo1.xls", "Demo3", {
+            with(it.createRow(0).createCell(3)) {
+                ExcelUtil.setCellFormatAndValue(this, LocalDate.now(), {
+                    it.fillForegroundColor = IndexedColors.BLUE_GREY.index
+                    it.setFillPattern(FillPatternType.SOLID_FOREGROUND)
+                })
+            }
+        })
     }
 
     @Test
