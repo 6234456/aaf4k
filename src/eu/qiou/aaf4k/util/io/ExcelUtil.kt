@@ -1,6 +1,8 @@
 package eu.qiou.aaf4k.util.io
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
+import org.apache.poi.hssf.util.HSSFColor
+import org.apache.poi.hssf.util.HSSFColor.LAVENDER
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
@@ -117,18 +119,25 @@ object ExcelUtil {
             )
         }
 
-    fun getPredefinedStyle(type: String, cell: Cell, callback: (cellStyle: CellStyle) -> Unit = {}) {
-            val wb = cell.sheet.workbook
-            val createHelper = wb.creationHelper
-            val cellStyle = wb.createCellStyle()
+    fun getPredefinedStyle(type: String, cell: Cell, callback: (cellStyle: CellStyle, cell: Cell) -> Unit = { _, _ -> }) {
+        val wb = cell.sheet.workbook
+        val createHelper = wb.creationHelper
+        val cellStyle = wb.createCellStyle()
 
-            cellStyle.dataFormat = createHelper.createDataFormat().getFormat(styles().getValue(type))
-        callback(cellStyle)
+        cellStyle.dataFormat = createHelper.createDataFormat().getFormat(styles().getValue(type))
+        callback(cellStyle, cell)
 
-            cell.cellStyle = cellStyle
+        cell.cellStyle = cellStyle
+    }
+
+    fun setColor(wb: HSSFWorkbook, r: Byte, g: Byte, b: Byte): HSSFColor {
+        return with(wb.customPalette) {
+            findColor(r, g, b) ?: this.apply { setColorAtIndex(LAVENDER.index, r, g, b) }.getColor(LAVENDER.index)
         }
+    }
 
-    fun setCellFormatAndValue(cell: Cell, value: Any, callback: (cellStyle: CellStyle) -> Unit = {}) {
+
+    fun setCellFormatAndValue(cell: Cell, value: Any, callback: (cellStyle: CellStyle, cell: Cell) -> Unit = { _, _ -> }) {
             when{
                 value is Int -> {
                     cell.setCellValue(value.toDouble())
@@ -165,7 +174,7 @@ object ExcelUtil {
             }
         }
 
-        fun writeData(path: String, sheetName: String = "src", data: Map<String, List<Any>>, startRow : Int = 0, startCol : Int = 0){
+    fun writeData(path: String, sheetName: String = "src", data: Map<String, List<Any>>, startRow: Int = 0, startCol: Int = 0, callback: (cellStyle: CellStyle, cell: Cell) -> Unit = { _, _ -> }) {
             val f: (Sheet) -> Unit = {
                 var r = startRow
                 data.forEach { t, u ->
@@ -173,7 +182,7 @@ object ExcelUtil {
                     var c = startCol
 
                     u.forEach { i->
-                        setCellFormatAndValue(row.createCell(c++) ,i)
+                        setCellFormatAndValue(row.createCell(c++), i, callback)
                     }
                 }
             }
