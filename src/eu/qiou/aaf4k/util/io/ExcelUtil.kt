@@ -2,7 +2,6 @@ package eu.qiou.aaf4k.util.io
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.hssf.util.HSSFColor
-import org.apache.poi.hssf.util.HSSFColor.LAVENDER
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
@@ -109,72 +108,144 @@ object ExcelUtil {
         }
     }
 
-        private fun styles():Map<String, String> {
-            return mapOf(
-                    "Int" to "#.#",
-                    "Date" to "mmm dd, yyyy",
-                    "Number" to "#.00",
-                    "Boolean" to "#",
-                    "String" to ""
-            )
-        }
-
-    fun getPredefinedStyle(type: String, cell: Cell, callback: (cellStyle: CellStyle, cell: Cell) -> Unit = { _, _ -> }) {
-        val wb = cell.sheet.workbook
-        val createHelper = wb.creationHelper
-        val cellStyle = wb.createCellStyle()
-
-        cellStyle.dataFormat = createHelper.createDataFormat().getFormat(styles().getValue(type))
-        callback(cellStyle, cell)
-
-        cell.cellStyle = cellStyle
+    enum class DataFormat(val format: String) {
+        DATE("mmm dd, yyyy"),
+        NUMBER("#.00"),
+        BOOLEAN("#"),
+        INT("#.#"),
+        DEFAULT("#"),
+        STRING("#")
     }
 
-    fun setColor(wb: HSSFWorkbook, r: Byte, g: Byte, b: Byte): HSSFColor {
-        return with(wb.customPalette) {
-            findColor(r, g, b) ?: this.apply { setColorAtIndex(LAVENDER.index, r, g, b) }.getColor(LAVENDER.index)
+    class StyleBuilder(val wb: Workbook) {
+
+        private val createHelper = wb.creationHelper
+        private var cellStyle = wb.createCellStyle()
+
+        fun fromStyle(style: CellStyle): StyleBuilder {
+            cellStyle = style
+            return this
         }
-    }
 
+        fun dataFormat(format: String): StyleBuilder {
+            cellStyle.dataFormat = createHelper.createDataFormat().getFormat(format)
+            return this
+        }
 
-    fun setCellFormatAndValue(cell: Cell, value: Any, callback: (cellStyle: CellStyle, cell: Cell) -> Unit = { _, _ -> }) {
-            when{
+        fun dataFormat(format: DataFormat): StyleBuilder {
+            cellStyle.dataFormat = createHelper.createDataFormat().getFormat(format.format)
+            return this
+        }
+
+        fun dataFormat(value: Any): StyleBuilder {
+            return when {
                 value is Int -> {
-                    cell.setCellValue(value.toDouble())
-                    getPredefinedStyle("Int", cell, callback)
+                    this.dataFormat(ExcelUtil.DataFormat.INT)
                 }
                 value is Double -> {
-                    cell.setCellValue(value.toDouble())
-                    getPredefinedStyle("Number", cell, callback)
-                    cell.setCellType(CellType.NUMERIC)
+                    this.dataFormat(ExcelUtil.DataFormat.NUMBER)
                 }
                 value is Boolean -> {
-                    cell.setCellValue(value)
-                    getPredefinedStyle("Boolean", cell, callback)
-                    cell.setCellType(CellType.BOOLEAN)
+                    this.dataFormat(ExcelUtil.DataFormat.BOOLEAN)
                 }
-                value is Date  -> {
-                    cell.setCellValue(value)
-                    getPredefinedStyle("Date", cell, callback)
-                    cell.setCellType(CellType.NUMERIC)
+                value is Date -> {
+                    this.dataFormat(ExcelUtil.DataFormat.DATE)
                 }
                 value is Calendar -> {
-                    cell.setCellValue(value)
-                    getPredefinedStyle("Date", cell, callback)
+                    this.dataFormat(ExcelUtil.DataFormat.DATE)
                 }
                 value is LocalDate -> {
-                    cell.setCellValue(java.sql.Date.valueOf(value))
-                    getPredefinedStyle("Date", cell, callback)
+                    this.dataFormat(ExcelUtil.DataFormat.DATE)
                 }
                 else -> {
-                    cell.setCellValue(value.toString())
-                    getPredefinedStyle("String", cell, callback)
-                    cell.setCellType(CellType.STRING)
+                    this.dataFormat(ExcelUtil.DataFormat.DEFAULT)
                 }
             }
         }
 
-    fun writeData(path: String, sheetName: String = "src", data: Map<String, List<Any>>, startRow: Int = 0, startCol: Int = 0, callback: (cellStyle: CellStyle, cell: Cell) -> Unit = { _, _ -> }) {
+        fun font(name: String = "Arial", size: Short = 11, color: Short = IndexedColors.BLACK.index, bold: Boolean = false, italic: Boolean = false, strikeout: Boolean = false, underline: Byte = 0): StyleBuilder {
+            cellStyle.setFont(wb.createFont().apply {
+                this.color = color
+                this.fontName = name
+                this.bold = bold
+                this.italic = italic
+                this.strikeout = strikeout
+                this.underline = underline
+                this.fontHeightInPoints = size
+            })
+            return this
+        }
+
+        fun fill(color: Short = IndexedColors.WHITE.index, style: FillPatternType = FillPatternType.SOLID_FOREGROUND): StyleBuilder {
+            cellStyle.fillForegroundColor = color
+            cellStyle.setFillPattern(style)
+
+            return this
+        }
+
+        fun borderStyle(up: BorderStyle? = null, right: BorderStyle? = null, down: BorderStyle? = null, left: BorderStyle? = null): StyleBuilder {
+            if (up != null) cellStyle.setBorderTop(up)
+            if (right != null) cellStyle.setBorderRight(right)
+            if (down != null) cellStyle.setBorderBottom(down)
+            if (left != null) cellStyle.setBorderLeft(left)
+
+            return this
+        }
+
+        fun borderColor(up: Short? = null, right: Short? = null, down: Short? = null, left: Short? = null): StyleBuilder {
+            if (up != null) cellStyle.topBorderColor = up
+            if (right != null) cellStyle.rightBorderColor = right
+            if (down != null) cellStyle.bottomBorderColor = down
+            if (left != null) cellStyle.leftBorderColor = left
+
+            return this
+        }
+
+        fun build(): CellStyle {
+            return cellStyle
+        }
+    }
+
+    fun setColor(wb: HSSFWorkbook, r: Byte, g: Byte, b: Byte, index: Short = 45): HSSFColor {
+        return with(wb.customPalette) {
+            findColor(r, g, b) ?: this.apply { setColorAtIndex(index, r, g, b) }.getColor(index)
+        }
+    }
+
+    fun setCellValue(cell: Cell, value: Any) {
+        when {
+            value is Int -> {
+                cell.setCellValue(value.toDouble())
+            }
+            value is Double -> {
+                cell.setCellValue(value.toDouble())
+                cell.setCellType(CellType.NUMERIC)
+            }
+            value is Boolean -> {
+                cell.setCellValue(value)
+                cell.setCellType(CellType.BOOLEAN)
+            }
+            value is Date -> {
+                cell.setCellValue(value)
+                cell.setCellType(CellType.NUMERIC)
+            }
+            value is Calendar -> {
+                cell.setCellValue(value)
+                cell.setCellType(CellType.NUMERIC)
+            }
+            value is LocalDate -> {
+                cell.setCellValue(java.sql.Date.valueOf(value))
+                cell.setCellType(CellType.NUMERIC)
+            }
+            else -> {
+                cell.setCellValue(value.toString())
+                cell.setCellType(CellType.STRING)
+            }
+        }
+    }
+
+
+    fun writeData(path: String, sheetName: String = "src", data: Map<String, List<Any>>, startRow: Int = 0, startCol: Int = 0) {
             val f: (Sheet) -> Unit = {
                 var r = startRow
                 data.forEach { t, u ->
@@ -182,7 +253,7 @@ object ExcelUtil {
                     var c = startCol
 
                     u.forEach { i->
-                        setCellFormatAndValue(row.createCell(c++), i, callback)
+                        setCellValue(row.createCell(c++), i)
                     }
                 }
             }
