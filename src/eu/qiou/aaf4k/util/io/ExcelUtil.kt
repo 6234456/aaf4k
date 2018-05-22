@@ -1,7 +1,7 @@
 package eu.qiou.aaf4k.util.io
 
+import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_FONT_NAME
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
-import org.apache.poi.hssf.util.HSSFColor
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
@@ -108,6 +108,86 @@ object ExcelUtil {
         }
     }
 
+    class Update(val cell: Cell) {
+        private val wb = cell.sheet.workbook
+        private val createHelper = wb.creationHelper
+
+        fun style(style: CellStyle): Update {
+            cell.cellStyle = style
+
+            return this
+        }
+
+        fun dataFormat(format: String?): Update {
+            if (format != null)
+                cell.cellStyle.also { it.dataFormat = createHelper.createDataFormat().getFormat(format) }
+
+            return this
+        }
+
+        fun font(name: String = DEFAULT_FONT_NAME, size: Short = 11, color: Short = IndexedColors.BLACK.index, bold: Boolean = false, italic: Boolean = false, strikeout: Boolean = false, underline: Byte = 0): Update {
+            cell.cellStyle.also {
+                it.setFont(wb.createFont().apply {
+                    this.color = color
+                    this.fontName = name
+                    this.bold = bold
+                    this.italic = italic
+                    this.strikeout = strikeout
+                    this.underline = underline
+                    this.fontHeightInPoints = size
+                })
+            }
+
+            return this
+        }
+
+        fun fill(color: Short = IndexedColors.WHITE.index, style: FillPatternType = FillPatternType.SOLID_FOREGROUND): Update {
+            cell.cellStyle.also {
+                it.fillForegroundColor = color
+                it.setFillPattern(style)
+            }
+
+            return this
+        }
+
+        fun borderStyle(up: BorderStyle? = null, right: BorderStyle? = null, down: BorderStyle? = null, left: BorderStyle? = null): Update {
+            cell.cellStyle.also {
+                if (up != null) it.setBorderTop(up)
+                if (right != null) it.setBorderRight(right)
+                if (down != null) it.setBorderBottom(down)
+                if (left != null) it.setBorderLeft(left)
+            }
+
+            return this
+        }
+
+        fun borderColor(up: Short? = null, right: Short? = null, down: Short? = null, left: Short? = null): Update {
+            cell.cellStyle.also {
+                if (up != null) it.topBorderColor = up
+                if (right != null) it.rightBorderColor = right
+                if (down != null) it.bottomBorderColor = down
+                if (left != null) it.leftBorderColor = left
+            }
+
+            return this
+        }
+
+        fun alignment(horizontal: HorizontalAlignment? = null, vertical: VerticalAlignment? = null): Update {
+            cell.cellStyle.also {
+                if (horizontal != null) it.setAlignment(horizontal)
+                if (vertical != null) it.setVerticalAlignment(vertical)
+            }
+
+            return this
+        }
+
+        fun value(value: Any): Update {
+            setCellValue(this.cell, value)
+
+            return this
+        }
+    }
+
     enum class DataFormat(val format: String) {
         DATE("mmm dd, yyyy"),
         NUMBER("#.00"),
@@ -147,34 +227,7 @@ object ExcelUtil {
         }
 
         fun dataFormat(format: DataFormat): StyleBuilder {
-            cellStyle.dataFormat = createHelper.createDataFormat().getFormat(format.format)
-            return this
-        }
-
-        fun dataFormat(value: Any): StyleBuilder {
-            return when {
-                value is Int -> {
-                    this.dataFormat(ExcelUtil.DataFormat.INT)
-                }
-                value is Double -> {
-                    this.dataFormat(ExcelUtil.DataFormat.NUMBER)
-                }
-                value is Boolean -> {
-                    this.dataFormat(ExcelUtil.DataFormat.BOOLEAN)
-                }
-                value is Date -> {
-                    this.dataFormat(ExcelUtil.DataFormat.DATE)
-                }
-                value is Calendar -> {
-                    this.dataFormat(ExcelUtil.DataFormat.DATE)
-                }
-                value is LocalDate -> {
-                    this.dataFormat(ExcelUtil.DataFormat.DATE)
-                }
-                else -> {
-                    this.dataFormat(ExcelUtil.DataFormat.DEFAULT)
-                }
-            }
+            return this.dataFormat(format.format)
         }
 
         fun font(name: String = "Arial", size: Short = 11, color: Short = IndexedColors.BLACK.index, bold: Boolean = false, italic: Boolean = false, strikeout: Boolean = false, underline: Byte = 0): StyleBuilder {
@@ -241,12 +294,6 @@ object ExcelUtil {
         fun applyTo(cell: Cell) {
             cell.cellStyle = this.cellStyle
             cell.row.heightInPoints = cell.row.sheet.defaultRowHeightInPoints * this.multilines
-        }
-    }
-
-    fun setColor(wb: HSSFWorkbook, r: Byte, g: Byte, b: Byte, index: Short = 45): HSSFColor {
-        return with(wb.customPalette) {
-            findColor(r, g, b) ?: this.apply { setColorAtIndex(index, r, g, b) }.getColor(index)
         }
     }
 

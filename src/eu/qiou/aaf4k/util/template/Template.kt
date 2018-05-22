@@ -15,15 +15,17 @@ open class Template {
                     .build()
         }
 
-        val rowEven: (wb: Workbook) -> CellStyle = {
+        val rowLight: (wb: Workbook) -> CellStyle = {
             ExcelUtil.StyleBuilder(it)
-                    .font().borderStyle(up = BorderStyle.HAIR, down = BorderStyle.HAIR, left = BorderStyle.THIN, right = BorderStyle.THIN)
+                    .alignment(vertical = VerticalAlignment.CENTER)
+                    .font().borderStyle(up = BorderStyle.DOTTED, down = BorderStyle.DOTTED, left = BorderStyle.THIN, right = BorderStyle.THIN)
                     .build()
         }
 
-        val rowOdd: (wb: Workbook) -> CellStyle = {
+        val rowDark: (wb: Workbook) -> CellStyle = {
             ExcelUtil.StyleBuilder(it).fill(IndexedColors.PALE_BLUE.index)
-                    .font().borderStyle(up = BorderStyle.HAIR, down = BorderStyle.HAIR, left = BorderStyle.THIN, right = BorderStyle.THIN)
+                    .alignment(vertical = VerticalAlignment.CENTER)
+                    .font().borderStyle(up = BorderStyle.DOTTED, down = BorderStyle.DOTTED, left = BorderStyle.THIN, right = BorderStyle.THIN)
                     .build()
         }
     }
