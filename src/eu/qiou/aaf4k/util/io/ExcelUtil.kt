@@ -121,9 +121,23 @@ object ExcelUtil {
 
         private val createHelper = wb.creationHelper
         private var cellStyle = wb.createCellStyle()
+        private var multilines: Int = 1
 
         fun fromStyle(style: CellStyle): StyleBuilder {
-            cellStyle = style
+            val font = wb.getFontAt(style.fontIndex)
+            cellStyle = StyleBuilder(wb)
+                    .alignment(style.alignmentEnum, style.verticalAlignmentEnum)
+                    .borderStyle(style.borderTopEnum, style.borderRightEnum, style.borderBottomEnum, style.borderLeftEnum)
+                    .borderColor(style.topBorderColor, style.rightBorderColor, style.bottomBorderColor, style.leftBorderColor)
+                    .dataFormat(format = style.dataFormatString)
+                    .font(name = font.fontName, size = font.fontHeightInPoints,
+                            color = font.color, bold = font.bold,
+                            italic = font.italic, strikeout = font.strikeout,
+                            underline = font.underline)
+                    .fill(color = style.fillForegroundColor, style = style.fillPatternEnum)
+                    .multiLineInCell(style.wrapText)
+                    .build()
+
             return this
         }
 
@@ -201,8 +215,32 @@ object ExcelUtil {
             return this
         }
 
+        fun alignment(horizontal: HorizontalAlignment? = null, vertical: VerticalAlignment? = null): StyleBuilder {
+
+            if (horizontal != null) cellStyle.setAlignment(horizontal)
+            if (vertical != null) cellStyle.setVerticalAlignment(vertical)
+
+            return this
+        }
+
+        fun multiLineInCell(multiline: Boolean, lines: Int = 2): StyleBuilder {
+            cellStyle.wrapText = multiline
+
+            if (multiline)
+                multilines = lines
+            else
+                multilines = 1
+
+            return this
+        }
+
         fun build(): CellStyle {
             return cellStyle
+        }
+
+        fun applyTo(cell: Cell) {
+            cell.cellStyle = this.cellStyle
+            cell.row.heightInPoints = cell.row.sheet.defaultRowHeightInPoints * this.multilines
         }
     }
 

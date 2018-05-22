@@ -27,6 +27,8 @@ object GlobalConfiguration {
     val DEFAULT_TIME_PARAMETERS = TimeParameters(2017)
     val DEFAULT_ENTITY = ProtoEntity(0, "Demo GmbH", "Demo", "a fictive company")
 
+    val DEFAULT_FONT_NAME = "Bahnschrift"
+
     // Foreign Exchange Rate
 
     // 1. Oanda
