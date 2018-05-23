@@ -108,13 +108,21 @@ object ExcelUtil {
         }
     }
 
-    class Update(val cell: Cell) {
+    /**
+     *  Update the style of the cell in place
+     */
+    class Update(val cell: Cell, deepCopy: Boolean = true) {
         private val wb = cell.sheet.workbook
         private val createHelper = wb.creationHelper
 
-        fun style(style: CellStyle): Update {
-            cell.cellStyle = style
+        init {
+            if (deepCopy) {
+                cell.cellStyle = StyleBuilder(wb).fromStyle(cell.cellStyle).build()
+            }
+        }
 
+        fun style(style: CellStyle, deepCopy: Boolean = true): Update {
+            cell.cellStyle = if (!deepCopy) style else StyleBuilder(wb).fromStyle(style).build()
             return this
         }
 
@@ -190,7 +198,7 @@ object ExcelUtil {
 
     enum class DataFormat(val format: String) {
         DATE("mmm dd, yyyy"),
-        NUMBER("#.00"),
+        NUMBER("#,###.00"),
         BOOLEAN("#"),
         INT("#.#"),
         DEFAULT("#"),
@@ -230,7 +238,7 @@ object ExcelUtil {
             return this.dataFormat(format.format)
         }
 
-        fun font(name: String = "Arial", size: Short = 11, color: Short = IndexedColors.BLACK.index, bold: Boolean = false, italic: Boolean = false, strikeout: Boolean = false, underline: Byte = 0): StyleBuilder {
+        fun font(name: String = DEFAULT_FONT_NAME, size: Short = 11, color: Short = IndexedColors.BLACK.index, bold: Boolean = false, italic: Boolean = false, strikeout: Boolean = false, underline: Byte = 0): StyleBuilder {
             cellStyle.setFont(wb.createFont().apply {
                 this.color = color
                 this.fontName = name

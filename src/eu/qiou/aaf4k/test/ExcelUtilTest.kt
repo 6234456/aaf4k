@@ -40,7 +40,9 @@ class ExcelUtilTest {
                                 .style(style)
                                 .dataFormat(if (i == 1) ExcelUtil.DataFormat.STRING.format else "mmm yyyy")
                                 .borderColor(left = if (i == 1) IndexedColors.BLACK.index else null)
+                                .borderStyle(left = if (i == 1) BorderStyle.MEDIUM else null)
                                 .borderColor(right = if (i == 13) IndexedColors.BLACK.index else null)
+                                .borderStyle(right = if (i == 13) BorderStyle.MEDIUM else null)
                                 .value(if (i == 1) "Accounts" else LocalDate.of(2018, i - 1, 1))
                     }
                 }
@@ -68,8 +70,11 @@ class ExcelUtilTest {
                     with(this.createCell(0)) {
                         ExcelUtil.Update(this)
                                 .style(if (cnt % 2 == 0) light else dark)
-                                .borderStyle(down = if (cnt.equals(data.count() + 1)) BorderStyle.HAIR else null)
+                                .borderStyle(left = BorderStyle.MEDIUM)
                                 .value(k)
+
+                        ExcelUtil.Update(this)
+                                .borderStyle(down = if (cnt.equals(data.count() + 1)) BorderStyle.MEDIUM else null)
                     }
 
                     v.forEachIndexed { index, d ->
@@ -77,8 +82,15 @@ class ExcelUtilTest {
                             ExcelUtil.Update(this)
                                     .style(if (cnt % 2 == 0) light else dark)
                                     .dataFormat(ExcelUtil.DataFormat.NUMBER.format)
-                                    .borderStyle(down = if (cnt.equals(data.count() + 1)) BorderStyle.HAIR else null)
                                     .value(d)
+
+                            if (cnt.equals(data.count() + 1)) {
+                                ExcelUtil.Update(this).borderStyle(down = BorderStyle.MEDIUM)
+                            }
+
+                            if (index.equals(v.count() - 1)) {
+                                ExcelUtil.Update(this).borderStyle(right = BorderStyle.MEDIUM)
+                            }
                         }
                     }
                 }
@@ -91,50 +103,21 @@ class ExcelUtilTest {
 
     @Test
     fun formatExcel() {
-        ExcelUtil.createWorksheetIfNotExists("src/eu/qiou/aaf4k/test/demo1.xls", "Demo6", {
-            val style = ExcelUtil.StyleBuilder(it.workbook).fromStyle(Template.heading(it.workbook)).dataFormat("mmm yyyy").build()
-            with(it.createRow(0)) {
-                with(this.createCell(0)) {
-                    this.cellStyle = style
-                    ExcelUtil.setCellValue(this, LocalDate.now())
-                }
-                with(this.createCell(1)) {
-                    this.cellStyle = ExcelUtil.StyleBuilder(it.workbook).fromStyle(style).fill(IndexedColors.BLUE.index).dataFormat(ExcelUtil.DataFormat.STRING).build()
-                    ExcelUtil.setCellValue(this, "BLUE")
-                }
-                with(this.createCell(2)) {
-                    this.cellStyle = ExcelUtil.StyleBuilder(it.workbook).fromStyle(style).fill(IndexedColors.LIGHT_CORNFLOWER_BLUE.index).dataFormat(ExcelUtil.DataFormat.STRING).build()
-                    ExcelUtil.setCellValue(this, "LIGHT_CORNFLOWER_BLUE")
-                }
-                with(this.createCell(3)) {
-                    this.cellStyle = ExcelUtil.StyleBuilder(it.workbook).fromStyle(style).fill(IndexedColors.BLUE1.index).dataFormat(ExcelUtil.DataFormat.STRING).build()
-                    ExcelUtil.setCellValue(this, "BLUE1E")
-                }
-                with(this.createCell(4)) {
-                    this.cellStyle = ExcelUtil.StyleBuilder(it.workbook).fromStyle(style).fill(IndexedColors.BLUE_GREY.index).dataFormat(ExcelUtil.DataFormat.STRING).build()
-                    ExcelUtil.setCellValue(this, "BLUE_GREY")
-                }
-                with(this.createCell(5)) {
-                    this.cellStyle = ExcelUtil.StyleBuilder(it.workbook).fromStyle(style).fill(IndexedColors.AQUA.index).dataFormat(ExcelUtil.DataFormat.STRING).build()
-                    ExcelUtil.setCellValue(this, "AQUA")
-                }
-                with(this.createCell(6)) {
-                    this.cellStyle = ExcelUtil.StyleBuilder(it.workbook).fromStyle(style).fill(IndexedColors.PALE_BLUE.index).dataFormat(ExcelUtil.DataFormat.STRING).build()
-                    ExcelUtil.setCellValue(this, "PALE_BLUE")
-                }
-                with(this.createCell(7)) {
-                    this.cellStyle = ExcelUtil.StyleBuilder(it.workbook).fromStyle(style).fill(IndexedColors.ROYAL_BLUE.index).dataFormat(ExcelUtil.DataFormat.STRING).build()
-                    ExcelUtil.setCellValue(this, "ROYAL_BLUE")
-                }
-                with(this.createCell(8)) {
-                    this.cellStyle = ExcelUtil.StyleBuilder(it.workbook).fromStyle(style).fill(IndexedColors.CORNFLOWER_BLUE.index).dataFormat(ExcelUtil.DataFormat.STRING).build()
-                    ExcelUtil.setCellValue(this, "CORNFLOWER_BLUE")
-                }
-                with(this.createCell(9)) {
-                    this.cellStyle = ExcelUtil.StyleBuilder(it.workbook).fromStyle(style).fill(IndexedColors.SKY_BLUE.index).dataFormat(ExcelUtil.DataFormat.STRING).build()
-                    ExcelUtil.setCellValue(this, "SKY_BLUE")
-                }
-            }
-        })
+        Template(
+                listOf(
+                        Triple("Name", ExcelUtil.DataFormat.STRING.format, ExcelUtil.DataFormat.STRING.format),
+                        Triple(LocalDate.now(), ExcelUtil.DataFormat.DATE.format, ExcelUtil.DataFormat.NUMBER.format)
+                ),
+                listOf(
+                        listOf("Hello", -12345),
+                        listOf("Hello2", 12345.98),
+                        listOf("Hello3", 1231145),
+                        listOf("Hello4", 1231145),
+                        listOf("Hello5", 112345),
+                        listOf("Hello6", 112345),
+                        listOf("Hello7", 123415)
+                )
+
+        ).build("src/eu/qiou/aaf4k/test/demo1.xls")
     }
 }
