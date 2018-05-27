@@ -8,7 +8,7 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
 /**
  *  all the attribute at atomic level
  */
-open class ProtoEntry(open val id: Int, open val desc: String = "", open val category: ProtoCategory) : JSONable {
+open class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCategory) : JSONable {
 
     init {
         ((category.entries) as MutableSet<ProtoEntry>).add(this)
@@ -32,9 +32,17 @@ open class ProtoEntry(open val id: Int, open val desc: String = "", open val cat
         }
     }
 
+    fun add(id: Int, value: Double): ProtoEntry {
+        this.category.reporting.findAccountByID(id)?.let {
+            return add(it.toBuilder().setValue(v = value).build())
+        }
+
+        return this
+    }
+
     fun add(account: ProtoAccount): ProtoEntry {
         if (!account.isAggregate)
-            (accounts as MutableSet<ProtoAccount>).add(account)
+            (accounts as MutableList<ProtoAccount>).add(account)
 
         return this
     }

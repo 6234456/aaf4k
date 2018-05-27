@@ -33,6 +33,10 @@ open class ProtoReporting(val id: Int, val name: String, val desc: String = "", 
                           val timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : JSONable {
 
     val categories: MutableSet<ProtoCategory> = mutableSetOf()
+    val flattened: List<ProtoAccount> = structure.filter { !it.isStatistical }.map { it.flatten() }.reduce { acc, mutableList ->
+        acc.addAll(mutableList)
+        acc
+    } as List<ProtoAccount>
 
     fun mergeCategories(): Map<Int, Double> {
         return categories.map { it.toDataMap() }.reduce { acc, map ->
@@ -58,21 +62,31 @@ open class ProtoReporting(val id: Int, val name: String, val desc: String = "", 
         return update(mergeCategories())
     }
 
-    fun update(entry: ProtoEntry): ProtoReporting {
+    fun findAccountByID(id: Int): ProtoAccount? {
+        for (i in flattened) {
+            i.findChildByID(id)?.let {
+                return it
+            }
+        }
+
+        return null
+    }
+
+    fun update(entry: ProtoEntry, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting {
         return ProtoReporting(id, name, desc,
-                structure.map { it.deepCopy(entry) }
+                structure.map { it.deepCopy(entry, updateMethod) }
                 , displayUnit, entity, timeParameters)
     }
 
-    fun update(category: ProtoCategory): ProtoReporting {
+    fun update(category: ProtoCategory, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting {
         return ProtoReporting(id, name, desc,
-                structure.map { it.deepCopy(category) }
+                structure.map { it.deepCopy(category, updateMethod) }
                 , displayUnit, entity, timeParameters)
     }
 
-    fun update(data: Map<Int, Double>): ProtoReporting {
+    fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting {
         return ProtoReporting(id, name, desc,
-                structure.map { it.deepCopy(data) }
+                structure.map { it.deepCopy(data, updateMethod) }
                 , displayUnit, entity, timeParameters)
     }
 

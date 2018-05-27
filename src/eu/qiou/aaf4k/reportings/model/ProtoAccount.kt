@@ -21,15 +21,15 @@ import eu.qiou.aaf4k.util.unit.ProtoUnit
  * @param isStatistical for aggregate account, will not be checked for duplicity
  */
 
-open class ProtoAccount(open val id: Int, open val name: String,
-                        open val subAccounts: MutableSet<out ProtoAccount>? = null,
-                        open val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION,
-                        open val value: Long? = null,
-                        open val unit: ProtoUnit = CurrencyUnit(),
-                        open val desc: String = "",
-                        open val timeParameters: TimeParameters? = null,
-                        open val entity: ProtoEntity? = null,
-                        open val isStatistical: Boolean = false
+open class ProtoAccount(val id: Int, open val name: String,
+                        val subAccounts: MutableSet<out ProtoAccount>? = null,
+                        val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION,
+                        val value: Long? = null,
+                        val unit: ProtoUnit = CurrencyUnit(),
+                        val desc: String = "",
+                        val timeParameters: TimeParameters? = null,
+                        val entity: ProtoEntity? = null,
+                        val isStatistical: Boolean = false
                         ): Comparable<ProtoAccount>, JSONable, Drilldownable{
 
     /**
@@ -49,10 +49,10 @@ open class ProtoAccount(open val id: Int, open val name: String,
             this(id, name, subAccounts = mutableSetOf(), decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical)
 
     init {
-        if(value == null && subAccounts == null)
+        if (value == null && subAccounts == null)
             throw Exception("either value or subAccounts should be specified.")
 
-        if(value != null && subAccounts != null)
+        if (value != null && subAccounts != null)
             throw Exception("Only one of the parameters, value or subAccounts, should be specified.")
     }
 
@@ -97,29 +97,29 @@ open class ProtoAccount(open val id: Int, open val name: String,
     var localAccountID: String = id.toString()
     var localAccountName: String = id.toString()
 
-    var displayUnit:ProtoUnit = CurrencyUnit()
-    var displayValue: Double = 0.0
-    get() = roundUpTo(when{
-        unit is CurrencyUnit -> (unit as CurrencyUnit).convertFxTo(displayUnit, timeParameters)(decimalValue)
-            else                    -> unit.convertTo(displayUnit)(decimalValue)
-        })
-    private set
-
     val isAggregate:Boolean = subAccounts != null
 
     var decimalValue: Double = 0.0
-    get() {
-        return if(isAggregate)
-            subAccounts!!.fold(0.0){
-                acc, e ->
+        get() {
+            return if (isAggregate)
+                subAccounts!!.fold(0.0) { acc, e ->
                     acc + e.decimalValue
-            }
-        else
-            value!!.toDouble()/ Math.pow(10.0, decimalPrecision.toDouble())
-    }
-    private set
+                }
+            else
+                value!!.toDouble() / Math.pow(10.0, decimalPrecision.toDouble())
+        }
+        private set
 
-    var textValue: String = displayUnit.format()(displayValue)
+    var displayUnit: ProtoUnit = CurrencyUnit()
+    var displayValue: Double = 0.0
+        get() = roundUpTo(when {
+            this.unit is CurrencyUnit -> unit.convertFxTo(displayUnit, timeParameters)(decimalValue)
+            else -> unit.convertTo(displayUnit)(decimalValue)
+        })
+        private set
+
+
+    var textValue: String? = displayUnit.format()(displayValue)
 
     fun register(superAccount: ProtoAccount){
         if(superAccounts == null){
@@ -136,6 +136,20 @@ open class ProtoAccount(open val id: Int, open val name: String,
             if(superAccounts!!.count() == 0)
                 superAccounts = null
         }
+    }
+
+    fun findChildByID(id: Int): ProtoAccount? {
+        if (!hasChildren()) {
+            if (this.id == id) {
+                return this
+            }
+        } else {
+            for (i in subAccounts!!) {
+                i.findChildByID(id)
+            }
+        }
+
+        return null
     }
 
     private fun roundUpTo(v: Double, decimalPlace: Int = decimalPrecision):Double{
@@ -158,24 +172,24 @@ open class ProtoAccount(open val id: Int, open val name: String,
         }
     }
 
-    fun deepCopy(data: Map<Int, Double>): ProtoAccount {
+    fun deepCopy(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew }): ProtoAccount {
         val callback: (ProtoAccount) -> ProtoAccount = {
-            it.update(data)
+            it.update(data, updateMethod)
         }
         return deepCopy(callback)
     }
 
-    fun deepCopy(entry: ProtoEntry): ProtoAccount {
-        return deepCopy(entry.toDataMap())
+    fun deepCopy(entry: ProtoEntry, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew }): ProtoAccount {
+        return deepCopy(entry.toDataMap(), updateMethod)
     }
 
-    fun deepCopy(category: ProtoCategory): ProtoAccount {
-        return deepCopy(category.toDataMap())
+    fun deepCopy(category: ProtoCategory, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew }): ProtoAccount {
+        return deepCopy(category.toDataMap(), updateMethod)
     }
 
-    private fun update(map: Map<Int, Double>): ProtoAccount {
+    fun update(map: Map<Int, Double>, callback: (Double, Double) -> Double = { valueNew, valueOld -> valueNew }): ProtoAccount {
         if (map.containsKey(id))
-            return toBuilder().setValue(map.getValue(id)).build()
+            return toBuilder().setValue(callback(map.getValue(id), this.decimalValue)).build()
         else
             return shallowCopy()
     }
@@ -275,18 +289,18 @@ open class ProtoAccount(open val id: Int, open val name: String,
                 throw Exception("method 'setValue' for atomic account can not be evoked for the aggregate account.")
 
             this.decimalPrecision = decimalPrecision
-            value = (v * Math.pow(10.0, decimalPrecision.toDouble())).toLong()
+            this.value = (v * Math.pow(10.0, decimalPrecision.toDouble())).toLong()
             this.subAccounts = null
-            isStatistical = false
-            type = VALUE_SETTER_EXTERNAL
+            this.isStatistical = false
+            this.type = VALUE_SETTER_EXTERNAL
             return this
         }
 
-        fun setValue(subAccounts: MutableSet<out ProtoAccount>): Builder {
+        fun setValue(subAccounts: MutableSet<ProtoAccount>): Builder {
             if (type != VALUE_SETTER_UNDETERMINED && type != VALUE_SETTER_AGGREGATE)
                 throw Exception("method 'setValue' for aggregate account can not be evoked for the atomic account.")
 
-            this.subAccounts = subAccounts as MutableSet<ProtoAccount>
+            this.subAccounts = subAccounts
             this.value = null
             type = VALUE_SETTER_AGGREGATE
             return this

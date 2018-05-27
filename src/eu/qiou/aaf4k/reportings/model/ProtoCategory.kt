@@ -5,7 +5,7 @@ import eu.qiou.aaf4k.util.mergeReduce
 import eu.qiou.aaf4k.util.strings.CollectionToString
 
 
-class ProtoCategory(val name: String, val id: Int, val desc: String, val reporting: ProtoReporting) : JSONable
+open class ProtoCategory(val name: String, val id: Int, val desc: String, val reporting: ProtoReporting) : JSONable
 {
     val entries: MutableSet<out ProtoEntry> = mutableSetOf()
     val entity = reporting.entity
