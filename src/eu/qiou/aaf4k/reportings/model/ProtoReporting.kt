@@ -33,10 +33,7 @@ open class ProtoReporting(val id: Int, val name: String, val desc: String = "", 
                           val timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : JSONable {
 
     val categories: MutableSet<ProtoCategory> = mutableSetOf()
-    val flattened: List<ProtoAccount> = structure.filter { !it.isStatistical }.map { it.flatten() }.reduce { acc, mutableList ->
-        acc.addAll(mutableList)
-        acc
-    } as List<ProtoAccount>
+    val flattened: List<ProtoAccount> = this.flatten()
 
     fun mergeCategories(): Map<Int, Double> {
         return categories.map { it.toDataMap() }.reduce { acc, map ->
@@ -48,9 +45,8 @@ open class ProtoReporting(val id: Int, val name: String, val desc: String = "", 
      * return one dimensional array of atomic accounts
      */
     fun flatten(): List<ProtoAccount> {
-        return structure.filter { !it.isStatistical }.map { it.flatten() }.reduce { acc, mutableList ->
-            acc.addAll(mutableList)
-            acc
+        return structure.filter { !it.isStatistical }.map { if (it.hasChildren()) it.flatten() else mutableListOf(it as Drilldownable) }.reduce { acc, mutableList ->
+            acc.apply { addAll(mutableList) }
         } as List<ProtoAccount>
     }
 

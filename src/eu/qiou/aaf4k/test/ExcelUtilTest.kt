@@ -17,7 +17,7 @@ class ExcelUtilTest {
     fun formatExcel() {
         Template(
                 listOf(
-                        Triple("Name", ExcelUtil.DataFormat.STRING.format, ExcelUtil.DataFormat.STRING.format),
+                        Triple("ÄA_Name", ExcelUtil.DataFormat.STRING.format, ExcelUtil.DataFormat.STRING.format),
                         Triple(LocalDate.now(), "mmm yyyy", ExcelUtil.DataFormat.NUMBER.format)
                 ),
                 listOf(

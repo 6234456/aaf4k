@@ -25,7 +25,7 @@ class EntryTest {
         assert(acc3.reportingValue.equals(150.0))
 
         println(reporting.toString())
-        println(reporting.update(e))
+        println(reporting.update(e).flattened)
 
 
     }
