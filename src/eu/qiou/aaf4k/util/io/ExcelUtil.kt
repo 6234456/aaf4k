@@ -3,6 +3,7 @@ package eu.qiou.aaf4k.util.io
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_FONT_NAME
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.*
+import org.apache.poi.ss.util.CellUtil
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileInputStream
@@ -111,86 +112,85 @@ object ExcelUtil {
     /**
      *  Update the style of the cell in place
      */
-    class Update(val cell: Cell, deepCopy: Boolean = true) {
+    class Update(val cell: Cell) {
         private val wb = cell.sheet.workbook
         private val createHelper = wb.creationHelper
 
-        init {
-            if (deepCopy) {
-                cell.cellStyle = StyleBuilder(wb).fromStyle(cell.cellStyle).build()
-            }
-        }
-
-        fun style(style: CellStyle, deepCopy: Boolean = true): Update {
+        fun style(style: CellStyle, deepCopy: Boolean = false): Update {
             cell.cellStyle = if (!deepCopy) style else StyleBuilder(wb).fromStyle(style).build()
             return this
         }
 
         fun dataFormat(format: String?): Update {
             if (format != null)
-                cell.cellStyle.also { it.dataFormat = createHelper.createDataFormat().getFormat(format) }
+                CellUtil.setCellStyleProperty(cell, CellUtil.DATA_FORMAT, createHelper.createDataFormat().getFormat(format))
+            //    cell.cellStyle.also { it.dataFormat = createHelper.createDataFormat().getFormat(format) }
 
             return this
         }
 
         fun font(name: String = DEFAULT_FONT_NAME, size: Short = 11, color: Short = IndexedColors.BLACK.index, bold: Boolean = false, italic: Boolean = false, strikeout: Boolean = false, underline: Byte = 0): Update {
-            cell.cellStyle.also {
-                it.setFont(wb.createFont().apply {
-                    this.color = color
-                    this.fontName = name
-                    this.bold = bold
-                    this.italic = italic
-                    this.strikeout = strikeout
-                    this.underline = underline
-                    this.fontHeightInPoints = size
-                })
-            }
+            CellUtil.setFont(cell, wb.createFont().apply {
+                this.color = color
+                this.fontName = name
+                this.bold = bold
+                this.italic = italic
+                this.strikeout = strikeout
+                this.underline = underline
+                this.fontHeightInPoints = size
+            })
 
             return this
         }
 
-        fun fill(color: Short = IndexedColors.WHITE.index, style: FillPatternType = FillPatternType.SOLID_FOREGROUND): Update {
-            cell.cellStyle.also {
-                it.fillForegroundColor = color
-                it.setFillPattern(style)
+        fun fill(color: Short? = IndexedColors.WHITE.index, style: FillPatternType? = FillPatternType.SOLID_FOREGROUND): Update {
+            color?.let {
+                CellUtil.setCellStyleProperty(cell, CellUtil.FILL_FOREGROUND_COLOR, color)
+            }
+            style?.let {
+                CellUtil.setCellStyleProperty(cell, CellUtil.FILL_PATTERN, style)
             }
 
             return this
         }
 
         fun borderStyle(up: BorderStyle? = null, right: BorderStyle? = null, down: BorderStyle? = null, left: BorderStyle? = null): Update {
-            cell.cellStyle.also {
-                if (up != null) it.setBorderTop(up)
-                if (right != null) it.setBorderRight(right)
-                if (down != null) it.setBorderBottom(down)
-                if (left != null) it.setBorderLeft(left)
-            }
+            if (up != null) CellUtil.setCellStyleProperty(cell, CellUtil.BORDER_TOP, up)
+            if (right != null) CellUtil.setCellStyleProperty(cell, CellUtil.BORDER_RIGHT, right)
+            if (down != null) CellUtil.setCellStyleProperty(cell, CellUtil.BORDER_BOTTOM, down)
+            if (left != null) CellUtil.setCellStyleProperty(cell, CellUtil.BORDER_LEFT, left)
 
             return this
         }
 
         fun borderColor(up: Short? = null, right: Short? = null, down: Short? = null, left: Short? = null): Update {
-            cell.cellStyle.also {
-                if (up != null) it.topBorderColor = up
-                if (right != null) it.rightBorderColor = right
-                if (down != null) it.bottomBorderColor = down
-                if (left != null) it.leftBorderColor = left
-            }
+            if (up != null) CellUtil.setCellStyleProperty(cell, CellUtil.TOP_BORDER_COLOR, up)
+            if (right != null) CellUtil.setCellStyleProperty(cell, CellUtil.RIGHT_BORDER_COLOR, right)
+            if (down != null) CellUtil.setCellStyleProperty(cell, CellUtil.BOTTOM_BORDER_COLOR, down)
+            if (left != null) CellUtil.setCellStyleProperty(cell, CellUtil.LEFT_BORDER_COLOR, left)
 
             return this
         }
 
         fun alignment(horizontal: HorizontalAlignment? = null, vertical: VerticalAlignment? = null): Update {
-            cell.cellStyle.also {
-                if (horizontal != null) it.setAlignment(horizontal)
-                if (vertical != null) it.setVerticalAlignment(vertical)
-            }
+            if (horizontal != null) CellUtil.setCellStyleProperty(cell, CellUtil.ALIGNMENT, horizontal)
+            if (vertical != null) CellUtil.setCellStyleProperty(cell, CellUtil.VERTICAL_ALIGNMENT, vertical)
 
             return this
         }
 
-        fun value(value: Any): Update {
-            setCellValue(this.cell, value)
+        fun value(value: Any?): Update {
+            if (value != null)
+                setCellValue(this.cell, value)
+
+            return this
+        }
+
+        fun formula(formula: String?): Update {
+            if (formula != null)
+                this.cell.cellFormula = with(formula.trim()) {
+                    if (this.startsWith("=")) this.substring(1) else this
+                }
 
             return this
         }

@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.io.PdfUtil
+import eu.qiou.aaf4k.util.template.Template
 import org.junit.Test
 import java.awt.Rectangle
 
@@ -80,6 +81,14 @@ class PdfUtilTest {
 
         ExcelUtil.writeData("skr4.xls", data = map)
 
+        val regexFirstUpper = Regex("""^\s*(?:([A-ZÄÜ]\s+)*)(\d{4,})""")
 
+        Template(listOf(
+                //   Template.HeadingFormat("KontoNr", formatData = ExcelUtil.DataFormat.INT.format),
+                Template.HeadingFormat("KontoName", formatData = ExcelUtil.DataFormat.STRING.format)
+        ),
+                map.values.toList()
+
+        ).build("skr4.xls")
     }
 }
