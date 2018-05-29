@@ -33,11 +33,11 @@ class ExcelUtilTest {
                 colorSchema = Template.ColorSchema(IndexedColors.LIGHT_ORANGE, IndexedColors.GREY_25_PERCENT),
                 caption = listOf(
                         Pair("Demo of the Excel-Format", "QIY"),
-                        Pair(LocalDate.now().toString(), "")
+                        Pair(LocalDate.now().toString(), "001")
                 ),
                 sumColRight = Template.HeadingFormat("Total", formatData = "#,###,"),
                 sumRowBottom = Template.HeadingFormat("Sum", formatData = "#,###,")
 
-        ).build("src/eu/qiou/aaf4k/test/demo1.xlsx", "trail")
+        ).build("src/eu/qiou/aaf4k/test/demo1.xls", "trail")
     }
 }
