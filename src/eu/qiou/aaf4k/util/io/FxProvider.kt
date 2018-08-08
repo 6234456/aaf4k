@@ -7,6 +7,13 @@ abstract class FxProvider {
 
     abstract fun fetchFxFromSource(target: ForeignExchange): Double
 
+    /**
+     * TODO implement baseFx for other classes
+     */
+    open fun baseFx(target: ForeignExchange): Map<java.time.LocalDate, Double> {
+        return HashMap<java.time.LocalDate, Double>()
+    }
+
     fun fetch(target: ForeignExchange, useCache: Boolean = true): Double {
         if (target.functionalCurrency.equals(target.reportingCurrency))
             return 1.0

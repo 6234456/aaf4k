@@ -22,6 +22,25 @@ object ECBFxProvider : FxProvider() {
         return res
     }
 
+    override fun baseFx(target: ForeignExchange): Map<java.time.LocalDate, Double> {
+
+        val url = buildURL(target)
+
+        val v1 = hashMapOf<Int, Double>()
+
+        JSONUtil.fetch<JSONObject>(url, false, "dataSets.0.series.0:0:0:0:0.observations").forEach({ k, x ->
+            v1.put(k.toString().toInt(), (x as JSONArray).get(0) as Double)
+        })
+
+        return JSONUtil.fetch<JSONArray>(url, false, "structure.dimensions.observation.0.values").map({ v ->
+            java.time.LocalDate.parse((v as JSONObject).get("name").toString())
+        })
+                .zip(
+                        v1.toSortedMap().values
+                )
+                .map { it.first to it.second }.toMap()
+    }
+
     private fun parseURL(target: ForeignExchange): Double {
 
         var cnt = 0
