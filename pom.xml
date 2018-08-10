@@ -6,7 +6,7 @@
     <version>1.0</version>
 
     <properties>
-        <kotlin.version>1.2.31</kotlin.version>
+        <kotlin.version>1.2.41</kotlin.version>
         <ktor.version>0.9.1</ktor.version>
     </properties>
 
