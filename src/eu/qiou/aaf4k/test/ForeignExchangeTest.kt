@@ -1,6 +1,8 @@
 package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.util.io.ECBFxProvider
+import eu.qiou.aaf4k.util.io.ExcelUtil
+import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.ForeignExchange
 import org.junit.Test
@@ -20,11 +22,19 @@ class ForeignExchangeTest {
 
     @Test
     fun getBaseFx() {
-        val f = ECBFxProvider.baseFx(ForeignExchange(reportingCurrencyCode = "CNY", timeParameters = TimeParameters.forQuarter(2018, 2)))
-        println(f)
+        val f = ECBFxProvider.baseFx(ForeignExchange(reportingCurrencyCode = "CNY", timeParameters = TimeParameters.forYear(2017)))
 
-        ForeignExchange.source = ECBFxProvider
-        println(ForeignExchange(reportingCurrencyCode = "CNY", timePoint = LocalDate.of(2018, 6, 29)))
-        println(ForeignExchange(reportingCurrencyCode = "CNY", timePoint = LocalDate.of(2018, 4, 23)))
+        Template(
+                headings = listOf
+                (
+                        Template.HeadingFormat("Date", ExcelUtil.DataFormat.STRING.format, "yyyy-mm-dd"),
+                        Template.HeadingFormat("Exchange Rate", ExcelUtil.DataFormat.STRING.format, "#,###.0000")
+                ),
+                data = f.keys.toList().zip(f.values.toList()).map({ p -> listOf(p.first, p.second) }),
+                sumRowBottom = Template.HeadingFormat("Sum", formatData = "#,###.0000"),
+                sumRowBottomFormula = "AVERAGE"
+        ).build("src/eu/qiou/aaf4k/test/demo2.xls", "trail")
+
+        println(ForeignExchange(reportingCurrencyCode = "CNY", timeParameters = TimeParameters.forYear(2017)))
     }
 }

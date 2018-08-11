@@ -7,7 +7,7 @@ import org.apache.poi.ss.util.CellUtil
 
 
 open class Template(val headings: List<HeadingFormat>? = null, val data: List<List<Any>>, val caption: List<Pair<String, String>>? = null, val colorSchema: ColorSchema = ColorSchema(),
-                    val sumColRight: HeadingFormat? = null, val sumRowBottom: HeadingFormat? = null) {
+                    val sumColRight: HeadingFormat? = null, val sumRowBottom: HeadingFormat? = null, val sumRowBottomFormula: String = "SUM", val sumColRightFormula: String = "SUM") {
     data class ColorSchema(val colorHeading: IndexedColors = IndexedColors.ROYAL_BLUE, val colorDarkRow: IndexedColors = IndexedColors.PALE_BLUE, val colorCaption: IndexedColors = colorHeading)
     data class HeadingFormat(val value: Any, val formatHeading: String = ExcelUtil.DataFormat.STRING.format, val formatData: String = ExcelUtil.DataFormat.NUMBER.format)
 
@@ -48,6 +48,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
 
         val extraCol = if (sumColRight != null) 1 else 0
         val extraRow = if (sumRowBottom != null) 1 else 0
+
 
         ExcelUtil.createWorksheetIfNotExists(path, sheetName, {
             it.isDisplayGridlines = false
@@ -142,7 +143,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
                                     .borderColor(right = IndexedColors.BLACK.index)
                                     .borderStyle(right = BorderStyle.MEDIUM)
                                     .dataFormat(sumColRight!!.formatData)
-                                    .formula("SUM(${CellUtil.getCell(this.row, colStart + 1).address}:${CellUtil.getCell(this.row, this.columnIndex - 1).address})")
+                                    .formula("${sumColRightFormula}(${CellUtil.getCell(this.row, colStart + 1).address}:${CellUtil.getCell(this.row, this.columnIndex - 1).address})")
                         }
                     }
                 }
@@ -159,7 +160,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
                                     .borderStyle(right = if (i == cols + colStart + extraCol) BorderStyle.MEDIUM else null)
                                     .borderColor(right = if (i == cols + colStart + extraCol) IndexedColors.BLACK.index else null)
                                     .formula(if (i == 1 + colStart) null else
-                                        "SUM(${CellUtil.getCell(CellUtil.getRow(rowStart + 1, this.sheet), this.columnIndex).address}:${CellUtil.getCell(CellUtil.getRow(this.rowIndex - 1, this.sheet), this.columnIndex).address})"
+                                        "${sumRowBottomFormula}(${CellUtil.getCell(CellUtil.getRow(rowStart + 1, this.sheet), this.columnIndex).address}:${CellUtil.getCell(CellUtil.getRow(this.rowIndex - 1, this.sheet), this.columnIndex).address})"
                                     )
                                     .value(if (i == 1 + colStart) sumRowBottom!!.value else null)
                                     .dataFormat(if (i == 1 + colStart) sumRowBottom!!.formatHeading else sumRowBottom!!.formatData)
