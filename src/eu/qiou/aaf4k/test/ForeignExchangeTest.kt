@@ -21,6 +21,14 @@ class ForeignExchangeTest {
     }
 
     @Test
+    fun getNewFx() {
+        val fx = ForeignExchange(reportingCurrencyCode = "CHF", timePoint = LocalDate.of(2017, 12, 25))
+        val fx1 = ECBFxProvider.baseFx(fx)
+        println(fx)
+        println(fx1)
+    }
+
+    @Test
     fun getBaseFx() {
         val f = ECBFxProvider.baseFx(ForeignExchange(reportingCurrencyCode = "CNY", timeParameters = TimeParameters.forYear(2017)))
 

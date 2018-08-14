@@ -50,6 +50,22 @@ data class TimeParameters(val timeSpan: TimeSpan?=null, val timePoint: LocalDate
         return this.start <= timeSpan.start && this.end >= timeSpan.end
     }
 
+    fun containingYear(): TimeParameters {
+
+        if (this.start.year != this.end.year)
+            throw Exception("The time span over 1 year!")
+
+        return TimeParameters.forYear(this.start.year)
+    }
+
+    fun containingMonth(): TimeParameters {
+
+        if ((this.start.year != this.end.year) or (this.start.monthValue != this.end.monthValue))
+            throw Exception("The time span over 1 month!")
+
+        return TimeParameters.forMonth(this.start.year, this.start.monthValue)
+    }
+
     companion object {
         fun realTime():TimeParameters {
             return TimeParameters(timePoint = LocalDate.now())

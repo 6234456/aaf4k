@@ -24,34 +24,43 @@ object ECBFxProvider : FxProvider() {
 
     override fun baseFx(target: ForeignExchange): Map<java.time.LocalDate, Double> {
 
-        val url = buildURL(target)
 
-        val v1 = hashMapOf<Int, Double>()
+        if (target.timeParameters.timeAttribute == TimeAttribute.TIME_SPAN) {
+            val url = buildURL(target)
+            val v1 = hashMapOf<Int, Double>()
 
-        JSONUtil.fetch<JSONObject>(url, false, "dataSets.0.series.0:0:0:0:0.observations").forEach({ k, x ->
-            v1.put(k.toString().toInt(), (x as JSONArray).get(0) as Double)
-        })
+            JSONUtil.fetch<JSONObject>(url, false, "dataSets.0.series.0:0:0:0:0.observations").forEach({ k, x ->
+                v1.put(k.toString().toInt(), (x as JSONArray).get(0) as Double)
+            })
 
-        return JSONUtil.fetch<JSONArray>(url, false, "structure.dimensions.observation.0.values").map({ v ->
-            java.time.LocalDate.parse((v as JSONObject).get("name").toString())
-        })
-                .zip(
-                        v1.toSortedMap().values
-                )
-                .map { it.first to it.second }.toMap()
+            return JSONUtil.fetch<JSONArray>(url, false, "structure.dimensions.observation.0.values").map({ v ->
+                java.time.LocalDate.parse((v as JSONObject).get("name").toString())
+            })
+                    .zip(
+                            v1.toSortedMap().values
+                    )
+                    .map { it.first to it.second }.toMap()
+        }
+
+        var d = target.timeParameters.start
+        val m = target.timeParameters.containingMonth()
+        with(baseFx(target.copy(timeParameters = m))) {
+            while (m.timeSpan!!.contains(d) and !this.containsKey(d)) {
+                d = d.minusDays(1)
+            }
+
+            if (m.timeSpan.contains(d)) {
+                return hashMapOf(d to this.getValue(d))
+            }
+        }
+
+        throw Exception("FX not found!")
     }
 
     private fun parseURL(target: ForeignExchange): Double {
-
-        var cnt = 0
-        var res = 0.0
-
-        JSONUtil.fetch<JSONObject>(buildURL(target), false, "dataSets.0.series.0:0:0:0:0.observations").forEach({ _, v ->
-            res += (v as JSONArray).get(0) as Double
-            cnt++
-        })
-
-        return res / cnt
+        with(baseFx(target).values) {
+            return this.fold(0.0, { acc, d -> acc + d }) / this.count()
+        }
     }
 
     private fun buildURL(target: ForeignExchange): String {
