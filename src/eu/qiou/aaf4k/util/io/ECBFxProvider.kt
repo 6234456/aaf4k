@@ -1,9 +1,12 @@
 package eu.qiou.aaf4k.util.io
 
 import eu.qiou.aaf4k.util.time.TimeAttribute
+import eu.qiou.aaf4k.util.time.TimeParameters
+import eu.qiou.aaf4k.util.time.TimeSpan
 import eu.qiou.aaf4k.util.unit.ForeignExchange
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
+import java.time.LocalDate
 import java.util.*
 
 /**
@@ -43,7 +46,8 @@ object ECBFxProvider : FxProvider() {
         }
 
         var d = target.timeParameters.start
-        val m = target.timeParameters.containingMonth()
+        val m1 = LocalDate.of(d.year, d.monthValue, 1)
+        val m = TimeParameters(TimeSpan(m1.minusMonths(1), m1.plusMonths(1).minusDays(1)))
         with(baseFx(target.copy(timeParameters = m))) {
             while (m.timeSpan!!.contains(d) and !this.containsKey(d)) {
                 d = d.minusDays(1)

@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.test
 
+import eu.qiou.aaf4k.util.flatList
 import eu.qiou.aaf4k.util.io.ECBFxProvider
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.template.Template
@@ -39,10 +40,16 @@ class ForeignExchangeTest {
                         Template.HeadingFormat("Exchange Rate", ExcelUtil.DataFormat.STRING.format, "#,###.0000")
                 ),
                 data = f.keys.toList().zip(f.values.toList()).map({ p -> listOf(p.first, p.second) }),
-                sumRowBottom = Template.HeadingFormat("Sum", formatData = "#,###.0000"),
+                sumRowBottom = Template.HeadingFormat("Average", formatData = "#,###.0000"),
                 sumRowBottomFormula = "AVERAGE"
-        ).build("src/eu/qiou/aaf4k/test/demo2.xls", "trail")
+        ).build("src/eu/qiou/aaf4k/test/demo2.xlsx", "trail")
 
         println(ForeignExchange(reportingCurrencyCode = "CNY", timeParameters = TimeParameters.forYear(2017)))
+    }
+
+    @Test
+    fun getTrail() {
+        println(mapOf(1 to listOf<Int?>(1, 2, null, 4, 5)).flatList())
+        println(mapOf(1 to 2).flatList())
     }
 }

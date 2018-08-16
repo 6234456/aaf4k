@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.util.template
 
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_FONT_NAME
+import eu.qiou.aaf4k.util.flatList
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
@@ -11,7 +12,12 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
     data class ColorSchema(val colorHeading: IndexedColors = IndexedColors.ROYAL_BLUE, val colorDarkRow: IndexedColors = IndexedColors.PALE_BLUE, val colorCaption: IndexedColors = colorHeading)
     data class HeadingFormat(val value: Any, val formatHeading: String = ExcelUtil.DataFormat.STRING.format, val formatData: String = ExcelUtil.DataFormat.NUMBER.format)
 
+
     companion object {
+
+        fun dataAdapter(data: Map<*, *>): List<List<*>> {
+            return data.flatList()
+        }
 
         val heading: (wb: Workbook) -> CellStyle = {
             ExcelUtil.StyleBuilder(it)
