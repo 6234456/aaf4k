@@ -10,13 +10,16 @@ fun <K, V> Map<K, V>.mergeReduce(other: Map<K, V>, reduce: (V, V) -> V): Map<K, 
 
 fun Iterable<Any>.mkString(separator: String = ", ", prefix: String = "[", affix: String = "]") = eu.qiou.aaf4k.util.strings.CollectionToString.mkString(this, separator, prefix, affix)
 
+
+/**
+ * @sample  k to [1,2,3,4]  -> [k, 1, 2, 3, 4]
+ */
 fun Map<*, *>.flatList(): List<List<*>> {
     return this.keys.map { e ->
-        with(this.get(e)!!) {
+        with(this[e]!!) {
             when {
                 this is Iterable<*> ->
                     mutableListOf(e).let { l -> l + this }
-                //this.fold(mutableListOf(e), { acc, any ->  acc.add(any!!); acc })
                 else ->
                     mutableListOf(e, this)
             }

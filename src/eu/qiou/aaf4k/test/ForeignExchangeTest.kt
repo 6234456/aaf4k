@@ -39,7 +39,7 @@ class ForeignExchangeTest {
                         Template.HeadingFormat("Date", ExcelUtil.DataFormat.STRING.format, "yyyy-mm-dd"),
                         Template.HeadingFormat("Exchange Rate", ExcelUtil.DataFormat.STRING.format, "#,###.0000")
                 ),
-                data = f.keys.toList().zip(f.values.toList()).map({ p -> listOf(p.first, p.second) }),
+                data = f.flatList(),
                 sumRowBottom = Template.HeadingFormat("Average", formatData = "#,###.0000"),
                 sumRowBottomFormula = "AVERAGE"
         ).build("src/eu/qiou/aaf4k/test/demo2.xlsx", "trail")
