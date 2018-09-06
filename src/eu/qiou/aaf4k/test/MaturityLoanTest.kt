@@ -17,6 +17,7 @@ class MaturityLoanTest {
         println(LocalDate.of(2018, 1, 31).to(LocalDate.of(2018, 10, 31), ChronoUnit.MONTHS))
 
         println(MaturityLoan(1, "", 100.0, 80.0, 0.15, LocalDate.of(2016, 12, 31), LocalDate.of(2018, 12, 31), ChronoUnit.MONTHS, 3).r)
+        println(MaturityLoan(1, "", 100.0, 80.0, 0.15, LocalDate.of(2016, 12, 31), LocalDate.of(2018, 12, 31), ChronoUnit.MONTHS, 3).effectiveInterest)
         println(MaturityLoan(1, "", 100.0, 80.0, 0.15, LocalDate.of(2016, 12, 31), 6, ChronoUnit.MONTHS, 3).paymentPlan)
     }
 
@@ -25,5 +26,10 @@ class MaturityLoanTest {
         println(listOf(80, -15, -15, -115).irr())
         println(listOf(80, -15, -15, -115).npv(0.252900564))
         println(listOf(80, -15, -15, -115).npv(0.252899538397789))
+    }
+
+    @Test
+    fun effectiveIn() {
+        println()
     }
 }

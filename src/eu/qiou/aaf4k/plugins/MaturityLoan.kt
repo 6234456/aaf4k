@@ -43,9 +43,8 @@ class MaturityLoan(val id: Int, val desc: String = "", val nominalValue: Double,
 
     val r = this.paymentPlan.values.irr()
 
-    val effectiveInterest = this.paymentPlan.let {
-        val k = it.keys.sorted().get(0)
-        it.mapValues { e -> e.key }
+    val effectiveInterest = this.paymentPlan.values.reduce { acc, e ->
+        acc * r + e
     }
 
 
