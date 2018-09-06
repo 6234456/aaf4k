@@ -7,7 +7,7 @@ import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
 
 
-open class Template(val headings: List<HeadingFormat>? = null, val data: List<List<Any>>, val caption: List<Pair<String, String>>? = null, val colorSchema: ColorSchema = ColorSchema(),
+open class Template(val headings: List<HeadingFormat>? = null, val data: List<List<*>>, val caption: List<Pair<String, String>>? = null, val colorSchema: ColorSchema = ColorSchema(),
                     val sumColRight: HeadingFormat? = null, val sumRowBottom: HeadingFormat? = null, val sumRowBottomFormula: String = "SUM", val sumColRightFormula: String = "SUM") {
     data class ColorSchema(val colorHeading: IndexedColors = IndexedColors.ROYAL_BLUE, val colorDarkRow: IndexedColors = IndexedColors.PALE_BLUE, val colorCaption: IndexedColors = colorHeading)
     data class HeadingFormat(val value: Any, val formatHeading: String = ExcelUtil.DataFormat.STRING.format, val formatData: String = ExcelUtil.DataFormat.NUMBER.format)
