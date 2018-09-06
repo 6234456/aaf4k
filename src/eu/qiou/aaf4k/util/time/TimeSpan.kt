@@ -180,3 +180,42 @@ operator fun ChronoUnit.times(n: Int):Period = when{
 
 operator fun LocalDate.plus(period: Period) = this.plus(period)
 operator fun LocalDate.minus(period: Period) = this.minus(period)
+
+fun LocalDate.to(ends: LocalDate, withIntervalUnit: ChronoUnit = ChronoUnit.YEARS, withIntervalAmount: Int = 1): List<LocalDate> {
+    val res = mutableListOf<LocalDate>()
+    var tmp = this
+    var cnt = 1
+
+    while (true) {
+        if (tmp > ends) {
+            break
+        } else {
+            res.add(tmp)
+            tmp = this + (withIntervalUnit * (withIntervalAmount * cnt))
+            cnt++
+        }
+    }
+
+    return res
+}
+
+fun LocalDate.ofNext(terms: Int, withIntervalUnit: ChronoUnit = ChronoUnit.YEARS, withIntervalAmount: Int = 1): List<LocalDate> {
+    val res = mutableListOf<LocalDate>()
+    var tmp = this
+
+    for (cnt in 1..terms) {
+        res.add(tmp)
+        tmp = this + (withIntervalUnit * (withIntervalAmount * cnt))
+    }
+
+    return res
+}
+
+fun ChronoUnit.toPercentageOfYear(): Double = when (this) {
+    ChronoUnit.YEARS -> 1.0
+    ChronoUnit.MONTHS -> 1.0 / 12
+    ChronoUnit.DAYS -> 1.0 / 360
+    ChronoUnit.WEEKS -> 1.0 / 52
+    ChronoUnit.DECADES -> 10.0
+    else -> throw Exception("unimplemented method")
+}
