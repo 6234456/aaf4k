@@ -27,7 +27,7 @@ object JSONUtil {
 
     fun get(source:String, isRawString : Boolean = false, useCache: Boolean = true): JSONObject{
 
-        var obj: JSONObject?
+        val obj: JSONObject?
 
         if(useCache && cache.containsKey(source)){
 
@@ -75,13 +75,13 @@ object JSONUtil {
         if (!queryString.isEmpty()){
             val tmp = queryString.split(queryStringSeparator)
 
-            tmp.forEach({ s ->
+            tmp.forEach { s ->
                 initObj = when{
                     initObj is JSONArray -> (initObj as JSONArray).get(s.toInt())!!
                     initObj is JSONObject -> (initObj as JSONObject).get(s)!!
                     else-> throw Exception("Type Error")
                 }
-            })
+            }
         }
 
         return (initObj as T)
