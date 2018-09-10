@@ -7,13 +7,16 @@ import eu.qiou.aaf4k.util.io.JSONUtil
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
+import org.jsoup.Jsoup
+import java.net.URLEncoder
+import java.text.NumberFormat
 
 
 /**
  *  fetch and parse the financial statements listed in the shengzhen stock exchange
  *  http://www.szse.cn/disclosure/listed/fixed/index.html
  */
-object SZSEReportings {
+object SZSEDiscloure {
     var requestFactory = NetHttpTransport().createRequestFactory()
 
     fun clear() {
@@ -70,8 +73,29 @@ object SZSEReportings {
         request.headers.contentType = "application/x-www-form-urlencoded"
         return request.execute().parseAsString().split(",").map {
             val t = it.split("#")
-            t.get(0) to EntityInfo(t.get(0), t.get(1), t.get(3), t.get(4), t.get(2))
+            val tmp = updateGeneralDesc(t.get(2))
+            t.get(0) to EntityInfo(t.get(0), t.get(1), t.get(3), t.get(4), orgName = t.get(2), orgNameEN = tmp.get("英文名称")!!
+                    , location = tmp.get("办公地址")!!, url = tmp.get("公司网址")!!, email = tmp.get("电子信箱")!!, boardSecretary = tmp.get("董事会秘书姓名")!!
+                    , emailBoardSecretary = tmp.get("董事会秘书电子信箱")!!, registeredCaptial = NumberFormat.getInstance().parse(tmp.get("注册资本(万元)")!!).toDouble(), securityDelegator = tmp.get("证券事务代表姓名")!!
+                    , auditor = tmp.get("会计师事务所")!!
+            )
         }.toMap()
+    }
+
+
+    // http://xbrl.cninfo.com.cn/do/summary/companyinfo
+    private fun updateGeneralDesc(orgName: String): Map<String, String> {
+        with(
+                requestFactory.buildPostRequest(GenericUrl("http://xbrl.cninfo.com.cn/do/summary/companyinfo"),
+                        ByteArrayContent.fromString(null, "orgname=${URLEncoder.encode(orgName, "UTF-8")}"))
+        ) {
+            this.headers.contentType = "application/x-www-form-urlencoded"
+            with(Jsoup.parse(this.execute().parseAsString()).getElementById("overview")) {
+                return this.getElementsByClass("th").map { it.ownText() }.zip(
+                        this.getElementsByClass("td1").map { it.ownText() }
+                ).toMap()
+            }
+        }
     }
 
 
@@ -91,7 +115,11 @@ object SZSEReportings {
         return request.execute().parseAsString()
     }
 
-    data class EntityInfo(val SECCode: String, val SECName: String, val industry1: String, val industry2: String, val orgName: String) {
+    data class EntityInfo(val SECCode: String, val SECName: String, val industry1: String, val industry2: String,
+                          val orgName: String, val orgNameEN: String, val location: String, val url: String,
+                          val email: String, val boardSecretary: String, val emailBoardSecretary: String,
+                          val registeredCaptial: Double, val securityDelegator: String, val auditor: String
+    ) {
         override fun hashCode(): Int {
             return SECCode.toInt().hashCode()
         }
