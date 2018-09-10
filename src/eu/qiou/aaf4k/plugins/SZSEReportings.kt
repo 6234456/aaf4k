@@ -74,5 +74,31 @@ object SZSEReportings {
         }.toMap()
     }
 
-    data class EntityInfo(val SECCode: String, val SECName: String, val industry1: String, val industry2: String, val orgName: String)
+
+    //http://xbrl.cninfo.com.cn/do/shareholder/shareholders?ticker=000002
+
+    //http://xbrl.cninfo.com.cn/do/sincerelycase/getpunishmentdate?ticker=000002&page=1
+    //http://xbrl.cninfo.com.cn/do/sincerelycase/getsincerelycase?ticker=000002&date=2016-08-05&index=0
+
+    //http://xbrl.cninfo.com.cn/do/dividend/getdividendhistory?ticker=000002&page=1
+
+    fun getEntityFacets(SECCode: String): String {
+        val requestData = """ticker=${SECCode}"""
+        val url = GenericUrl("http://xbrl.cninfo.com.cn/do/generalinfo/getcompanygeneralinfo")
+        val request = requestFactory.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
+
+        request.headers.contentType = "application/x-www-form-urlencoded"
+        return request.execute().parseAsString()
+    }
+
+    data class EntityInfo(val SECCode: String, val SECName: String, val industry1: String, val industry2: String, val orgName: String) {
+        override fun hashCode(): Int {
+            return SECCode.toInt().hashCode()
+        }
+
+        override fun equals(other: Any?): Boolean {
+            return other is EntityInfo && other.SECCode.equals(this.SECCode)
+        }
+
+    }
 }

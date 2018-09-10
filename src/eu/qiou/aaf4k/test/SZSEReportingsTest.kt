@@ -10,6 +10,7 @@ class SZSEReportingsTest {
         // 000612
         // http://disc.static.szse.cn/download
         // SZSEReportings.getPdfLinks("000612")
-        println(SZSEReportings.getEntityInfoById("006"))
+        println(SZSEReportings.getEntityInfoById("000017"))
+        println(SZSEReportings.getEntityFacets("000017"))
     }
 }
