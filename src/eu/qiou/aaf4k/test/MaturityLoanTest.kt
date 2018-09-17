@@ -3,6 +3,7 @@ package eu.qiou.aaf4k.test
 import eu.qiou.aaf4k.plugins.MaturityLoan
 import eu.qiou.aaf4k.util.irr
 import eu.qiou.aaf4k.util.npv
+import eu.qiou.aaf4k.util.roundUpTo
 import eu.qiou.aaf4k.util.time.to
 import org.junit.Test
 import java.time.LocalDate
@@ -30,6 +31,15 @@ class MaturityLoanTest {
 
     @Test
     fun effectiveIn() {
-        println()
+        val loan = MaturityLoan(1, "", 100.0, 80.0, 0.15, LocalDate.of(2016, 12, 31), LocalDate.of(2018, 12, 31), ChronoUnit.MONTHS, 3, precision = 4)
+
+        with(loan) {
+            println(r)
+            println(paymentPlan)
+            println(paymentPlan.values.npv(r).roundUpTo(precision))
+            println(carryingAmount)
+            println(effectiveInterest)
+            println(toEntries())
+        }
     }
 }

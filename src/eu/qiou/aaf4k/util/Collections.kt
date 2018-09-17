@@ -10,9 +10,8 @@ fun <K, V> Map<K, V>.mergeReduce(other: Map<K, V>, reduce: (V, V) -> V): Map<K, 
 
 fun Iterable<Any>.mkString(separator: String = ", ", prefix: String = "[", affix: String = "]") = eu.qiou.aaf4k.util.strings.CollectionToString.mkString(this, separator, prefix, affix)
 
-
 /**
- * @sample  k to [1,2,3,4]  -> [k, 1, 2, 3, 4]
+ * @sample   to [1,2,3,4]  -> [k, 1, 2, 3, 4]
  */
 fun Map<*, *>.flatList(): List<List<*>> {
     return this.keys.map { e ->
@@ -26,4 +25,33 @@ fun Map<*, *>.flatList(): List<List<*>> {
         }
     }
 }
+
+fun <R, T> Iterable<T>.foldTrackList(initial: R, operation: (R, T, Int) -> R): List<R> {
+    var tmp = initial
+
+    return this.mapIndexed { i, e ->
+        tmp = operation(tmp, e, i)
+        tmp
+    }
+}
+
+fun <R> Iterable<R>.reduceTrackList(operation: (R, R, Int) -> R): List<R> = this.foldTrackList(this.elementAt(0), operation)
+
+fun <K, V, R> Map<K, V>.replaceValueBasedOnIndex(iterable: Iterable<R>): Map<K, R> {
+    return this.keys.zip(iterable).toMap()
+}
+
+fun <K, V, R> Map<K, V>.mapValuesIndexed(operation: (Map.Entry<K, V>, Int) -> R): Map<K, R> {
+    var cnt = 0
+    return this.mapValues { operation(it, cnt++) }
+}
+
+fun <K, V, R> Map<K, V>.mapKeysIndexed(operation: (Map.Entry<K, V>, Int) -> R): Map<R, V> {
+    var cnt = 0
+    return this.mapKeys { operation(it, cnt++) }
+}
+
+fun <K, V, R> Iterable<R>.replaceValueBasedOnIndex(map: Map<K, V>): Map<K, R> = map.replaceValueBasedOnIndex(this)
+
+
 

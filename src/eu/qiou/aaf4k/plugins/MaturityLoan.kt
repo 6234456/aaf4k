@@ -1,7 +1,7 @@
 package eu.qiou.aaf4k.plugins
 
-import eu.qiou.aaf4k.util.irr
-import eu.qiou.aaf4k.util.roundUpTo
+import eu.qiou.aaf4k.accounting.model.*
+import eu.qiou.aaf4k.util.*
 import eu.qiou.aaf4k.util.time.ofNext
 import eu.qiou.aaf4k.util.time.times
 import eu.qiou.aaf4k.util.time.to
@@ -43,9 +43,44 @@ class MaturityLoan(val id: Int, val desc: String = "", val nominalValue: Double,
 
     val r = this.paymentPlan.values.irr()
 
-    val effectiveInterest = this.paymentPlan.values.reduce { acc, e ->
-        acc * r + e
+    val carryingAmount = this.paymentPlan.let {
+        it.values.reduceTrackList { acc, e, i ->
+            if (i > 0) (acc * (1 + r) + e).roundUpTo(precision) else acc
+        }.replaceValueBasedOnIndex(it)
     }
 
+    val effectiveInterest = carryingAmount.mapValues {
+        (it.value * r).roundUpTo(precision)
+    }
 
+    fun toEntries(): Map<LocalDate, Entry> {
+        val keys = effectiveInterest.keys.toList()
+        var cnt = 0
+        val reporting = Reporting(0, "Demo Reporting", "Demo",
+                listOf(
+                        Account(0, "Langfristige Verbindlichkeit KI", subAccounts = mutableSetOf(
+                                Account(3, "Verbindlichkeit KI - Principal", reportingType = ReportingType.LIABILITY, value = 0),
+                                Account(4, "Verbindlichkeit KI - Accrued Interest", reportingType = ReportingType.LIABILITY, value = 0)
+                        ), reportingType = ReportingType.LIABILITY),
+                        Account(1, "Guthaben KI", value = 0, reportingType = ReportingType.ASSET),
+                        Account(2, "Zinsaufwand", value = 0, reportingType = ReportingType.EXPENSE_LOSS)
+                )
+        )
+        val category = Category("Maturity Loan", 0,
+                "Entries Generated for Maturity Loan #${id}", reporting)
+
+        return carryingAmount.mapValuesIndexed { v, i ->
+            if (i == 0) {
+                Entry(cnt++, "Initial Recognition", category).apply {
+                    this.add(1, v.value)
+                    this.add(3, nominalValue * -1)
+                }.balanceWith(4)
+            } else {
+                Entry(cnt++, "${v.key}", category).apply {
+                    this.add(2, effectiveInterest[keys[i - 1]]!!)
+                    this.add(1, paymentPlan[keys[i]]!!)
+                }.balanceWith(4)
+            }
+        }
+    }
 }

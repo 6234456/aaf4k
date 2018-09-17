@@ -34,7 +34,7 @@ open class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCat
 
     fun add(id: Int, value: Double): ProtoEntry {
         this.category.reporting.findAccountByID(id)?.let {
-            return add(it.toBuilder().setValue(v = value).build())
+            return add(it.toBuilder().setValue(v = value, decimalPrecision = it.decimalPrecision).build())
         }
 
         return this
