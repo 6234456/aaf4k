@@ -4,21 +4,23 @@ import eu.qiou.aaf4k.plugins.CNInfoDiscloure
 import org.junit.Test
 
 class CNInfoDiscloureTest {
+    val code = "szmb000035"
 
     @Test
     fun management() {
-        println(CNInfoDiscloure.management("szmb000006"))
+        println(CNInfoDiscloure.management(code))
     }
 
     @Test
     fun general() {
-        println(CNInfoDiscloure.generalInfo("szmb000006"))
+        println(CNInfoDiscloure.generalInfo(code))
     }
 
     @Test
     fun fs() {
-        println(CNInfoDiscloure.fs("000006", 2017, 2, CNInfoDiscloure.FSType.BALANCE_STMT))
-        println(CNInfoDiscloure.fs("000006", 2017, 2, CNInfoDiscloure.FSType.INCOME_STMT))
+        println(CNInfoDiscloure.fs(code, 2018, 2, CNInfoDiscloure.FSType.BALANCE_STMT))
+        println(CNInfoDiscloure.fs(code, 2018, 2, CNInfoDiscloure.FSType.INCOME_STMT))
+        println(CNInfoDiscloure.fs(code, 2018, 2, CNInfoDiscloure.FSType.CASHFLOW_STMT))
     }
 
 
