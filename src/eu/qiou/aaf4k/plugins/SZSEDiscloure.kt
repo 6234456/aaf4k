@@ -41,8 +41,10 @@ object SZSEDiscloure {
     }
 
     private fun get(index: Int): JSONObject {
-        return get(String.format("%06d", index))
+        return get(indexToCode(index))
     }
+
+    private fun indexToCode(index: Int) = String.format("%06d", index)
 
     private fun getPdfLinks(obj: JSONObject): Map<String, String> {
         return JSONUtil.query<JSONArray>(obj, "data").map { v ->
@@ -52,17 +54,49 @@ object SZSEDiscloure {
         }.toMap()
     }
 
-    fun getPdfLinks(index: String): Map<String, String> {
-        return getPdfLinks(get(index))
+    fun getPdfLinks(index: String, year: Int? = null, quarter: Int? = null, ignoreOutdated: Boolean = false, isAbstract: Boolean = false): Map<String, String> {
+        var res = getPdfLinks(get(index))
+
+        year?.let {
+            val regYear = "${it}".toRegex()
+            res = res.filterKeys { regYear.containsMatchIn(it) }
+        }
+
+        quarter?.let {
+            val regQuarter = when (it) {
+                1 -> "第一季度"
+                2 -> "半年度"
+                3 -> "第三季度"
+                4 -> "年度"
+                else -> throw UnsupportedOperationException()
+            }.toRegex()
+
+            res = res.filterKeys { regQuarter.containsMatchIn(it) }
+
+            if (quarter == 4) {
+                val regTmp = "半年度".toRegex()
+                res = res.filterKeys { !regTmp.containsMatchIn(it) }
+            }
+        }
+
+        if (ignoreOutdated) {
+            val regTmp = "已取消".toRegex()
+            res = res.filterKeys { !regTmp.containsMatchIn(it) }
+        }
+
+        val regTmp1 = "摘要".toRegex()
+
+        res = if (isAbstract) res.filterKeys { regTmp1.containsMatchIn(it) } else res.filterKeys { !regTmp1.containsMatchIn(it) }
+
+        return res
     }
 
     /**
      * @return map of title to the pdf-url
      */
-    fun getPdfLinks(index: Int): Map<String, String> {
-        return getPdfLinks(get(index))
+    fun getPdfLinks(index: Int, year: Int? = null, quarter: Int? = null, ignoreOutdated: Boolean = false, isAbstract: Boolean = false): Map<String, String> {
+        return getPdfLinks(indexToCode(index), year, quarter, ignoreOutdated, isAbstract)
     }
-
 
     fun getEntityInfoById(query: String, cnt: Int = 60): Map<String, EntityInfo> {
 
