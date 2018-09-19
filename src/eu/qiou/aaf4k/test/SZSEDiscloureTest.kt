@@ -28,6 +28,6 @@ class SZSEDiscloureTest {
                 mapOf(
                         "a" to Rectangle(50, 50, 690, 750)
                 )
-                )[6])
+                )[8])
     }
 }
