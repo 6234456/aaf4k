@@ -62,9 +62,6 @@ class AccountingFrame(id: Int, name: String, accounts: List<Account>) : Reportin
                 }
             }
 
-
-
-
             with(lines.groupNearby(toLevel)) {
                 val size = this.size
                 // level to String
@@ -86,16 +83,17 @@ class AccountingFrame(id: Int, name: String, accounts: List<Account>) : Reportin
 
                 val getParent: (Int) -> Int = {
                     var res = it
+                    var lvl = pairs[it].first - 1
+                    lvl = if (lvl < 0) 0 else lvl
 
                     while (res > 0) {
-                        if (pairs[res].first == 0) {
+                        if (pairs[res].first == lvl) {
                             break
                         }
                         res--
                     }
                     res
                 }
-
                 // index of elements of the same level
                 val directChildren: (Int) -> List<Int> = {
                     val targLevel = pairs[it].first
@@ -121,15 +119,6 @@ class AccountingFrame(id: Int, name: String, accounts: List<Account>) : Reportin
                             else
                                 acc + this[index].map(parse)
                         }
-                        /*
-                        directChildren(i).fold(this[i].dropLast(1).map(parse)){
-                                         acc, index ->
-                                            if (notHasChild(index))
-                                                acc + this[index].map(parse)
-                                            else
-                                            acc + parseSuperAccount(this[index].last() , scopeToAccount(index))
-                                    }
-                                    */
                     }
                 }
 
