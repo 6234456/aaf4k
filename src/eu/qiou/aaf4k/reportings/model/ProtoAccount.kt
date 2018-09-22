@@ -215,7 +215,7 @@ open class ProtoAccount(val id: Int, open val name: String,
         return id.compareTo(other.id)
     }
 
-    private fun titel():String{
+    fun titel(): String {
         return "[$id $name]"
     }
 

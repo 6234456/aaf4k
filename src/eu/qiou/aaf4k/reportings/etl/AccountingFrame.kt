@@ -17,7 +17,8 @@ import kotlin.streams.toList
  * the orginially loosely coupled data and structure are combined in the accounting frame
  */
 
-class AccountingFrame(id: Int, name: String, accounts: List<Account>) : Reporting(id, name, timeParameters = TimeParameters(), structure = accounts) {
+class AccountingFrame(id: Int, name: String, accounts: List<Account>) :
+        Reporting(id, name, timeParameters = TimeParameters(), structure = accounts) {
     companion object {
         /**
          * @param fileName  the name of frame file in format "cn_cas_2018"
@@ -27,6 +28,7 @@ class AccountingFrame(id: Int, name: String, accounts: List<Account>) : Reportin
             val (dir, frame, _) = f.split("_")
 
             val regIndent = """^(\s*)(\[?)(\d+)""".toRegex()
+            val regType = """^\s*[A-Z]{2}\s*$""".toRegex()
             val lines = Files.lines(Paths.get("data/${dir}/${f}.txt")).toList().filter { !it.isBlank() }
 
             with(lines.filter { !regIndent.containsMatchIn(it) }) {
@@ -37,29 +39,6 @@ class AccountingFrame(id: Int, name: String, accounts: List<Account>) : Reportin
 
             val toLevel: (String) -> Int = {
                 regIndent.find(it)?.groups?.get(1)!!.value.length / 4
-            }
-
-            val parse: (String) -> Account = {
-                val arr = it.split("#")
-                val name = arr[1]
-                regIndent.find(it)?.groups!!.let {
-                    val stat = it.get(2)!!.value.length == 1
-                    val id = it.get(3)!!.value.toInt()
-
-                    Account(id, name, decimalPrecision = 2, value = 0, isStatistical = stat, reportingType = ReportingType.LIABILITY)
-                }
-            }
-
-            val parseSuperAccount: (String, List<Account>) -> Account = { src, acc ->
-
-                val arr = src.split("#")
-                val name = arr[1]
-                regIndent.find(src)?.groups!!.let {
-                    val stat = it.get(2)!!.value.length == 1
-                    val id = it.get(3)!!.value.toInt()
-
-                    Account(id, name, decimalPrecision = 2, subAccounts = acc.toMutableSet(), isStatistical = stat, reportingType = ReportingType.LIABILITY)
-                }
             }
 
             with(lines.groupNearby(toLevel)) {
@@ -75,7 +54,6 @@ class AccountingFrame(id: Int, name: String, accounts: List<Account>) : Reportin
                     while (res < size) {
                         if (targLevel >= pairs[res].first)
                             break
-
                         res++
                     }
                     res
@@ -108,16 +86,82 @@ class AccountingFrame(id: Int, name: String, accounts: List<Account>) : Reportin
                     it == size - 1 || pairs[it + 1].first <= pairs[it].first
                 }
 
+                val type: (String) -> ReportingType = {
+                    when (it) {
+                        ReportingType.ASSET.code -> ReportingType.ASSET
+                        ReportingType.EQUITY.code -> ReportingType.EQUITY
+                        ReportingType.LIABILITY.code -> ReportingType.LIABILITY
+                        ReportingType.REVENUE_GAIN.code -> ReportingType.REVENUE_GAIN
+                        ReportingType.EXPENSE_LOSS.code -> ReportingType.EXPENSE_LOSS
+                        ReportingType.PROFIT_LOSS_NEUTRAL.code -> ReportingType.PROFIT_LOSS_NEUTRAL
+                        ReportingType.ANNUAL_RESULT.code -> ReportingType.ANNUAL_RESULT
+                        ReportingType.AUTO.code -> ReportingType.AUTO
+                        else -> throw java.lang.Exception("ParameterError: unknown ReportingType:$it")
+                    }
+                }
+
+                val types: (List<String>) -> ReportingType? = {
+                    if (it.count() > 2 && regType.containsMatchIn(it.last()))
+                        type(it.last())
+                    else
+                        null
+                }
+
+                var lastType: ReportingType = ReportingType.ASSET
+                var tmpType: ReportingType? = null
+
+                val parentTypes = this.mapIndexed { i, e ->
+                    if (i == 0) {
+                        lastType = types(e.last().split("#"))!!
+                        lastType
+                    } else {
+                        tmpType = types(this[i - 1].last().split("#"))
+                        if (tmpType == null) {
+                            lastType
+                        } else {
+                            tmpType!!
+                        }
+                    }
+                }
+
+                fun getParentType(index: Int): ReportingType {
+                    return parentTypes[index]
+                }
+
+                fun parse(s: String, t: ReportingType? = null): Account {
+                    val arr = s.split("#")
+                    val name = arr[1]
+                    regIndent.find(s)?.groups!!.let {
+                        return Account(it.get(3)!!.value.toInt(),
+                                name, decimalPrecision = 2, value = 0,
+                                isStatistical = it.get(2)!!.value.length == 1,
+                                reportingType = if (types(arr) == null) t!!
+                                else types(arr)!!
+                        )
+                    }
+                }
+
+                fun parseSuperAccount(src: String, acc: List<Account>, t: ReportingType? = null): Account {
+                    val arr = src.split("#")
+                    val name = arr[1]
+                    regIndent.find(src)?.groups!!.let {
+                        return Account(it.get(3)!!.value.toInt(), name, decimalPrecision = 2,
+                                subAccounts = acc.toMutableSet(),
+                                isStatistical = it.get(2)!!.value.length == 1,
+                                reportingType = if (types(arr) == null) t!! else types(arr)!!
+                        )
+                    }
+                }
 
                 fun scopeToAccount(i: Int): List<Account> {
                     return when (scope(i) - i) {
-                        1 -> this[i].map { parse(it) }
+                        1 -> this[i].map { parse(it, getParentType(i)) }
                         else -> directChildren(i).fold(listOf<Account>()) { acc, index ->
                             if (!notHasChild(index))
-                                acc + this[index].dropLast(1).map(parse) +
-                                        parseSuperAccount(this[index].last(), scopeToAccount(index + 1))
+                                acc + this[index].dropLast(1).map { parse(it, getParentType(index)) } +
+                                        parseSuperAccount(this[index].last(), scopeToAccount(index + 1), getParentType(index + 1))
                             else
-                                acc + this[index].map(parse)
+                                acc + this[index].map { parse(it, getParentType(index)) }
                         }
                     }
                 }
