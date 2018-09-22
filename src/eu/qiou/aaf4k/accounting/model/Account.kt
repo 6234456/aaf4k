@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.accounting.model
 
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.reportings.model.ProtoEntity
+import eu.qiou.aaf4k.util.roundUpTo
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 
@@ -16,6 +17,10 @@ class Account(id: Int, name: String,
               entity: ProtoEntity? = null,
               isStatistical: Boolean = false) : ProtoAccount(id, name, subAccounts, decimalPrecision, value, unit, desc, timeParameters, entity, isStatistical) {
 
+    constructor(id: Int, name: String, decimalPrecision: Int, formula: String, accounts: Map<Int, Account>, unit: CurrencyUnit = CurrencyUnit(),
+                reportingType: ReportingType, desc: String = "", timeParameters: TimeParameters? = null,
+                entity: ProtoEntity? = null,
+                isStatistical: Boolean = false) : this(id, name, null, decimalPrecision, parse(formula, accounts).roundUpTo(decimalPrecision).toLong(), unit, reportingType, desc, timeParameters, entity, isStatistical)
     val reportingValue: Double = when (reportingType) {
         ReportingType.AUTO -> Math.abs(displayValue)
         else -> displayValue * reportingType.sign
@@ -34,7 +39,19 @@ class Account(id: Int, name: String,
                     reportingType = reportingType, desc = protoAccount.desc, timeParameters = protoAccount.timeParameters,
                     entity = protoAccount.entity, isStatistical = protoAccount.isStatistical)
         }
+
+        fun parse(formula: String, accounts: Map<Int, Account>): Double {
+            return 0.0
+        }
     }
+
+    operator fun plus(account: Account): Double = this.decimalValue + account.decimalValue
+    operator fun minus(account: Account): Double = this.decimalValue - account.decimalValue
+    operator fun plus(v: Double): Double = this.decimalValue + v
+    operator fun minus(v: Double): Double = this.decimalValue - v
+    operator fun times(v: Double): Double = this.decimalValue * v
+
+
 
 }
 
@@ -45,15 +62,15 @@ class Account(id: Int, name: String,
  *   While as AUTO, it will reclassified to be display in positive value.
  */
 
-enum class ReportingType(val sign: Int) {
-    ASSET(1),
-    EQUITY(-1),
-    LIABILITY(-1),
-    REVENUE_GAIN(-1),
-    EXPENSE_LOSS(1),
-    PROFIT_LOSS_NEUTRAL(-1),
-    ANNUAL_RESULT(-1),
-    AUTO(0)
+enum class ReportingType(val sign: Int, val code: String) {
+    ASSET(1, "AS"),
+    EQUITY(-1, "EQ"),
+    LIABILITY(-1, "LB"),
+    REVENUE_GAIN(-1, "RV"),
+    EXPENSE_LOSS(1, "EP"),
+    PROFIT_LOSS_NEUTRAL(-1, "NT"),
+    ANNUAL_RESULT(-1, "RE"),
+    AUTO(0, "NN")
 }
 
 

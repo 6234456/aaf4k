@@ -7,7 +7,6 @@
 
     <properties>
         <kotlin.version>1.2.60</kotlin.version>
-        <ktor.version>0.9.1</ktor.version>
     </properties>
 
     <dependencies>
@@ -39,7 +38,6 @@
             <version>1.23.0</version>
         </dependency>
 
-
         <!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
@@ -60,8 +58,6 @@
             <version>1.8.3</version>
         </dependency>
 
-
-
         <!-- https://mvnrepository.com/artifact/junit/junit -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -79,48 +75,28 @@
             <artifactId>junit</artifactId>
             <version>RELEASE</version>
         </dependency>
-
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-server-core</artifactId>
-            <version>${ktor.version}</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/io.ktor/ktor-server-netty -->
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-server-netty</artifactId>
-            <version>${ktor.version}</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/io.ktor/ktor-html-builder -->
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-html-builder</artifactId>
-            <version>${ktor.version}</version>
-        </dependency>
-
-
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>ktor</id>
-            <url>http://dl.bintray.com/kotlin/ktor</url>
-        </repository>
-        <repository>
-            <id>kotlinx</id>
-            <url>http://dl.bintray.com/kotlin/kotlinx</url>
-        </repository>
-        <repository>
-            <id>jcenter</id>
-            <url>http://jcenter.bintray.com</url>
-        </repository>
-    </repositories>
-
 
     <build>
         <sourceDirectory>src</sourceDirectory>
+
+        <resources>
+            <resource>
+                <directory>tmp</directory>
+                <excludes>
+                    <exclude>*.pdf</exclude>
+                </excludes>
+            </resource>
+
+            <resource>
+                <directory>data/cn</directory>
+            </resource>
+
+            <resource>
+                <directory>data/de</directory>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>

@@ -5,6 +5,7 @@ import eu.qiou.aaf4k.util.io.PdfUtil
 import eu.qiou.aaf4k.util.template.Template
 import org.junit.Test
 import java.awt.Rectangle
+import java.io.File
 
 class PdfUtilTest {
 
@@ -90,5 +91,16 @@ class PdfUtilTest {
                 map.values.toList()
 
         ).build("skr4.xls")
+    }
+
+
+    @Test
+    fun extractChinaACC() {
+        println(PdfUtil.mining(File("tmp/acc.pdf"),
+                { i, _ -> i >= 2 },
+                mapOf(
+                        "a" to Rectangle(50, 50, 300, 750)
+                )
+        ))
     }
 }

@@ -35,6 +35,26 @@ fun <R, T> Iterable<T>.foldTrackList(initial: R, operation: (R, T, Int) -> R): L
     }
 }
 
+fun <R, T> Iterable<T>.groupNearby(operation: (T) -> R): List<List<T>> {
+    val cnt = this.count()
+    var tmp = mutableListOf<T>()
+    return with(this.map { t -> operation(t) }) {
+        this.foldIndexed(mutableListOf<List<T>>()) { index, acc, r ->
+            tmp.add(this@groupNearby.elementAt(index))
+            if (index < cnt - 1) {
+                if (r != this[index + 1]) {
+                    acc.add(tmp)
+                    tmp = mutableListOf<T>()
+                }
+            } else {
+                acc.add(tmp)
+            }
+            acc
+        }
+    }
+}
+
+
 fun <R> Iterable<R>.reduceTrackList(operation: (R, R, Int) -> R): List<R> = this.foldTrackList(this.elementAt(0), operation)
 
 fun <K, V, R> Map<K, V>.replaceValueBasedOnIndex(iterable: Iterable<R>): Map<K, R> {

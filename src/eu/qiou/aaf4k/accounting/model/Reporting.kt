@@ -7,6 +7,6 @@ import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.ProtoUnit
 
-class Reporting(id: Int, name: String, desc: String = "", structure: List<Account>,
-                displayUnit: ProtoUnit = CurrencyUnit(), entity: ProtoEntity = GlobalConfiguration.DEFAULT_ENTITY,
-                timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : ProtoReporting(id, name, desc, structure, displayUnit, entity, timeParameters)
+open class Reporting(id: Int, name: String, desc: String = "", structure: List<Account>,
+                     displayUnit: ProtoUnit = CurrencyUnit(), entity: ProtoEntity = GlobalConfiguration.DEFAULT_ENTITY,
+                     timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : ProtoReporting(id, name, desc, structure, displayUnit, entity, timeParameters)
