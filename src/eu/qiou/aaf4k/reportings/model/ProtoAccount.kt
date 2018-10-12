@@ -138,6 +138,12 @@ open class ProtoAccount(val id: Int, open val name: String,
         }
     }
 
+    fun shorten(): ProtoAccount {
+        return (this.flatten() as List<ProtoAccount>).filter { it.value == 0L }.fold(this.deepCopy { it }) { acc, e ->
+            acc.removeRecursively(e) as ProtoAccount
+        }
+    }
+
     open fun findChildByID(id: Int): ProtoAccount? {
         if (this.id == id) {
             return this
@@ -162,17 +168,17 @@ open class ProtoAccount(val id: Int, open val name: String,
 
 
     // the general method to transform a ProtoAccount
-    fun <T : ProtoAccount> deepCopy(callbackAtomicAccount: (ProtoAccount) -> T): T {
+    open fun <T : ProtoAccount> deepCopy(callbackAtomicAccount: (T) -> T): T {
         if (this.isAggregate) {
             return this.toBuilder().setType(VALUE_SETTER_AGGREGATE).setValue(
                     this.subAccounts!!.map { it.deepCopy<T>(callbackAtomicAccount) }.toMutableSet()
             ).build() as T
         } else {
-            return callbackAtomicAccount(this)
+            return callbackAtomicAccount(this as T)
         }
     }
 
-    fun <T : ProtoAccount> deepCopy(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, _ -> valueNew }): T {
+    open fun <T : ProtoAccount> deepCopy(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, _ -> valueNew }): T {
         val callback: (ProtoAccount) -> ProtoAccount = {
             it.update(data, updateMethod)
         }
@@ -187,7 +193,7 @@ open class ProtoAccount(val id: Int, open val name: String,
         return deepCopy(category.toDataMap(), updateMethod)
     }
 
-    fun update(map: Map<Int, Double>, callback: (Double, Double) -> Double = { valueNew, valueOld -> valueNew }): ProtoAccount {
+    fun update(map: Map<Int, Double>, callback: (Double, Double) -> Double = { valueNew, _ -> valueNew }): ProtoAccount {
         if (map.containsKey(id))
             return toBuilder().setValue(callback(map.getValue(id), this.decimalValue)).build()
         else

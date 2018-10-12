@@ -33,6 +33,14 @@ class Account(id: Int, name: String,
         else -> if (reportingType.sign == 1) ReportingSide.DEBTOR else ReportingSide.CREDITOR
     }
 
+    override fun <T : ProtoAccount> deepCopy(callbackAtomicAccount: (T) -> T): T {
+        return Account.from(super.deepCopy(callbackAtomicAccount), this.reportingType) as T
+    }
+
+    override fun <T : ProtoAccount> deepCopy(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double): T {
+        return Account.from(super.deepCopy(data, updateMethod), this.reportingType) as T
+    }
+
     companion object {
         fun from(protoAccount: ProtoAccount, reportingType: ReportingType): Account {
             return Account(id = protoAccount.id, name = protoAccount.name,

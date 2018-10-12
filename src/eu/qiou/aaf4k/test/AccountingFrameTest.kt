@@ -21,7 +21,13 @@ class AccountingFrameTest {
         entry.add(3400, 3400.0)
         entry.balanceWith(3200)
 
-        println(frame.generate().findAccountByID(3000))
+        val entry1 = Entry(0, "Demo", category)
+
+        entry1.add(3100, 3000.0)
+        entry1.add(3400, 3400.0)
+        entry1.balanceWith(3200)
+
+        println(frame.generate().shorten())
 
         println(frame.findAccountByID(3000)!!.reportingType)
 

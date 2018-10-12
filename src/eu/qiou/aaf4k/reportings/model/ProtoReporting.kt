@@ -41,6 +41,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         }
     }
 
+    fun shorten(): ProtoReporting<T> {
+        return ProtoReporting(id, name, desc,
+                structure.map { it.shorten() as T }
+                , displayUnit, entity, timeParameters)
+    }
+
     /**
      * return one dimensional array of atomic accounts
      */

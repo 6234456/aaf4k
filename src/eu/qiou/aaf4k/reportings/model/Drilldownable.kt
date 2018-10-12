@@ -11,14 +11,15 @@ interface Drilldownable{
     fun remove(child: Drilldownable): Drilldownable
 
     fun findParentRecursively(child: Drilldownable, res: MutableSet<Drilldownable> = mutableSetOf()): MutableSet<Drilldownable> {
-        this.getChildren()!!.fold(res){
-            b, a ->
-                if(child.equals(a)) {
+        this.getChildren()?.let {
+            it.fold(res) { b, a ->
+                if (child.equals(a)) {
                     b.add(this)
-                } else  {
+                } else {
                     a.findParentRecursively(child, b)
                 }
-            b
+                b
+            }
         }
         return res
     }
