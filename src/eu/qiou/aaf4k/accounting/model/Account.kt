@@ -53,13 +53,17 @@ class Account(id: Int, name: String,
     operator fun minus(v: Double): Double = this.decimalValue - v
     operator fun times(v: Double): Double = this.decimalValue * v
 
+
     @Suppress("UNCHECKED_CAST")
     override fun toString(): String {
         if (this.hasChildren()) {
             return CollectionToString.structuredToStr(this, 0, ProtoAccount::toString as Drilldownable.() -> String, ProtoAccount::titel as Drilldownable.() -> String)
         }
 
-        return "($localAccountID $name ${reportingType.code}) : $textValue"
+        if (isStatistical)
+            return "{$localAccountID $name ${reportingType.code}} : $textValue"
+        else
+            return "($localAccountID $name ${reportingType.code}) : $textValue"
     }
 
 

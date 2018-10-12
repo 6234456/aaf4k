@@ -17,8 +17,14 @@ import kotlin.streams.toList
  * the orginially loosely coupled data and structure are combined in the accounting frame
  */
 
-class AccountingFrame(id: Int, name: String, accounts: List<Account>) :
-        Reporting(id, name, timeParameters = TimeParameters(), structure = accounts) {
+class AccountingFrame(id: Int, name: String, val accounts: List<Account>) :
+        Reporting(id, name, structure = accounts) {
+
+    // TODO: complete the adaptor
+    fun toReporting(id: Int, name: String, timeParameters: TimeParameters = TimeParameters(), desc: String = ""): Reporting {
+        return Reporting(id, name, timeParameters = timeParameters, structure = accounts, desc = desc)
+    }
+
     companion object {
         /**
          * @param fileName  the name of frame file in format "cn_cas_2018"
@@ -31,26 +37,32 @@ class AccountingFrame(id: Int, name: String, accounts: List<Account>) :
             val regType = """^\s*[A-Z]{2}\s*$""".toRegex()
             val lines = Files.lines(Paths.get("data/${dir}/${f}.txt")).toList().filter { !it.isBlank() }
 
+
+            // throw error in case of illegal indent
             with(lines.filter { !regIndent.containsMatchIn(it) }) {
                 if (this.count() > 0) {
                     throw Exception("AccountingFrameStructureError: $this ")
                 }
             }
 
+            // return the indent level based on the affix blanks
+            // by default indent with tab = 4 * blank
             val toLevel: (String) -> Int = {
                 regIndent.find(it)?.groups?.get(1)!!.value.length / 4
             }
 
+            // group the adjacent lines with the same indent level
             with(lines.groupNearby(toLevel)) {
                 val size = this.size
-                // level to String
+                // level to String, the first element is the level the second string
                 val pairs = this.map { toLevel(it[0]) }.zip(this)
 
+                // with the index of the parent account, get the scope length of all its children direct and indirect
                 val scope: (Int) -> Int = {
                     val targLevel = pairs[it].first
                     var res = it + 1
 
-                    //loop through, if lvl <= targLevel break, till size -1
+                    //loop through, if lvl <= targLevel break, till size -1, to the end of the list or to its next sibling or parent
                     while (res < size) {
                         if (targLevel >= pairs[res].first)
                             break
@@ -59,6 +71,7 @@ class AccountingFrame(id: Int, name: String, accounts: List<Account>) :
                     res
                 }
 
+                // iterate up to the immediate parent, with the current index
                 val getParent: (Int) -> Int = {
                     var res = it
                     var lvl = pairs[it].first - 1
@@ -108,7 +121,7 @@ class AccountingFrame(id: Int, name: String, accounts: List<Account>) :
                 }
 
                 var lastType: ReportingType = ReportingType.ASSET
-                var tmpType: ReportingType? = null
+                var tmpType: ReportingType?
 
                 val parentTypes = this.mapIndexed { i, e ->
                     if (i == 0) {

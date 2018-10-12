@@ -28,61 +28,61 @@ import eu.qiou.aaf4k.util.unit.ProtoUnit
  *
  * @property structure list of accounts in structure
  */
-open class ProtoReporting(val id: Int, val name: String, val desc: String = "", val structure: List<ProtoAccount>,
-                          val displayUnit: ProtoUnit = CurrencyUnit(), val entity: ProtoEntity = GlobalConfiguration.DEFAULT_ENTITY,
-                          val timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : JSONable {
+open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val desc: String = "", val structure: List<T>,
+                                            val displayUnit: ProtoUnit = CurrencyUnit(), val entity: ProtoEntity = GlobalConfiguration.DEFAULT_ENTITY,
+                                            val timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : JSONable {
 
-    val categories: MutableSet<ProtoCategory> = mutableSetOf()
-    val flattened: List<ProtoAccount> = this.flatten()
+    val categories: MutableSet<ProtoCategory<T>> = mutableSetOf()
+    val flattened: List<T> = this.flatten()
 
     fun mergeCategories(): Map<Int, Double> {
         return categories.map { it.toDataMap() }.reduce { acc, map ->
-            acc.mergeReduce(map, { a, b -> a + b })
+            acc.mergeReduce(map) { a, b -> a + b }
         }
     }
 
     /**
      * return one dimensional array of atomic accounts
      */
-    fun flatten(): List<ProtoAccount> {
+    fun flatten(): List<T> {
         return structure.filter { !it.isStatistical }.map { if (it.hasChildren()) it.flatten() else mutableListOf(it as Drilldownable) }.reduce { acc, mutableList ->
             acc.apply { addAll(mutableList) }
-        } as List<ProtoAccount>
+        } as List<T>
     }
 
     /**
      * after update through the categories
      * get the reporting
      */
-    fun generate(): ProtoReporting {
+    fun generate(): ProtoReporting<T> {
         return update(mergeCategories())
     }
 
-    fun findAccountByID(id: Int): ProtoAccount? {
-        for (i in flattened) {
-            i.findChildByID(id)?.let {
-                return it
+    open fun findAccountByID(id: Int): T? {
+        structure.forEach {
+            it.findChildByID(id)?.let {
+                return it as T
             }
         }
 
         return null
     }
 
-    fun update(entry: ProtoEntry, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting {
+    open fun update(entry: ProtoEntry<T>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
         return ProtoReporting(id, name, desc,
                 structure.map { it.deepCopy(entry, updateMethod) }
                 , displayUnit, entity, timeParameters)
     }
 
-    fun update(category: ProtoCategory, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting {
-        return ProtoReporting(id, name, desc,
+    open fun update(category: ProtoCategory<T>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
+        return ProtoReporting<T>(id, name, desc,
                 structure.map { it.deepCopy(category, updateMethod) }
                 , displayUnit, entity, timeParameters)
     }
 
-    fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting {
-        return ProtoReporting(id, name, desc,
-                structure.map { it.deepCopy(data, updateMethod) }
+    open fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
+        return ProtoReporting<T>(id, name, desc,
+                structure.map { it.deepCopy<T>(data, updateMethod) }
                 , displayUnit, entity, timeParameters)
     }
 

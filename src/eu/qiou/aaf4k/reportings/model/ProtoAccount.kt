@@ -138,14 +138,14 @@ open class ProtoAccount(val id: Int, open val name: String,
         }
     }
 
-    fun findChildByID(id: Int): ProtoAccount? {
-        if (!hasChildren()) {
-            if (this.id == id) {
-                return this
-            }
-        } else {
-            for (i in subAccounts!!) {
-                i.findChildByID(id)
+    open fun findChildByID(id: Int): ProtoAccount? {
+        if (this.id == id) {
+            return this
+        }
+
+        subAccounts?.forEach {
+            it.findChildByID(id)?.let {
+                return it
             }
         }
 
@@ -162,28 +162,28 @@ open class ProtoAccount(val id: Int, open val name: String,
 
 
     // the general method to transform a ProtoAccount
-    fun deepCopy(callbackAtomicAccount: (ProtoAccount) -> ProtoAccount): ProtoAccount {
+    fun <T : ProtoAccount> deepCopy(callbackAtomicAccount: (ProtoAccount) -> T): T {
         if (this.isAggregate) {
             return this.toBuilder().setType(VALUE_SETTER_AGGREGATE).setValue(
-                    this.subAccounts!!.map { it.deepCopy(callbackAtomicAccount) }.toMutableSet()
-            ).build()
+                    this.subAccounts!!.map { it.deepCopy<T>(callbackAtomicAccount) }.toMutableSet()
+            ).build() as T
         } else {
             return callbackAtomicAccount(this)
         }
     }
 
-    fun deepCopy(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew }): ProtoAccount {
+    fun <T : ProtoAccount> deepCopy(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, _ -> valueNew }): T {
         val callback: (ProtoAccount) -> ProtoAccount = {
             it.update(data, updateMethod)
         }
-        return deepCopy(callback)
+        return deepCopy(callback) as T
     }
 
-    fun deepCopy(entry: ProtoEntry, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew }): ProtoAccount {
+    fun <T : ProtoAccount> deepCopy(entry: ProtoEntry<T>, updateMethod: (Double, Double) -> Double = { valueNew, _ -> valueNew }): T {
         return deepCopy(entry.toDataMap(), updateMethod)
     }
 
-    fun deepCopy(category: ProtoCategory, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew }): ProtoAccount {
+    fun <T : ProtoAccount> deepCopy(category: ProtoCategory<T>, updateMethod: (Double, Double) -> Double = { valueNew, _ -> valueNew }): T {
         return deepCopy(category.toDataMap(), updateMethod)
     }
 
@@ -225,7 +225,7 @@ open class ProtoAccount(val id: Int, open val name: String,
             return CollectionToString.structuredToStr(this, 0, ProtoAccount::toString as Drilldownable.() -> String, ProtoAccount::titel as Drilldownable.() -> String)
         }
 
-        return "($localAccountID $name) : $textValue"
+        return if (isStatistical) "{$localAccountID $name} : $textValue" else "($localAccountID $name) : $textValue"
     }
 
     override fun toJSON():String {
@@ -275,7 +275,7 @@ open class ProtoAccount(val id: Int, open val name: String,
 
         fun setValue(v:Long):Builder{
             if (type == VALUE_SETTER_AGGREGATE)
-                throw Exception("method 'setValue' for atomic account can not be evoked for the aggregate account.")
+                throw Exception("method 'setValue' for atomic account can not be evoked for the aggregate account. $id $name")
 
             this.value = v
             this.subAccounts = null
@@ -286,7 +286,7 @@ open class ProtoAccount(val id: Int, open val name: String,
 
         fun setValue(v:Double, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION):Builder{
             if (type == VALUE_SETTER_AGGREGATE)
-                throw Exception("method 'setValue' for atomic account can not be evoked for the aggregate account.")
+                throw Exception("method 'setValue' for atomic account can not be evoked for the aggregate account. $id $name")
 
             this.decimalPrecision = decimalPrecision
             this.value = (v * Math.pow(10.0, decimalPrecision.toDouble())).toLong()
@@ -296,11 +296,11 @@ open class ProtoAccount(val id: Int, open val name: String,
             return this
         }
 
-        fun setValue(subAccounts: MutableSet<ProtoAccount>): Builder {
+        fun setValue(subAccounts: MutableSet<out ProtoAccount>): Builder {
             if (type != VALUE_SETTER_UNDETERMINED && type != VALUE_SETTER_AGGREGATE)
                 throw Exception("method 'setValue' for aggregate account can not be evoked for the atomic account.")
 
-            this.subAccounts = subAccounts
+            this.subAccounts = subAccounts as MutableSet<ProtoAccount>
             this.value = null
             type = VALUE_SETTER_AGGREGATE
             return this

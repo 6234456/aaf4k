@@ -16,7 +16,7 @@ class ExcelStructureLoaderTest {
         acc.add(subAcc1)
         println(acc)
 
-        val acc1 = acc.deepCopy(data)
+        val acc1 = acc.deepCopy<ProtoAccount>(data)
 
         println(acc1.value)
         println(acc1.decimalValue)

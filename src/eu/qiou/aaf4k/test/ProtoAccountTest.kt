@@ -40,6 +40,6 @@ class ProtoAccountTest{
         val a0 = ProtoAccount(0, "total")
         a0.add(a1)
         a0.add(a3)
-        println(a0.deepCopy(mapOf(2 to 200.0, 3 to 100.0)))
+        println(a0.deepCopy<ProtoAccount>(mapOf(2 to 200.0, 3 to 100.0)))
     }
 }

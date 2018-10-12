@@ -8,16 +8,16 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
 /**
  *  all the attribute at atomic level
  */
-open class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCategory) : JSONable {
+open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val category: ProtoCategory<T>) : JSONable {
 
     init {
-        ((category.entries) as MutableSet<ProtoEntry>).add(this)
+        category.entries.add(this)
     }
 
     var isActive:Boolean = true
 
     // in an entry there might be multiple accounts with the same id
-    open val accounts: MutableList<out ProtoAccount> = mutableListOf()
+    val accounts: MutableList<T> = mutableListOf()
     var isEmpty = true
         get() = accounts.count() == 0
 
@@ -32,37 +32,37 @@ open class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCat
         }
     }
 
-    fun add(id: Int, value: Double): ProtoEntry {
+    open fun add(id: Int, value: Double): ProtoEntry<T> {
         this.category.reporting.findAccountByID(id)?.let {
-            return add(it.toBuilder().setValue(v = value, decimalPrecision = it.decimalPrecision).build())
+            return add(it.toBuilder().setValue(v = value, decimalPrecision = it.decimalPrecision).build() as T)
         }
 
         return this
     }
 
-    fun add(account: ProtoAccount): ProtoEntry {
+    open fun add(account: T): ProtoEntry<T> {
         if (!account.isAggregate)
-            (accounts as MutableList<ProtoAccount>).add(account)
+            accounts.add(account)
 
         return this
     }
 
-    fun remove(account: ProtoAccount?): ProtoEntry {
+    fun remove(account: T?): ProtoEntry<T> {
         accounts.remove(account)
 
         return this
     }
 
-    fun remove(account: List<ProtoAccount>): ProtoEntry {
+    fun remove(account: List<T>): ProtoEntry<T> {
         accounts.removeAll { it in account }
         return this
     }
 
-    fun remove(id: Int): ProtoEntry {
+    fun remove(id: Int): ProtoEntry<T> {
         return remove(findById(id))
     }
 
-    fun findById(id: Int): List<ProtoAccount> {
+    fun findById(id: Int): List<T> {
         return accounts.filter { it.id == id }
     }
 
@@ -70,11 +70,11 @@ open class ProtoEntry(val id: Int, val desc: String = "", val category: ProtoCat
         return findById(id).count() > 0
     }
 
-    operator fun plusAssign(account: ProtoAccount) {
+    operator fun plusAssign(account: T) {
         add(account)
     }
 
-    operator fun minusAssign(account: ProtoAccount) {
+    operator fun minusAssign(account: T) {
         remove(account)
     }
 

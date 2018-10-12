@@ -5,9 +5,8 @@ import eu.qiou.aaf4k.util.mergeReduce
 import eu.qiou.aaf4k.util.strings.CollectionToString
 
 
-open class ProtoCategory(val name: String, val id: Int, val desc: String, val reporting: ProtoReporting) : JSONable
-{
-    val entries: MutableSet<out ProtoEntry> = mutableSetOf()
+open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val desc: String, val reporting: ProtoReporting<T>) : JSONable {
+    val entries: MutableSet<ProtoEntry<T>> = mutableSetOf()
     val entity = reporting.entity
     val timeParameters = reporting.timeParameters
 
@@ -19,29 +18,29 @@ open class ProtoCategory(val name: String, val id: Int, val desc: String, val re
         return entries
                 .map { it.toDataMap() }
                 .fold(mapOf()) { acc, map ->
-                    acc.mergeReduce(map, { a, b -> a + b })
+                    acc.mergeReduce(map) { a, b -> a + b }
                 }
     }
 
-    fun searchForEntriesWith(id: Int): List<ProtoEntry> {
+    fun searchForEntriesWith(id: Int): List<ProtoEntry<T>> {
         return entries.filter { it.existsId(id) }
     }
 
-    fun remove(id: Int): ProtoCategory {
+    fun remove(id: Int): ProtoCategory<T> {
         return remove(findById(id))
     }
 
-    fun remove(entry: ProtoEntry?): ProtoCategory {
+    fun remove(entry: ProtoEntry<T>?): ProtoCategory<T> {
         entries.remove(entry)
         return this
     }
 
-    fun deactivate(id: Int): ProtoCategory {
+    fun deactivate(id: Int): ProtoCategory<T> {
         findById(id)?.isActive = false
         return this
     }
 
-    fun findById(id: Int): ProtoEntry? {
+    fun findById(id: Int): ProtoEntry<T>? {
         return entries.find { it.id == id }
     }
 
