@@ -21,6 +21,7 @@ import eu.qiou.aaf4k.util.unit.ProtoUnit
  * @param isStatistical for aggregate account, will not be checked for duplicity
  */
 
+//TODO simplify the base class only the necessary attributes   the foreign exchange into separate adaptor   ProtoAccount as Interface
 open class ProtoAccount(val id: Int, open val name: String,
                         val subAccounts: MutableSet<out ProtoAccount>? = null,
                         val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION,
@@ -94,7 +95,7 @@ open class ProtoAccount(val id: Int, open val name: String,
     private set
 
     // can be re-implemented based on Locale
-    var localAccountID: String = id.toString()
+    var localAccountID: Int = id
     var localAccountName: String = id.toString()
 
     val isAggregate:Boolean = subAccounts != null
@@ -259,6 +260,9 @@ open class ProtoAccount(val id: Int, open val name: String,
     ) {
         var type: Int = 0
         var displayUnit: ProtoUnit = CurrencyUnit()
+        var localAccountID: Int? = id
+        var localAccountName: String? = name
+
 
         /**
          *  for the atomic account, specify the value
@@ -324,6 +328,10 @@ open class ProtoAccount(val id: Int, open val name: String,
         fun setBasicInfo(id: Int, name: String):Builder{
             this.id = id
             this.name = name
+
+            this.localAccountName = name
+            this.localAccountID = id
+
             return this
         }
 
@@ -360,11 +368,27 @@ open class ProtoAccount(val id: Int, open val name: String,
             return this
         }
 
+        fun setLocalAccountID(id: Int): Builder {
+            this.localAccountID = id
+
+            return this
+        }
+
+        fun setLocalAccountName(name: String): Builder {
+            this.localAccountName = name
+
+            return this
+        }
+
         fun build():ProtoAccount{
             return when{
-                type == VALUE_SETTER_BASIC || type == VALUE_SETTER_EXTERNAL -> ProtoAccount(id!!, name!!, null, decimalPrecision = decimalPrecision, value = value, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical).apply { this.displayUnit = this@Builder.displayUnit }
-                type == VALUE_SETTER_AGGREGATE -> ProtoAccount(id!!, name!!, subAccounts = subAccounts, decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical).apply { this.displayUnit = this@Builder.displayUnit }
+                type == VALUE_SETTER_BASIC || type == VALUE_SETTER_EXTERNAL -> ProtoAccount(id!!, name!!, null, decimalPrecision = decimalPrecision, value = value, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical)
+                type == VALUE_SETTER_AGGREGATE -> ProtoAccount(id!!, name!!, subAccounts = subAccounts, decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical)
                 else -> throw Exception("Please evoke setValue at first!")
+            }.apply {
+                this.displayUnit = this@Builder.displayUnit
+                this.localAccountID = this@Builder.localAccountID!!
+                this.localAccountName = this@Builder.localAccountName!!
             }
         }
 
@@ -384,11 +408,11 @@ open class ProtoAccount(val id: Int, open val name: String,
 
         fun builder(template: ProtoAccount): Builder {
             with(template) {
-                if (isAggregate) {
-                    return Builder(id, name, subAccounts!!, decimalPrecision, unit, desc, timeParameters, entity, isStatistical).setType(VALUE_SETTER_AGGREGATE).setDisplayUnit(displayUnit)
+                return if (isAggregate) {
+                    Builder(id, name, subAccounts!!, decimalPrecision, unit, desc, timeParameters, entity, isStatistical).setType(VALUE_SETTER_AGGREGATE)
                 } else {
-                    return Builder(id, name, value!!, decimalPrecision, unit, desc, timeParameters, entity, isStatistical).setType(VALUE_SETTER_BASIC).setDisplayUnit(displayUnit)
-                }
+                    Builder(id, name, value!!, decimalPrecision, unit, desc, timeParameters, entity, isStatistical).setType(VALUE_SETTER_BASIC)
+                }.setDisplayUnit(displayUnit).setLocalAccountID(localAccountID).setLocalAccountName(localAccountName)
             }
         }
     }

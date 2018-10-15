@@ -28,7 +28,14 @@ class AccountingFrame(id: Int, name: String, val accounts: List<Account>) :
                 structure = accounts.map {
                     it.deepCopy<Account> {
                         Account.from(
-                                it.toBuilder().setTimeParameters(timeParameters).setEntity(entity).setDisplayUnit(displayUnit).build(),
+                                it.toBuilder()
+                                        .setTimeParameters(
+                                                when (it.reportingType) {
+                                                    ReportingType.ASSET, ReportingType.EQUITY, ReportingType.LIABILITY -> TimeParameters(timePoint = timeParameters.end)
+                                                    else -> timeParameters
+                                                }
+                                        )
+                                        .setEntity(entity).setDisplayUnit(displayUnit).build(),
                                 it.reportingType
                         )
                     }
