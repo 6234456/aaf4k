@@ -3,8 +3,11 @@ package eu.qiou.aaf4k.reportings.etl
 import eu.qiou.aaf4k.accounting.model.Account
 import eu.qiou.aaf4k.accounting.model.Reporting
 import eu.qiou.aaf4k.accounting.model.ReportingType
+import eu.qiou.aaf4k.reportings.GlobalConfiguration
+import eu.qiou.aaf4k.reportings.model.ProtoEntity
 import eu.qiou.aaf4k.util.groupNearby
 import eu.qiou.aaf4k.util.time.TimeParameters
+import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.streams.toList
@@ -20,9 +23,17 @@ import kotlin.streams.toList
 class AccountingFrame(id: Int, name: String, val accounts: List<Account>) :
         Reporting(id, name, structure = accounts) {
 
-    // TODO: complete the adaptor
-    fun toReporting(id: Int, name: String, timeParameters: TimeParameters = TimeParameters(), desc: String = ""): Reporting {
-        return Reporting(id, name, timeParameters = timeParameters, structure = accounts, desc = desc)
+    fun toReporting(id: Int, name: String, timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS, desc: String = "", displayUnit: CurrencyUnit = CurrencyUnit(), entity: ProtoEntity = GlobalConfiguration.DEFAULT_ENTITY): Reporting {
+        return Reporting(id, name, timeParameters = timeParameters,
+                structure = accounts.map {
+                    it.deepCopy<Account> {
+                        Account.from(
+                                it.toBuilder().setTimeParameters(timeParameters).setEntity(entity).setDisplayUnit(displayUnit).build(),
+                                it.reportingType
+                        )
+                    }
+                }
+                , desc = desc, displayUnit = displayUnit, entity = entity)
     }
 
     companion object {

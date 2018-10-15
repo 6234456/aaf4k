@@ -7,13 +7,17 @@ import eu.qiou.aaf4k.accounting.model.ReportingType
 import eu.qiou.aaf4k.reportings.etl.AccountingFrame
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.util.groupNearby
+import eu.qiou.aaf4k.util.unit.CurrencyUnit
+import eu.qiou.aaf4k.util.unit.UnitScalar
 import org.junit.Test
+import java.util.*
 
 class AccountingFrameTest {
 
     @Test
     fun getFlattened() {
-        val frame = AccountingFrame.inflate(123, "cn_cas_2018").toReporting(123, "ED")
+        val frame = AccountingFrame.inflate(123, "cn_cas_2018").toReporting(123, "ED",
+                displayUnit = CurrencyUnit(UnitScalar.THOUSAND, currency = Currency.getInstance("EUR")))
         val category = Category("Buchungskreis_Normal", 0, "laufende Buchungen", frame)
         val entry = Entry(0, "Demo", category)
 
@@ -27,10 +31,15 @@ class AccountingFrameTest {
         entry1.add(3400, 3400.0)
         entry1.balanceWith(3200)
 
-        println(frame.generate().shorten())
+        println(category)
 
-        println(frame.findAccountByID(3000)!!.reportingType)
+        println(frame.generate().displayUnit)
 
+        frame.generate().findAccountByID(3100)?.let {
+            println(it.displayUnit)
+            it.displayUnit = frame.displayUnit
+            println(it.textValue)
+        }
     }
 
     @Test

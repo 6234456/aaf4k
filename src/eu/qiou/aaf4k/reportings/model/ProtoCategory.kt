@@ -49,7 +49,7 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
     }
 
     override fun toString(): String {
-        return CollectionToString.mkString(entries, prefix = "{@", affix = "@}")
+        return CollectionToString.mkString(entries, prefix = "$id $name\n{@\n", affix = "\n@}", separator = "\n\n")
     }
 
 }

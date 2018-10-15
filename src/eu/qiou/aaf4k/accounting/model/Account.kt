@@ -47,7 +47,9 @@ class Account(id: Int, name: String,
                     subAccounts = protoAccount.subAccounts as MutableSet<Account>?, decimalPrecision = protoAccount.decimalPrecision,
                     value = protoAccount.value, unit = protoAccount.unit as CurrencyUnit,
                     reportingType = reportingType, desc = protoAccount.desc, timeParameters = protoAccount.timeParameters,
-                    entity = protoAccount.entity, isStatistical = protoAccount.isStatistical)
+                    entity = protoAccount.entity, isStatistical = protoAccount.isStatistical).apply {
+                this.displayUnit = protoAccount.displayUnit
+            }
         }
 
         fun parse(formula: String, accounts: Map<Int, Account>): Double {
@@ -65,7 +67,7 @@ class Account(id: Int, name: String,
     @Suppress("UNCHECKED_CAST")
     override fun toString(): String {
         if (this.hasChildren()) {
-            return CollectionToString.structuredToStr(this, 0, ProtoAccount::toString as Drilldownable.() -> String, ProtoAccount::titel as Drilldownable.() -> String)
+            return CollectionToString.structuredToStr(this, 0, Account::toString as Drilldownable.() -> String, Account::titel as Drilldownable.() -> String)
         }
 
         if (isStatistical)

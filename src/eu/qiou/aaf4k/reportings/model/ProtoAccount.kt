@@ -120,6 +120,9 @@ open class ProtoAccount(val id: Int, open val name: String,
 
 
     var textValue: String? = displayUnit.format()(displayValue)
+        get() = displayUnit.format()(displayValue)
+        private set
+
 
     fun register(superAccount: ProtoAccount){
         if(superAccounts == null){
@@ -255,6 +258,7 @@ open class ProtoAccount(val id: Int, open val name: String,
                   var isStatistical: Boolean = false
     ) {
         var type: Int = 0
+        var displayUnit: ProtoUnit = CurrencyUnit()
 
         /**
          *  for the atomic account, specify the value
@@ -271,6 +275,11 @@ open class ProtoAccount(val id: Int, open val name: String,
 
         constructor(id: Int, name: String, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false) :
                 this(id, name, subAccounts = mutableSetOf(), decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical)
+
+        fun setDisplayUnit(unit: ProtoUnit): Builder {
+            this.displayUnit = unit
+            return this
+        }
 
 
         fun setType(type: Int): Builder {
@@ -353,8 +362,8 @@ open class ProtoAccount(val id: Int, open val name: String,
 
         fun build():ProtoAccount{
             return when{
-                type == VALUE_SETTER_BASIC || type == VALUE_SETTER_EXTERNAL -> ProtoAccount(id!!, name!!, null, decimalPrecision = decimalPrecision, value = value, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical)
-                type == VALUE_SETTER_AGGREGATE -> ProtoAccount(id!!, name!!, subAccounts = subAccounts, decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical)
+                type == VALUE_SETTER_BASIC || type == VALUE_SETTER_EXTERNAL -> ProtoAccount(id!!, name!!, null, decimalPrecision = decimalPrecision, value = value, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical).apply { this.displayUnit = displayUnit }
+                type == VALUE_SETTER_AGGREGATE -> ProtoAccount(id!!, name!!, subAccounts = subAccounts, decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical).apply { this.displayUnit = displayUnit }
                 else -> throw Exception("Please evoke setValue at first!")
             }
         }
@@ -376,9 +385,9 @@ open class ProtoAccount(val id: Int, open val name: String,
         fun builder(template: ProtoAccount): Builder {
             with(template) {
                 if (isAggregate) {
-                    return Builder(id, name, subAccounts!!, decimalPrecision, unit, desc, timeParameters, entity, isStatistical).setType(VALUE_SETTER_AGGREGATE)
+                    return Builder(id, name, subAccounts!!, decimalPrecision, unit, desc, timeParameters, entity, isStatistical).setType(VALUE_SETTER_AGGREGATE).setDisplayUnit(displayUnit)
                 } else {
-                    return Builder(id, name, value!!, decimalPrecision, unit, desc, timeParameters, entity, isStatistical).setType(VALUE_SETTER_BASIC)
+                    return Builder(id, name, value!!, decimalPrecision, unit, desc, timeParameters, entity, isStatistical).setType(VALUE_SETTER_BASIC).setDisplayUnit(displayUnit)
                 }
             }
         }
