@@ -140,7 +140,6 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                 ExcelUtil.Update(getCell(col_original)).numberFormat(account.decimalPrecision)
             }
             account.subAccounts?.let {
-
                 it.forEach {
                     writeAccountToXl(it, sht, indent + 1)
                 }
@@ -151,14 +150,47 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             }
         }
 
+        var shtOverview: Sheet? = null
+
         ExcelUtil.createWorksheetIfNotExists(path, callback = { sht ->
             this.structure.forEach {
                 writeAccountToXl(it, sht)
             }
 
+            shtOverview = sht
+        })
+
+        cnt = startRow
+
+        var data = mutableMapOf<Int, String>()
+        ExcelUtil.createWorksheetIfNotExists(path, "adj", { shtCat ->
             this.categories.forEach {
-                ExcelUtil.unload(it.toDataMap(), { it.toDouble().toInt() }, 0, col++, sht, { false })
+                it.entries.forEach {
+                    it.accounts.forEach { acc ->
+                        shtCat.createRow(cnt++).apply {
+                            this.createCell(0).setCellValue(acc.id.toDouble())
+                            this.createCell(1).setCellValue(acc.name)
+                            this.createCell(2).setCellValue(acc.displayValue)
+                            this.createCell(3).setCellValue(it.desc)
+
+                            if (data.containsKey(acc.id)) {
+                                data[acc.id] = "${data[acc.id]}+${shtCat.sheetName}!${CellUtil.getCell(this, 2).address}"
+                            } else {
+                                data[acc.id] = "${shtCat.sheetName}!${CellUtil.getCell(this, 2).address}"
+                            }
+                        }
+                    }
+
+                    shtCat.createRow(cnt++)
+                }
             }
         })
+        println(data)
+        ExcelUtil.unload(data, { it.toDouble().toInt() }, 0, col, shtOverview!!, { false }, { c, v ->
+            println(c.address)
+            println(v)
+            c.cellFormula = v
+        })
+
     }
 }

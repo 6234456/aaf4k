@@ -110,7 +110,7 @@ object ExcelUtil {
         }
     }
 
-    fun <K> unload(data: Map<K, Number>, operation: (String) -> K, keyCol: Int, targCol: Int, sht: Sheet, exitCondition: (Row) -> Boolean) {
+    fun <K, V> unload(data: Map<K, V>, operation: (String) -> K, keyCol: Int, targCol: Int, sht: Sheet, exitCondition: (Row) -> Boolean, processCell: (Cell, V) -> Unit) {
 
         val rows = sht.rowIterator()
 
@@ -127,7 +127,7 @@ object ExcelUtil {
                 if (row.count() <= targCol) {
                     row.createCell(targCol)
                 }
-                setCellValue(row.getCell(targCol), data[k]!!.toDouble())
+                processCell(row.getCell(targCol), data[k]!!)
             }
         }
     }

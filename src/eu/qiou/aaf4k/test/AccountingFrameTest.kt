@@ -19,13 +19,13 @@ class AccountingFrameTest {
         val frame = AccountingFrame.inflate(123, "cn_cas_2018").toReporting(123, "ED",
                 displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016))
         val category = Category("Buchungskreis_Normal", 0, "laufende Buchungen", frame)
-        val entry = Entry(0, "Demo", category)
+        val entry = Entry(0, "Demo1", category)
 
         entry.add(3100, 3000.0)
         entry.add(3400, 3400.0)
         entry.balanceWith(3200)
 
-        val entry1 = Entry(0, "Demo", category)
+        val entry1 = Entry(0, "Demo2", category)
 
         entry1.add(3100, 3000.0)
         entry1.add(3400, 3400.0)
