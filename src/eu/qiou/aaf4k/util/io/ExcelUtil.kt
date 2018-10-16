@@ -110,26 +110,30 @@ object ExcelUtil {
         }
     }
 
-    fun <K, V> unload(data: Map<K, V>, operation: (String) -> K, keyCol: Int, targCol: Int, sht: Sheet, exitCondition: (Row) -> Boolean, processCell: (Cell, V) -> Unit) {
+    fun <K, V> unload(data: Map<K, V>, operation: (String) -> K, keyCol: Int, targCol: Int, sht: Sheet, exitCondition: (Row) -> Boolean, processCell: (Cell, V) -> Unit, path: String) {
 
-        val rows = sht.rowIterator()
+        processWorksheet(path, sheetName = sht.sheetName, callback = { sht ->
+            val rows = sht.rowIterator()
 
-        while (rows.hasNext()) {
-            val row = rows.next()
+            while (rows.hasNext()) {
+                val row = rows.next()
 
-            if (exitCondition(row)) {
-                break
-            }
-
-            val k = operation(textValue(row.getCell(keyCol)))
-
-            if (data.containsKey(k)) {
-                if (row.count() <= targCol) {
-                    row.createCell(targCol)
+                if (exitCondition(row)) {
+                    break
                 }
-                processCell(row.getCell(targCol), data[k]!!)
+
+                val k = operation(textValue(row.getCell(keyCol)))
+
+                if (data.containsKey(k)) {
+                    if (row.count() <= targCol) {
+                        row.createCell(targCol)
+                    }
+                    processCell(row.getCell(targCol), data[k]!!)
+                }
             }
-        }
+
+            saveWorkbook(path, sht.workbook)
+        })
     }
 
     fun textValue(c: Cell, type: CellType = c.cellTypeEnum): String {

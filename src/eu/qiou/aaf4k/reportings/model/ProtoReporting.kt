@@ -163,6 +163,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         cnt = startRow
 
         var data = mutableMapOf<Int, String>()
+
         ExcelUtil.createWorksheetIfNotExists(path, "adj", { shtCat ->
             this.categories.forEach {
                 it.entries.forEach {
@@ -174,9 +175,9 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                             this.createCell(3).setCellValue(it.desc)
 
                             if (data.containsKey(acc.id)) {
-                                data[acc.id] = "${data[acc.id]}+${shtCat.sheetName}!${CellUtil.getCell(this, 2).address}"
+                                data[acc.id] = "${data[acc.id]}+'${shtCat.sheetName}'!${CellUtil.getCell(this, 2).address}"
                             } else {
-                                data[acc.id] = "${shtCat.sheetName}!${CellUtil.getCell(this, 2).address}"
+                                data[acc.id] = "'${shtCat.sheetName}'!${CellUtil.getCell(this, 2).address}"
                             }
                         }
                     }
@@ -185,12 +186,11 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                 }
             }
         })
-        println(data)
+
         ExcelUtil.unload(data, { it.toDouble().toInt() }, 0, col, shtOverview!!, { false }, { c, v ->
-            println(c.address)
-            println(v)
             c.cellFormula = v
-        })
+            ExcelUtil.Update(c).numberFormat(GlobalConfiguration.DEFAULT_DECIMAL_PRECISION)
+        }, path)
 
     }
 }
