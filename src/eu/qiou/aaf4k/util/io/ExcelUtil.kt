@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.util.io
 
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_FONT_NAME
+import eu.qiou.aaf4k.util.strings.times
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
@@ -81,15 +82,15 @@ object ExcelUtil {
         stream.flush()
         stream.close()
         workbook.close()
-        }
+    }
 
     fun existsWorksheet(wb: Workbook, sheetName: String): Boolean {
-        return (0 until wb.numberOfSheets).map { wb.getSheetName(it) }.any({ it.equals(sheetName) })
+        return (0 until wb.numberOfSheets).map { wb.getSheetName(it) }.any { it.equals(sheetName) }
     }
 
     fun createWorksheetIfNotExists(path: String, sheetName: String = "src", callback: (Sheet) -> Unit, readOnly: Boolean = false) {
         if(fileExists(path)){
-            processWorkbook(path, { wb ->
+            processWorkbook(path) { wb ->
                 if (existsWorksheet(wb, sheetName))
                     callback(wb.getSheet(sheetName))
                 else
@@ -98,7 +99,7 @@ object ExcelUtil {
                 if (!readOnly) {
                     saveWorkbook(path, wb)
                 }
-            })
+            }
         } else {
             val f: (Workbook) -> Unit = {
                 callback(
@@ -106,6 +107,38 @@ object ExcelUtil {
                 )
             }
             createWorkbookIfNotExists(path, f)
+        }
+    }
+
+    fun <K> unload(data: Map<K, Number>, operation: (String) -> K, keyCol: Int, targCol: Int, sht: Sheet, exitCondition: (Row) -> Boolean) {
+
+        val rows = sht.rowIterator()
+
+        while (rows.hasNext()) {
+            val row = rows.next()
+
+            if (exitCondition(row)) {
+                break
+            }
+
+            val k = operation(textValue(row.getCell(keyCol)))
+
+            if (data.containsKey(k)) {
+                if (row.count() <= targCol) {
+                    row.createCell(targCol)
+                }
+                setCellValue(row.getCell(targCol), data[k]!!.toDouble())
+            }
+        }
+    }
+
+    fun textValue(c: Cell, type: CellType = c.cellTypeEnum): String {
+        return when (type) {
+            CellType.BLANK, CellType.ERROR, CellType._NONE -> ""
+            CellType.NUMERIC -> c.numericCellValue.toString()
+            CellType.BOOLEAN -> c.booleanCellValue.toString()
+            CellType.STRING -> c.stringCellValue
+            CellType.FORMULA -> textValue(c, c.cachedFormulaResultTypeEnum)
         }
     }
 
@@ -127,6 +160,10 @@ object ExcelUtil {
             //    cell.cellStyle.also { it.dataFormat = createHelper.createDataFormat().getFormat(format) }
 
             return this
+        }
+
+        fun numberFormat(posAfterDecimal: Int = 2, thousandSep: Boolean = true): Update {
+            return dataFormat((if (thousandSep) "#,##0." else "0.") + "0" * posAfterDecimal)
         }
 
         fun font(name: String = DEFAULT_FONT_NAME, size: Short = 11, color: Short = IndexedColors.BLACK.index, bold: Boolean = false, italic: Boolean = false, strikeout: Boolean = false, underline: Byte = 0): Update {
@@ -198,7 +235,7 @@ object ExcelUtil {
 
     enum class DataFormat(val format: String) {
         DATE("mmm dd, yyyy"),
-        NUMBER("#,###.00"),
+        NUMBER("#,##0.00"),
         BOOLEAN("#"),
         INT("#.#"),
         DEFAULT("#"),

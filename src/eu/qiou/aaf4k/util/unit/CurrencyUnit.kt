@@ -6,8 +6,10 @@ import java.util.*
 import kotlin.math.roundToInt
 
 
-data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var currency: Currency =  GlobalConfiguration.DEFAULT_CURRENCY ) : ProtoUnit(scalar) {
+data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var currency: Currency = GlobalConfiguration.DEFAULT_FUNCTIONAL_CURRENCY) : ProtoUnit(scalar) {
 
+    constructor(currency: String) : this(currency = Currency.getInstance(currency))
+    constructor(scalar: UnitScalar, currency: String) : this(scalar, currency = Currency.getInstance(currency))
     private val currencyCode:String = currency.currencyCode
 
     override fun format(locale: Locale): (Number) -> String {

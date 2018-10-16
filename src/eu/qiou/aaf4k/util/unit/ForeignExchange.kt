@@ -1,7 +1,7 @@
 package eu.qiou.aaf4k.util.unit
 
-import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_CURRENCY
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_CURRENCY_CODE
+import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_FUNCTIONAL_CURRENCY
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_LOCALE
 import eu.qiou.aaf4k.util.io.ECBFxProvider
 import eu.qiou.aaf4k.util.io.FxProvider
@@ -11,7 +11,7 @@ import eu.qiou.aaf4k.util.time.TimeSpan
 import java.time.LocalDate
 import java.util.*
 
-data class ForeignExchange(val functionalCurrency: Currency= DEFAULT_CURRENCY, val reportingCurrency: Currency = DEFAULT_CURRENCY, val timeParameters: TimeParameters) {
+data class ForeignExchange(val functionalCurrency: Currency = DEFAULT_FUNCTIONAL_CURRENCY, val reportingCurrency: Currency = DEFAULT_FUNCTIONAL_CURRENCY, val timeParameters: TimeParameters) {
 
     constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timeSpan: TimeSpan):this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = TimeParameters(timeSpan))
     constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timePoint: LocalDate):this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = TimeParameters(timePoint))

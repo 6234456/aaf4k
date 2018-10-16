@@ -1,12 +1,17 @@
 package eu.qiou.aaf4k.reportings.model
 
 import eu.qiou.aaf4k.reportings.GlobalConfiguration
+import eu.qiou.aaf4k.util.foldTrackListInit
+import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.mergeReduce
+import eu.qiou.aaf4k.util.mkString
 import eu.qiou.aaf4k.util.strings.CollectionToString
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.ProtoUnit
+import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.util.CellUtil
 
 
 /**
@@ -98,5 +103,62 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
     override fun toString(): String {
         return CollectionToString.mkString(structure)
+    }
+
+    fun toXl(path: String) {
+        val startRow = 1
+        var cnt = startRow
+        val col_id = 0
+        val col_name = col_id + 1
+        val col_original = col_name + 1
+        var col = col_original + 1
+        fun writeAccountToXl(account: ProtoAccount, sht: Sheet, indent: Int = 0) {
+
+            val l = account.countRecursively(true)
+            val lvl = account.levels()
+
+            sht.createRow(cnt++).apply {
+                createCell(col_id).setCellValue(account.id.toDouble())
+                createCell(col_name).setCellValue("${if (account.isStatistical) "其中:" else ""}${account.name}")
+
+                if (l > 1) {
+                    if (lvl == 2)
+                        createCell(col_original).cellFormula =
+                                "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), col_original).address}:" +
+                                "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), col_original).address}" +
+                                ")"
+                    else
+                        createCell(col_original).cellFormula = account.subAccounts!!.foldTrackListInit(0) { a, protoAccount, _ ->
+                            a + protoAccount.countRecursively(true)
+                        }.dropLast(1).map {
+                            CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it, sht), col_original).address
+                        }
+                                .mkString("+", prefix = "", affix = "")
+                } else
+                    createCell(col_original).setCellValue(account.displayValue)
+
+                ExcelUtil.Update(getCell(col_original)).numberFormat(account.decimalPrecision)
+            }
+            account.subAccounts?.let {
+
+                it.forEach {
+                    writeAccountToXl(it, sht, indent + 1)
+                }
+
+                if (l > 2 && account.levels() == 2) {
+                    sht.groupRow(cnt - l + 1, cnt - 1)
+                }
+            }
+        }
+
+        ExcelUtil.createWorksheetIfNotExists(path, callback = { sht ->
+            this.structure.forEach {
+                writeAccountToXl(it, sht)
+            }
+
+            this.categories.forEach {
+                ExcelUtil.unload(it.toDataMap(), { it.toDouble().toInt() }, 0, col++, sht, { false })
+            }
+        })
     }
 }

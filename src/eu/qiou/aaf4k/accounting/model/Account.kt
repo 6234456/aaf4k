@@ -49,6 +49,8 @@ class Account(id: Int, name: String,
                     reportingType = reportingType, desc = protoAccount.desc, timeParameters = protoAccount.timeParameters,
                     entity = protoAccount.entity, isStatistical = protoAccount.isStatistical).apply {
                 this.displayUnit = protoAccount.displayUnit
+                this.localAccountName = protoAccount.localAccountName
+                this.localAccountID = protoAccount.localAccountID
             }
         }
 

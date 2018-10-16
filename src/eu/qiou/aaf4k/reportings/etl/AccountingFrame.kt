@@ -35,9 +35,11 @@ class AccountingFrame(id: Int, name: String, val accounts: List<Account>) :
                                                     else -> timeParameters
                                                 }
                                         )
-                                        .setEntity(entity).setDisplayUnit(displayUnit).build(),
+                                        .setEntity(entity).build(),
                                 it.reportingType
-                        )
+                        ).apply {
+                            this.displayUnit = displayUnit
+                        }
                     }
                 }
                 , desc = desc, displayUnit = displayUnit, entity = entity)

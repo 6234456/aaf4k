@@ -5,8 +5,12 @@ import eu.qiou.aaf4k.reportings.model.ProtoEntry
 class Entry(id: Int, desc: String = "", category: Category) : ProtoEntry<Account>(id, desc, category) {
 
     override fun add(id: Int, value: Double): Entry {
+
+        // TODO conversion of different unit
         this.category.reporting.findAccountByID(id)?.let {
-            return add(Account.from(it.toBuilder().setValue(v = value, decimalPrecision = it.decimalPrecision).build(), it.reportingType))
+            return add(Account.from(it.toBuilder()
+                    .setValue(v = value, decimalPrecision = it.decimalPrecision)
+                    .build(), it.reportingType))
         }
 
         return this
@@ -23,7 +27,7 @@ class Entry(id: Int, desc: String = "", category: Category) : ProtoEntry<Account
 
     private fun residual(): Double {
         return accounts.fold(0.0) { acc, e ->
-            acc + if (e.isStatistical) 0.0 else e.displayValue
+            acc + if (e.isStatistical) 0.0 else e.decimalValue
         }
     }
 

@@ -35,6 +35,13 @@ fun <R, T> Iterable<T>.foldTrackList(initial: R, operation: (R, T, Int) -> R): L
     }
 }
 
+fun <R, T> Iterable<T>.foldTrackListInit(initial: R, operation: (R, T, Int) -> R): List<R> {
+
+    return listOf(initial) + this.foldTrackList(initial, operation)
+
+}
+
+
 fun <R, T> Iterable<T>.groupNearby(operation: (T) -> R): List<List<T>> {
     val cnt = this.count()
     var tmp = mutableListOf<T>()

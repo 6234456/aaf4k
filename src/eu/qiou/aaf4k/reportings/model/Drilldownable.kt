@@ -57,16 +57,25 @@ interface Drilldownable{
         return res
     }
 
-    fun countRecursively():Int{
+    fun countRecursively(includeSelf: Boolean = false): Int {
+        val init = if (includeSelf) 1 else 0
         if(hasChildren()){
-            return this.getChildren()!!.fold(0) { a, e ->
+            return this.getChildren()!!.fold(init) { a, e ->
                 a + when{
-                    e.hasChildren() ->  e.countRecursively()
+                    e.hasChildren() -> e.countRecursively(includeSelf)
                     else -> 1
                 }
             }
         }
-        return 0
+        return init
+    }
+
+    fun levels(): Int {
+        if (hasChildren()) {
+            return 1 + getChildren()!!.map { it.levels() }.maxBy { it }!!
+        }
+
+        return 1
     }
 
     fun count():Int {

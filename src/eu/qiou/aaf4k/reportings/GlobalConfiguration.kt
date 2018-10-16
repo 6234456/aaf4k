@@ -21,8 +21,8 @@ object GlobalConfiguration {
 
 
     val DEFAULT_LOCALE: Locale = Locale.CHINA
-    val DEFAULT_CURRENCY: Currency = Currency.getInstance("EUR")
-    val DEFAULT_CURRENCY_CODE: String = DEFAULT_CURRENCY.currencyCode
+    val DEFAULT_FUNCTIONAL_CURRENCY: Currency = Currency.getInstance("EUR")
+    val DEFAULT_CURRENCY_CODE: String = DEFAULT_FUNCTIONAL_CURRENCY.currencyCode
 
     val DEFAULT_TIME_PARAMETERS = TimeParameters(2017)
     val DEFAULT_ENTITY = ProtoEntity(0, "Demo GmbH", "Demo", "a fictive company")

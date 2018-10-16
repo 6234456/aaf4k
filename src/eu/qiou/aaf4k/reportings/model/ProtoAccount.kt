@@ -4,6 +4,7 @@ import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.reportings.model.ProtoAccount.Builder.Companion.VALUE_SETTER_AGGREGATE
 import eu.qiou.aaf4k.reportings.model.ProtoAccount.Builder.Companion.VALUE_SETTER_BASIC
 import eu.qiou.aaf4k.util.io.JSONable
+import eu.qiou.aaf4k.util.roundUpTo
 import eu.qiou.aaf4k.util.strings.CollectionToString
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
@@ -113,10 +114,10 @@ open class ProtoAccount(val id: Int, open val name: String,
 
     var displayUnit: ProtoUnit = CurrencyUnit()
     var displayValue: Double = 0.0
-        get() = roundUpTo(when {
+        get() = when {
             this.unit is CurrencyUnit -> unit.convertFxTo(displayUnit, timeParameters)(decimalValue)
             else -> unit.convertTo(displayUnit)(decimalValue)
-        })
+        }.roundUpTo(decimalPrecision)
         private set
 
 
@@ -160,10 +161,6 @@ open class ProtoAccount(val id: Int, open val name: String,
         }
 
         return null
-    }
-
-    private fun roundUpTo(v: Double, decimalPlace: Int = decimalPrecision):Double{
-        return Math.round(v * Math.pow(10.0, decimalPlace.toDouble())) / Math.pow(10.0, decimalPlace.toDouble())
     }
 
     fun toBuilder(): Builder {
