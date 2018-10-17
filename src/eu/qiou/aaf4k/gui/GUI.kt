@@ -4,6 +4,7 @@ import eu.qiou.aaf4k.accounting.model.Account
 import eu.qiou.aaf4k.accounting.model.ReportingType
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.test.AccountingFrameTest
+import eu.qiou.aaf4k.util.roundUpTo
 import javafx.application.Application
 import javafx.beans.property.ReadOnlyIntegerWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
@@ -23,6 +24,10 @@ class GUI : Application() {
     override fun start(primaryStage: Stage?) {
 
         val reporting = AccountingFrameTest.testReporting()
+
+        val formatter: (Number, Int) -> String = { n, dec ->
+            if (Math.abs(n.toDouble()) < Math.pow(10.0, -1.0 * (dec + 1))) "" else String.format("%,.${dec}f", n.roundUpTo(dec))
+        }
 
         val root = TreeItem(
                 Account.from(ProtoAccount(0, reporting.entity.name, 0L), ReportingType.AUTO)
@@ -52,12 +57,16 @@ class GUI : Application() {
                 },
                 TreeTableColumn<Account, String>("账户名称").apply {
                     setCellValueFactory {
-                        ReadOnlyStringWrapper(it.value.value.name)
+                        ReadOnlyStringWrapper(
+                                with(it.value.value) {
+                                    if (isStatistical) "其中:$name" else name
+                                }
+                        )
                     }
                 },
                 TreeTableColumn<Account, String>("科目余额：调整前").apply {
                     setCellValueFactory {
-                        ReadOnlyStringWrapper(it.value.value.displayValue.toString())
+                        ReadOnlyStringWrapper(formatter(it.value.value.displayValue, it.value.value.decimalPrecision))
                     }
 
                     style = "-fx-alignment:center-right"
@@ -68,14 +77,24 @@ class GUI : Application() {
                         val data = reporting.update(it.toDataMap()).flattenWithAllAccounts().map { it.id to it.displayValue }.toMap()
                         setCellValueFactory {
                             ReadOnlyStringWrapper(
-                                    with(data.getOrDefault(it.value.value.id, 0)) { if (this != 0) this.toString() else "" })
+                                    formatter(data.getOrDefault(it.value.value.id, 0.0), it.value.value.decimalPrecision)
+                            )
                         }
 
                         style = "-fx-alignment:center-right"
                     }
                 } +
                 listOf(
-                        TreeTableColumn<Account, String>("科目余额：调整后")
+                        TreeTableColumn<Account, String>("科目余额：调整后").apply {
+                            val data = reporting.generate().flattenWithAllAccounts().map { it.id to it.displayValue }.toMap()
+                            setCellValueFactory {
+                                ReadOnlyStringWrapper(
+                                        formatter(data.getOrDefault(it.value.value.id, 0.0), it.value.value.decimalPrecision)
+                                )
+                            }
+
+                            style = "-fx-alignment:center-right"
+                        }
                 )
 
         cols.forEach {
@@ -112,9 +131,6 @@ class GUI : Application() {
             )
 
             title = "Reporting"
-
-            isFullScreen = true
-
             show()
         }
 
