@@ -1,9 +1,7 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.accounting.model.Account
-import eu.qiou.aaf4k.accounting.model.Category
-import eu.qiou.aaf4k.accounting.model.Entry
-import eu.qiou.aaf4k.accounting.model.ReportingType
+import eu.qiou.aaf4k.accounting.model.*
+import eu.qiou.aaf4k.gui.GUI
 import eu.qiou.aaf4k.reportings.etl.AccountingFrame
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.util.groupNearby
@@ -14,27 +12,50 @@ import org.junit.Test
 
 class AccountingFrameTest {
 
+    companion object {
+        fun testReporting(): Reporting {
+            val frame = AccountingFrame.inflate(123, "cn_cas_2018").toReporting(123, "ED",
+                    displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016))
+            val category = Category("年度账户", 0, "laufende Buchungen", frame)
+            val category1 = Category("合并抵销分录", 1, "laufende Buchungen", frame)
+            val category2 = Category("权益抵销分录", 2, "laufende Buchungen", frame)
+            val entry = Entry(0, "Demo1", category)
+
+            entry.add(3100, 3000.0)
+            entry.add(3400, 3400.0)
+            entry.balanceWith(3200)
+
+            val entry1 = Entry(1, "Demo2", category)
+
+            entry1.add(3100, 3000.0)
+            entry1.add(3400, 3400.0)
+            entry1.balanceWith(3200)
+
+            Entry(2, "Trail", category1).apply {
+                add(1005, 3000.0)
+                add(2900, 3400.0)
+                balanceWith(3200)
+            }
+
+            Entry(2, "Demo3", category2).apply {
+                add(1005, 3000.0)
+                add(2800, 3400.0)
+                balanceWith(3200)
+            }
+
+            return frame
+        }
+    }
+
     @Test
     fun getFlattened() {
-        val frame = AccountingFrame.inflate(123, "cn_cas_2018").toReporting(123, "ED",
-                displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016))
-        val category = Category("Buchungskreis_Normal", 0, "laufende Buchungen", frame)
-        val entry = Entry(0, "Demo1", category)
 
-        entry.add(3100, 3000.0)
-        entry.add(3400, 3400.0)
-        entry.balanceWith(3200)
-
-        val entry1 = Entry(0, "Demo2", category)
-
-        entry1.add(3100, 3000.0)
-        entry1.add(3400, 3400.0)
-        entry1.balanceWith(3200)
-
-        frame.apply {
+        testReporting().apply {
             println(this)
             toXl("data/demo.xlsx")
         }
+
+        GUI.open()
 
     }
 

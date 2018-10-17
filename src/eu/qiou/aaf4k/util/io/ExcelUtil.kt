@@ -13,6 +13,7 @@ import java.time.LocalDate
 import java.util.*
 
 object ExcelUtil {
+    val digitRegex = """[-.\d]+""".toRegex()
 
         fun processWorkbook(path: String, callback: (Workbook)-> Unit){
             val inputStream = FileInputStream(path)
@@ -122,7 +123,14 @@ object ExcelUtil {
                     break
                 }
 
-                val k = operation(textValue(row.getCell(keyCol)))
+
+                val k = operation(
+                        try {
+                            textValue(row.getCell(keyCol))
+                        } catch (e: IllegalStateException) {
+                            ""
+                        }
+                )
 
                 if (data.containsKey(k)) {
                     if (row.count() <= targCol) {

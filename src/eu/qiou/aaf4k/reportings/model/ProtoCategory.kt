@@ -7,11 +7,17 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
 
 open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val desc: String, val reporting: ProtoReporting<T>) : JSONable {
     val entries: MutableSet<ProtoEntry<T>> = mutableSetOf()
-    val entity = reporting.entity
     val timeParameters = reporting.timeParameters
 
     init {
-        reporting.categories.add(this)
+        reporting.addCategory(this)
+    }
+
+    fun addEntry(entry: ProtoEntry<T>) {
+        if (entries.any { it.id == entry.id })
+            throw Exception("Duplicated Entry-ID ${entry.id}")
+
+        entries.add(entry)
     }
 
     fun toDataMap(): Map<Int, Double> {

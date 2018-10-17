@@ -10,7 +10,10 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.ProtoUnit
+import org.apache.poi.ss.usermodel.HorizontalAlignment
+import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.usermodel.VerticalAlignment
 import org.apache.poi.ss.util.CellUtil
 
 
@@ -40,6 +43,13 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     val categories: MutableSet<ProtoCategory<T>> = mutableSetOf()
     val flattened: List<T> = this.flatten()
 
+    fun addCategory(category: ProtoCategory<T>) {
+        if (categories.any { it.id == category.id })
+            throw Exception("Duplicated Category-ID ${category.id}")
+
+        categories.add(category)
+    }
+
     fun mergeCategories(): Map<Int, Double> {
         return categories.map { it.toDataMap() }.reduce { acc, map ->
             acc.mergeReduce(map) { a, b -> a + b }
@@ -59,6 +69,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return structure.filter { !it.isStatistical }.map { if (it.hasChildren()) it.flatten() else mutableListOf(it as Drilldownable) }.reduce { acc, mutableList ->
             acc.apply { addAll(mutableList) }
         } as List<T>
+    }
+
+    fun flattenWithAllAccounts(): List<T> {
+        return structure.fold(listOf()) { acc, t ->
+            (acc + t.flattenIncludeSelf()) as List<T>
+        }
     }
 
     /**
@@ -105,39 +121,74 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return CollectionToString.mkString(structure)
     }
 
-    fun toXl(path: String) {
+    fun toXl(path: String, titleID: String = "科目代码", titleName: String = "科目名称"
+             , titleOriginal: String = "账户余额:调整前", titleFinal: String = "账户余额:调整后", prefixStatistical: String = " 其中: "
+    ) {
         val startRow = 1
         var cnt = startRow
-        val col_id = 0
-        val col_name = col_id + 1
-        val col_original = col_name + 1
-        var col = col_original + 1
+        val colId = 0
+        val colName = colId + 1
+        val colOriginal = colName + 1
+        var col = colOriginal + 1
+
         fun writeAccountToXl(account: ProtoAccount, sht: Sheet, indent: Int = 0) {
 
             val l = account.countRecursively(true)
             val lvl = account.levels()
 
+            sht.createRow(0).apply {
+                createCell(colId).setCellValue(titleID)
+                createCell(colName).setCellValue(titleName)
+                createCell(colOriginal).setCellValue(titleOriginal)
+                this@ProtoReporting.categories.forEach {
+                    createCell(col++).setCellValue(it.name)
+                }
+                createCell(col).setCellValue(titleFinal)
+            }
+
+            col = colOriginal + 1
+
             sht.createRow(cnt++).apply {
-                createCell(col_id).setCellValue(account.id.toDouble())
-                createCell(col_name).setCellValue("${if (account.isStatistical) "其中:" else ""}${account.name}")
+                createCell(colId).setCellValue(account.id.toDouble())
+                createCell(colName).setCellValue("${if (account.isStatistical) prefixStatistical else ""}${account.name}")
 
                 if (l > 1) {
-                    if (lvl == 2)
-                        createCell(col_original).cellFormula =
-                                "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), col_original).address}:" +
-                                "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), col_original).address}" +
+                    if (lvl == 2) {
+                        createCell(colOriginal).cellFormula =
+                                "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), colOriginal).address}:" +
+                                "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), colOriginal).address}" +
                                 ")"
-                    else
-                        createCell(col_original).cellFormula = account.subAccounts!!.foldTrackListInit(0) { a, protoAccount, _ ->
-                            a + protoAccount.countRecursively(true)
-                        }.dropLast(1).map {
-                            CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it, sht), col_original).address
-                        }
-                                .mkString("+", prefix = "", affix = "")
-                } else
-                    createCell(col_original).setCellValue(account.displayValue)
 
-                ExcelUtil.Update(getCell(col_original)).numberFormat(account.decimalPrecision)
+                        this@ProtoReporting.categories.forEach {
+                            createCell(col).cellFormula = "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), col).address}:" +
+                                    "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), col).address}" +
+                                    ")"
+                            col++
+                        }
+                        col = colOriginal + 1
+                    } else {
+                        val tmp = account.subAccounts!!.foldTrackListInit(0) { a, protoAccount, _ ->
+                            a + protoAccount.countRecursively(true)
+                        }.dropLast(1)
+
+                        createCell(colOriginal).cellFormula = tmp.map {
+                            CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it, sht), colOriginal).address
+                        }.mkString("+", prefix = "", affix = "")
+
+
+                        this@ProtoReporting.categories.forEach {
+                            createCell(col).cellFormula = tmp.map {
+                                CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it, sht), col).address
+                            }.mkString("+", prefix = "", affix = "")
+                            col++
+                        }
+                        col = colOriginal + 1
+
+                    }
+                } else
+                    createCell(colOriginal).setCellValue(account.displayValue)
+
+                ExcelUtil.Update(getCell(colOriginal)).numberFormat(account.decimalPrecision)
             }
             account.subAccounts?.let {
                 it.forEach {
@@ -162,35 +213,61 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
         cnt = startRow
 
-        var data = mutableMapOf<Int, String>()
+        var bookings = listOf<Map<Int, String>>()
 
+        val colVal = 3
         ExcelUtil.createWorksheetIfNotExists(path, "adj", { shtCat ->
-            this.categories.forEach {
-                it.entries.forEach {
+            bookings = this.categories.fold(listOf<Map<Int, String>>()) { acc, e ->
+                val data = mutableMapOf<Int, String>()
+                e.entries.forEach {
                     it.accounts.forEach { acc ->
                         shtCat.createRow(cnt++).apply {
-                            this.createCell(0).setCellValue(acc.id.toDouble())
-                            this.createCell(1).setCellValue(acc.name)
-                            this.createCell(2).setCellValue(acc.displayValue)
-                            this.createCell(3).setCellValue(it.desc)
+                            this.createCell(0).setCellValue(it.category.id.toDouble())
+                            this.createCell(1).setCellValue(acc.id.toDouble())
+                            this.createCell(2).setCellValue(acc.name)
+                            this.createCell(colVal).setCellValue(acc.displayValue)
+                            this.createCell(4).setCellValue(it.desc)
 
                             if (data.containsKey(acc.id)) {
-                                data[acc.id] = "${data[acc.id]}+'${shtCat.sheetName}'!${CellUtil.getCell(this, 2).address}"
+                                data[acc.id] = "${data[acc.id]}+'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"
                             } else {
-                                data[acc.id] = "'${shtCat.sheetName}'!${CellUtil.getCell(this, 2).address}"
+                                data[acc.id] = "'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"
                             }
                         }
                     }
 
                     shtCat.createRow(cnt++)
                 }
+                acc + listOf(data)
             }
         })
 
-        ExcelUtil.unload(data, { it.toDouble().toInt() }, 0, col, shtOverview!!, { false }, { c, v ->
-            c.cellFormula = v
-            ExcelUtil.Update(c).numberFormat(GlobalConfiguration.DEFAULT_DECIMAL_PRECISION)
-        }, path)
+        col = colOriginal + 1
 
+        bookings.forEach {
+            ExcelUtil.unload(it, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toInt() else -1 }, 0, col++, shtOverview!!, { false }, { c, v ->
+                c.cellFormula = v
+                ExcelUtil.Update(c).numberFormat(GlobalConfiguration.DEFAULT_DECIMAL_PRECISION)
+            }, path)
+        }
+
+
+        // format
+        ExcelUtil.createWorksheetIfNotExists(path, callback = { sht ->
+            sht.getRow(0).apply {
+                this.forEach {
+                    ExcelUtil.Update(it).alignment(
+                            HorizontalAlignment.CENTER,
+                            VerticalAlignment.CENTER
+                    ).fill(color = IndexedColors.GREY_50_PERCENT.index)
+                            .font(bold = true, color = IndexedColors.WHITE.index)
+
+                    sht.setColumnWidth(it.columnIndex, 4000)
+                }
+
+                heightInPoints = 50f
+            }
+
+        })
     }
 }

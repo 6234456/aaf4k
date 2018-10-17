@@ -57,6 +57,16 @@ interface Drilldownable{
         return res
     }
 
+    fun flattenIncludeSelf(): MutableList<Drilldownable> {
+        val res: MutableList<Drilldownable> = mutableListOf(this)
+
+        getChildren()?.forEach { a ->
+            res.addAll(a.flattenIncludeSelf())
+        }
+
+        return res
+    }
+
     fun countRecursively(includeSelf: Boolean = false): Int {
         val init = if (includeSelf) 1 else 0
         if(hasChildren()){

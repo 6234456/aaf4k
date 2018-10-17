@@ -11,7 +11,7 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
 open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val category: ProtoCategory<T>) : JSONable {
 
     init {
-        category.entries.add(this)
+        category.addEntry(this)
     }
 
     var isActive:Boolean = true
