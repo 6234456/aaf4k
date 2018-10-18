@@ -48,6 +48,7 @@ class GUI : Application() {
                 val parent = TreeItem(it)
 
                 item.children.add(parent)
+                item.isExpanded = true
 
                 if (it.hasChildren()) {
                     inflateTreeItem(parent, it.subAccounts!!.toList() as List<Account>)
@@ -118,7 +119,7 @@ class GUI : Application() {
 
                         tabs.add(
                                 Tab().apply {
-                                    text = "报表"
+                                    text = "科目汇总"
                                     isClosable = false
                                     content = TreeTableView<Account>(root).apply {
                                         columns.addAll(
@@ -127,87 +128,86 @@ class GUI : Application() {
                                         isFullScreen = true
 
                                         this.addEventHandler(MouseEvent.MOUSE_CLICKED) { e ->
-                                            if (e.button == MouseButton.SECONDARY) {
+                                            if (e.button == MouseButton.PRIMARY) {
+                                                if (e.clickCount == 2) {
+                                                    (e.target as TreeTableCell<Account, String>).let {
 
-                                                (e.target as TreeTableCell<Account, String>).let {
+                                                        if (colToCategory.containsKey(it.tableColumnProperty().value.text)) {
 
-                                                    if (colToCategory.containsKey(it.tableColumnProperty().value.text)) {
+                                                            val targetAccount = it.treeTableRow.treeItem.value
+                                                            val category = colToCategory[it.tableColumnProperty().value.text]!! as Category
 
-                                                        val targetAccount = it.treeTableRow.treeItem.value
-                                                        val category = colToCategory[it.tableColumnProperty().value.text]!! as Category
+                                                            // booking mask
+                                                            val dialog: Dialog<Entry> = Dialog()
 
-                                                        // booking mask
-                                                        val dialog: Dialog<Entry> = Dialog()
+                                                            dialog.run {
+                                                                title = "Booking"
+                                                                dialogPane.buttonTypes.addAll(
+                                                                        ButtonType.OK,
+                                                                        ButtonType.CANCEL
+                                                                )
 
-                                                        dialog.run {
-                                                            title = "Booking"
-                                                            dialogPane.buttonTypes.addAll(
-                                                                    ButtonType.OK,
-                                                                    ButtonType.CANCEL
-                                                            )
+                                                                val text = mutableListOf<AutoCompleteTextField<Int>>(
+                                                                        AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) "${targetAccount.id} ${targetAccount.name}" else "", suggestions = suggestions).apply {
+                                                                            if (!targetAccount.hasChildren())
+                                                                                result = targetAccount.id
+                                                                        },
+                                                                        AutoCompleteTextField<Int>("", suggestions = suggestions).apply {
 
-                                                            val text = mutableListOf<AutoCompleteTextField<Int>>(
-                                                                    AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) "${targetAccount.id} ${targetAccount.name}" else "", suggestions = suggestions).apply {
-                                                                        if (!targetAccount.hasChildren())
-                                                                            result = targetAccount.id
-                                                                    },
-                                                                    AutoCompleteTextField<Int>("", suggestions = suggestions).apply {
-
-                                                                    }
-                                                            )
-
-                                                            val values = mutableListOf<NumericTextField>(
-                                                                    NumericTextField(targetAccount.decimalPrecision),
-                                                                    NumericTextField(targetAccount.decimalPrecision)
-                                                            )
-
-
-                                                            val rootPane = GridPane().apply {
-                                                                hgap = 10.0
-                                                                vgap = 10.0
-                                                                text.forEachIndexed { i, e ->
-                                                                    add(e, 0, i)
-                                                                }
-                                                                values.forEachIndexed { i, e ->
-                                                                    add(e, 1, i)
-                                                                }
-
-
-                                                            }
-
-
-                                                            dialogPane.content = rootPane
-
-                                                            setResultConverter {
-                                                                if (it == ButtonType.OK) {
-                                                                    with(text.map { it.result }.zip(values.map { it.number })) {
-                                                                        if (this.any { it.first != null && it.second != null }) {
-                                                                            Entry(category.nextEntryIndex, "", category).apply {
-                                                                                this@with.forEach { p ->
-                                                                                    p.first?.let { id ->
-                                                                                        p.second?.let {
-                                                                                            this.add(id, it.toDouble())
-                                                                                        }
-                                                                                    }
-
-                                                                                }
-                                                                            }
-                                                                        } else {
-                                                                            null
                                                                         }
-                                                                    }
-                                                                } else {
-                                                                    null
-                                                                }
-                                                            }
+                                                                )
 
-                                                            showAndWait().ifPresent {
-                                                                println(it)
+                                                                val values = mutableListOf<NumericTextField>(
+                                                                        NumericTextField(targetAccount.decimalPrecision),
+                                                                        NumericTextField(targetAccount.decimalPrecision)
+                                                                )
+
+
+                                                                val rootPane = GridPane().apply {
+                                                                    hgap = 10.0
+                                                                    vgap = 10.0
+                                                                    text.forEachIndexed { i, e ->
+                                                                        add(e, 0, i)
+                                                                    }
+                                                                    values.forEachIndexed { i, e ->
+                                                                        add(e, 1, i)
+                                                                    }
+
+
+                                                                }
+
+
+                                                                dialogPane.content = rootPane
+
+                                                                setResultConverter {
+                                                                    if (it == ButtonType.OK) {
+                                                                        with(text.map { it.result }.zip(values.map { it.number })) {
+                                                                            if (this.any { it.first != null && it.second != null }) {
+                                                                                Entry(category.nextEntryIndex, "", category).apply {
+                                                                                    this@with.forEach { p ->
+                                                                                        p.first?.let { id ->
+                                                                                            p.second?.let {
+                                                                                                this.add(id, it.toDouble())
+                                                                                            }
+                                                                                        }
+
+                                                                                    }
+                                                                                }
+                                                                            } else {
+                                                                                null
+                                                                            }
+                                                                        }
+                                                                    } else {
+                                                                        null
+                                                                    }
+                                                                }
+
+                                                                showAndWait().ifPresent {
+                                                                    println(it)
+                                                                }
                                                             }
                                                         }
                                                     }
-
-
                                                 }
                                             }
                                         }
@@ -216,7 +216,13 @@ class GUI : Application() {
                         )
                         tabs.add(
                                 Tab().apply {
-                                    text = "分录"
+                                    text = "财务报表"
+                                    isClosable = false
+                                }
+                        )
+                        tabs.add(
+                                Tab().apply {
+                                    text = "调整分录"
                                     isClosable = false
                                 }
                         )
