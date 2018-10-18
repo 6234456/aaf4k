@@ -9,6 +9,9 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
     val entries: MutableSet<ProtoEntry<T>> = mutableSetOf()
     val timeParameters = reporting.timeParameters
 
+    //might exist multi-thread problem
+    var nextEntryIndex = 1
+
     init {
         reporting.addCategory(this)
     }
@@ -18,6 +21,8 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
             throw Exception("Duplicated Entry-ID ${entry.id}")
 
         entries.add(entry)
+
+        nextEntryIndex = Math.max(entry.id, nextEntryIndex) + 1
     }
 
     fun toDataMap(): Map<Int, Double> {
