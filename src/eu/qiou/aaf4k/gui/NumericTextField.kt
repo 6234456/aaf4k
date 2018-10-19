@@ -13,24 +13,30 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "") : TextFiel
         private val formatter: (Number, Int) -> String = { n, dec ->
             if (Math.abs(n.toDouble()) < Math.pow(10.0, -1.0 * (dec + 1))) "0" else String.format("%,.${dec}f", n.roundUpTo(dec))
         }
+
+        private fun parseString(t: String, decimalPrecision: Int): Double {
+            return if (regFormula.matches(t)) {
+                js.eval(regFormula.find(t)!!.groups[1]!!.value).toString().toDouble()
+            } else {
+                t.toDouble()
+            }.roundUpTo(decimalPrecision)
+        }
     }
 
     private var fixed: Boolean = false
     var number: Number? = null
 
+    fun writeNumber(n: Number) {
+        fixed = true
+        number = n
+        this.text = formatter(number!!, decimalPrecision)
+    }
+
+
     private fun formatText() {
         text?.let { t ->
             if (!t.isBlank()) {
-                fixed = true
-
-                number = if (regFormula.matches(t)) {
-                    js.eval(regFormula.find(t)!!.groups[1]!!.value).toString().toDouble()
-                } else {
-                    t.toDouble()
-                }.roundUpTo(decimalPrecision)
-
-                this.text = formatter(number!!, decimalPrecision)
-
+                writeNumber(parseString(t, decimalPrecision))
             }
         }
     }

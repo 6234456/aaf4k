@@ -125,7 +125,6 @@ class GUI : Application() {
                                         columns.addAll(
                                                 cols
                                         )
-                                        isFullScreen = true
 
                                         this.addEventHandler(MouseEvent.MOUSE_CLICKED) { e ->
                                             if (e.button == MouseButton.PRIMARY) {
@@ -147,6 +146,8 @@ class GUI : Application() {
                                                                         ButtonType.CANCEL
                                                                 )
 
+                                                                val rootPane = GridPane()
+
                                                                 val text = mutableListOf<AutoCompleteTextField<Int>>(
                                                                         AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) "${targetAccount.id} ${targetAccount.name}" else "", suggestions = suggestions).apply {
                                                                             if (!targetAccount.hasChildren())
@@ -157,23 +158,88 @@ class GUI : Application() {
                                                                         }
                                                                 )
 
-                                                                val values = mutableListOf<NumericTextField>(
-                                                                        NumericTextField(targetAccount.decimalPrecision),
+                                                                val values = text.map {
                                                                         NumericTextField(targetAccount.decimalPrecision)
-                                                                )
+                                                                }.toMutableList()
 
 
-                                                                val rootPane = GridPane().apply {
+                                                                val btnBalance = text.mapIndexed { i, _ ->
+                                                                    Button("b").apply {
+                                                                        setOnAction {
+                                                                            values[i].writeNumber(values.foldIndexed(0.0) { index, acc, e ->
+                                                                                acc + if (e.number == null || index == i) 0.0 else e.number!!.toDouble()
+                                                                            } * -1)
+                                                                        }
+                                                                    }
+                                                                }.toMutableList()
+
+                                                                val btnPlus = text.map {
+                                                                    Button("+")
+                                                                }.toMutableList()
+
+                                                                val btnMinus = text.map {
+                                                                    Button("-")
+                                                                }.toMutableList()
+
+                                                                val elements = listOf(
+                                                                        text,
+                                                                        values,
+                                                                        btnBalance,
+                                                                        btnPlus,
+                                                                        btnMinus)
+
+                                                                val group = ControlGroup(elements, listOf(
+                                                                        { i: Int, g: ControlGroup ->
+                                                                            AutoCompleteTextField<Int>("", suggestions = suggestions)
+                                                                        },
+                                                                        { i: Int, g: ControlGroup ->
+                                                                            NumericTextField(targetAccount.decimalPrecision)
+                                                                        },
+                                                                        { i: Int, g: ControlGroup ->
+                                                                            Button("b").apply {
+                                                                                setOnAction {
+                                                                                    val j = elements[i].indexOf(this)
+                                                                                    values[i].writeNumber(values.foldIndexed(0.0) { index, acc, e ->
+                                                                                        acc + if (e.number == null || index == j) 0.0 else e.number!!.toDouble()
+                                                                                    } * -1)
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        { i: Int, g: ControlGroup ->
+                                                                            Button("+").apply {
+                                                                                setOnAction { g.append(elements[i].indexOf(this), rootPane) }
+                                                                            }
+                                                                        },
+                                                                        { i: Int, g: ControlGroup ->
+                                                                            Button("-").apply {
+                                                                                setOnAction { g.remove(elements[i].indexOf(this), rootPane) }
+                                                                            }
+                                                                        }
+                                                                ))
+
+                                                                btnPlus.forEachIndexed { index, button ->
+                                                                    button.apply {
+                                                                        setOnAction {
+                                                                            group.append(elements[index].indexOf(this), rootPane)
+                                                                        }
+                                                                    }
+                                                                }
+                                                                btnMinus.forEachIndexed { index, button ->
+                                                                    button.apply {
+                                                                        setOnAction {
+                                                                            group.remove(elements[index].indexOf(this), rootPane)
+                                                                        }
+                                                                    }
+                                                                }
+
+
+                                                                rootPane.apply {
                                                                     hgap = 10.0
                                                                     vgap = 10.0
-                                                                    text.forEachIndexed { i, e ->
-                                                                        add(e, 0, i)
-                                                                    }
-                                                                    values.forEachIndexed { i, e ->
-                                                                        add(e, 1, i)
-                                                                    }
 
+                                                                    prefHeight = 600.0
 
+                                                                    group.attachToRoot(this)
                                                                 }
 
 
