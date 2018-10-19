@@ -5,16 +5,11 @@ import javafx.scene.layout.GridPane
 
 
 // Int : the index of the Control type, ControlGroup this
-class ControlGroup(val elements: List<MutableList<out Control>>,
-                   val methodAdd: List<(Int, ControlGroup) -> Control>,
-                   val rows: Int = 3
-) {
+class ControlGroup(val methodAdd: List<(Int, ControlGroup) -> Control>) {
 
-    val n = methodAdd.size
-    val ele = 0.until(n).map {
+    val elements = 0.until(methodAdd.size).map {
         mutableListOf(methodAdd[it](it, this))
     }
-
 
     fun remove(i: Int, root: GridPane? = null) {
         if (length > 2) {
@@ -28,8 +23,12 @@ class ControlGroup(val elements: List<MutableList<out Control>>,
         }
     }
 
+    fun getControlType(index: Int): List<Control> {
+        return elements[index]
+    }
+
+
     fun append(index: Int, root: GridPane? = null, startCol: Int = 0, startRow: Int = 0) {
-        println("index: $index:  length: $length")
         val l = length - 1
         elements.forEachIndexed { i, mutableList ->
             val e = methodAdd[i](i, this)
@@ -42,7 +41,7 @@ class ControlGroup(val elements: List<MutableList<out Control>>,
                 }
                 it.add(e, i + startCol, index + startRow)
             }
-            (mutableList as MutableList<Control>).add(index, e)
+            mutableList.add(index, e)
         }
     }
 
@@ -54,8 +53,10 @@ class ControlGroup(val elements: List<MutableList<out Control>>,
         }
     }
 
-    fun inflate() {
-
+    fun inflate(n: Int) {
+        (n - 1).downTo(1).forEach {
+            append(length - 1)
+        }
     }
 
     var length: Int = elements[0].size

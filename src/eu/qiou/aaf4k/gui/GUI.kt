@@ -148,41 +148,9 @@ class GUI : Application() {
 
                                                                 val rootPane = GridPane()
 
-                                                                val text = mutableListOf<AutoCompleteTextField<Int>>(
-                                                                        AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) "${targetAccount.id} ${targetAccount.name}" else "", suggestions = suggestions).apply {
-                                                                            if (!targetAccount.hasChildren())
-                                                                                result = targetAccount.id
-                                                                        },
-                                                                        AutoCompleteTextField<Int>("", suggestions = suggestions).apply {
+                                                                val valuePos = 1
 
-                                                                        }
-                                                                )
-
-                                                                val values = text.map {
-                                                                        NumericTextField(targetAccount.decimalPrecision)
-                                                                }.toMutableList()
-
-
-                                                                val btnBalance = text.mapIndexed { _, _ ->
-                                                                    Button("b")
-                                                                }.toMutableList()
-
-                                                                val btnPlus = text.map {
-                                                                    Button("+")
-                                                                }.toMutableList()
-
-                                                                val btnMinus = text.map {
-                                                                    Button("-")
-                                                                }.toMutableList()
-
-                                                                val elements = listOf(
-                                                                        text,
-                                                                        values,
-                                                                        btnBalance,
-                                                                        btnPlus,
-                                                                        btnMinus)
-
-                                                                val group = ControlGroup(elements, listOf(
+                                                                val group = ControlGroup(listOf(
                                                                         { i: Int, g: ControlGroup ->
                                                                             AutoCompleteTextField<Int>("", suggestions = suggestions)
                                                                         },
@@ -192,7 +160,8 @@ class GUI : Application() {
                                                                         { i: Int, g: ControlGroup ->
                                                                             Button("b").apply {
                                                                                 setOnAction {
-                                                                                    val j = elements[i].indexOf(this)
+                                                                                    val j = g.elements[i].indexOf(this)
+                                                                                    val values = g.elements[valuePos] as MutableList<NumericTextField>
                                                                                     values[j].writeNumber(values.foldIndexed(0.0) { index, acc, e ->
                                                                                         acc + if (e.number == null || index == j) 0.0 else e.number!!.toDouble()
                                                                                     } * -1)
@@ -201,39 +170,20 @@ class GUI : Application() {
                                                                         },
                                                                         { i: Int, g: ControlGroup ->
                                                                             Button("+").apply {
-                                                                                setOnAction { g.append(elements[i].indexOf(this), rootPane) }
+                                                                                setOnAction { g.append(g.elements[i].indexOf(this), rootPane) }
                                                                             }
                                                                         },
                                                                         { i: Int, g: ControlGroup ->
                                                                             Button("-").apply {
-                                                                                setOnAction { g.remove(elements[i].indexOf(this), rootPane) }
+                                                                                setOnAction { g.remove(g.elements[i].indexOf(this), rootPane) }
                                                                             }
                                                                         }
-                                                                ))
+                                                                )).apply {
+                                                                    inflate(3)
 
-                                                                btnBalance.forEachIndexed { _, button ->
-                                                                    button.apply {
-                                                                        setOnAction {
-                                                                            val j = btnBalance.indexOf(this)
-                                                                            values[j].writeNumber(values.foldIndexed(0.0) { index, acc, e ->
-                                                                                acc + if (e.number == null || index == j) 0.0 else e.number!!.toDouble()
-                                                                            } * -1)
-                                                                        }
-                                                                    }
-                                                                }
-
-                                                                btnPlus.forEachIndexed { index, button ->
-                                                                    button.apply {
-                                                                        setOnAction {
-                                                                            group.append(btnPlus.indexOf(this), rootPane)
-                                                                        }
-                                                                    }
-                                                                }
-                                                                btnMinus.forEachIndexed { index, button ->
-                                                                    button.apply {
-                                                                        setOnAction {
-                                                                            group.remove(btnMinus.indexOf(this), rootPane)
-                                                                        }
+                                                                    this.elements[0][0] = AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) "${targetAccount.id} ${targetAccount.name}" else "", suggestions).apply {
+                                                                        if (!targetAccount.hasChildren())
+                                                                            result = targetAccount.id
                                                                     }
                                                                 }
 
@@ -252,6 +202,8 @@ class GUI : Application() {
 
                                                                 setResultConverter {
                                                                     if (it == ButtonType.OK) {
+                                                                        val text = group.elements[0] as List<AutoCompleteTextField<Int>>
+                                                                        val values = group.elements[valuePos] as List<NumericTextField>
                                                                         with(text.map { it.result }.zip(values.map { it.number })) {
                                                                             if (this.any { it.first != null && it.second != null }) {
                                                                                 val e = Entry(category.nextEntryIndex, "", category).apply {
