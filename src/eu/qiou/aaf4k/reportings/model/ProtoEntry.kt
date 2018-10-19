@@ -32,6 +32,10 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
         }
     }
 
+    fun unregister() {
+        this.category.entries.remove(this)
+    }
+
     open fun add(id: Int, value: Double): ProtoEntry<T> {
         this.category.reporting.findAccountByID(id)?.let {
             return add(it.toBuilder().setValue(v = value, decimalPrecision = it.decimalPrecision).build() as T)

@@ -163,14 +163,8 @@ class GUI : Application() {
                                                                 }.toMutableList()
 
 
-                                                                val btnBalance = text.mapIndexed { i, _ ->
-                                                                    Button("b").apply {
-                                                                        setOnAction {
-                                                                            values[i].writeNumber(values.foldIndexed(0.0) { index, acc, e ->
-                                                                                acc + if (e.number == null || index == i) 0.0 else e.number!!.toDouble()
-                                                                            } * -1)
-                                                                        }
-                                                                    }
+                                                                val btnBalance = text.mapIndexed { _, _ ->
+                                                                    Button("b")
                                                                 }.toMutableList()
 
                                                                 val btnPlus = text.map {
@@ -199,7 +193,7 @@ class GUI : Application() {
                                                                             Button("b").apply {
                                                                                 setOnAction {
                                                                                     val j = elements[i].indexOf(this)
-                                                                                    values[i].writeNumber(values.foldIndexed(0.0) { index, acc, e ->
+                                                                                    values[j].writeNumber(values.foldIndexed(0.0) { index, acc, e ->
                                                                                         acc + if (e.number == null || index == j) 0.0 else e.number!!.toDouble()
                                                                                     } * -1)
                                                                                 }
@@ -217,17 +211,28 @@ class GUI : Application() {
                                                                         }
                                                                 ))
 
+                                                                btnBalance.forEachIndexed { _, button ->
+                                                                    button.apply {
+                                                                        setOnAction {
+                                                                            val j = btnBalance.indexOf(this)
+                                                                            values[j].writeNumber(values.foldIndexed(0.0) { index, acc, e ->
+                                                                                acc + if (e.number == null || index == j) 0.0 else e.number!!.toDouble()
+                                                                            } * -1)
+                                                                        }
+                                                                    }
+                                                                }
+
                                                                 btnPlus.forEachIndexed { index, button ->
                                                                     button.apply {
                                                                         setOnAction {
-                                                                            group.append(elements[index].indexOf(this), rootPane)
+                                                                            group.append(btnPlus.indexOf(this), rootPane)
                                                                         }
                                                                     }
                                                                 }
                                                                 btnMinus.forEachIndexed { index, button ->
                                                                     button.apply {
                                                                         setOnAction {
-                                                                            group.remove(elements[index].indexOf(this), rootPane)
+                                                                            group.remove(btnMinus.indexOf(this), rootPane)
                                                                         }
                                                                     }
                                                                 }
@@ -249,15 +254,21 @@ class GUI : Application() {
                                                                     if (it == ButtonType.OK) {
                                                                         with(text.map { it.result }.zip(values.map { it.number })) {
                                                                             if (this.any { it.first != null && it.second != null }) {
-                                                                                Entry(category.nextEntryIndex, "", category).apply {
+                                                                                val e = Entry(category.nextEntryIndex, "", category).apply {
                                                                                     this@with.forEach { p ->
                                                                                         p.first?.let { id ->
                                                                                             p.second?.let {
                                                                                                 this.add(id, it.toDouble())
                                                                                             }
                                                                                         }
-
                                                                                     }
+                                                                                }
+
+                                                                                if (!e.balanced()) {
+                                                                                    e.unregister()
+                                                                                    null
+                                                                                } else {
+                                                                                    e
                                                                                 }
                                                                             } else {
                                                                                 null

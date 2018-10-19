@@ -17,14 +17,15 @@ class ControlGroup(val elements: List<MutableList<out Control>>,
 
 
     fun remove(i: Int, root: GridPane? = null) {
-        println(length)
-        if (length > 2)
+        if (length > 2) {
+
             elements.forEach {
                 val e = it.removeAt(i)
                 root?.let {
                     it.children.remove(e)
                 }
             }
+        }
     }
 
     fun append(index: Int, root: GridPane? = null, startCol: Int = 0, startRow: Int = 0) {
