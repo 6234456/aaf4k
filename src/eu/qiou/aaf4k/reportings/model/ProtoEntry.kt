@@ -25,7 +25,7 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
         if (!isActive || isEmpty)
             return mapOf()
 
-        return accounts.filter { ! it.isStatistical }.groupBy({ it.id }).mapValues {
+        return accounts.groupBy { it.id }.mapValues {
             it.value.fold(0.0) { acc, e ->
                 acc + e.decimalValue
             }

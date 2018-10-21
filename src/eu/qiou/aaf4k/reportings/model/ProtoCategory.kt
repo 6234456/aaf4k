@@ -6,7 +6,7 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
 
 
 open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val desc: String, val reporting: ProtoReporting<T>) : JSONable {
-    val entries: MutableSet<ProtoEntry<T>> = mutableSetOf()
+    val entries: MutableList<ProtoEntry<T>> = mutableListOf()
     val timeParameters = reporting.timeParameters
 
     //might exist multi-thread problem

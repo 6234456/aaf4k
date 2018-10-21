@@ -13,6 +13,9 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "") : TextFiel
         private val formatter: (Number, Int) -> String = { n, dec ->
             if (Math.abs(n.toDouble()) < Math.pow(10.0, -1.0 * (dec + 1))) "0" else String.format("%,.${dec}f", n.roundUpTo(dec))
         }
+        private val formatterWithoutSep: (Number, Int) -> String = { n, dec ->
+            if (Math.abs(n.toDouble()) < Math.pow(10.0, -1.0 * (dec + 1))) "0" else String.format("%.${dec}f", n.roundUpTo(dec))
+        }
 
         private fun parseString(t: String, decimalPrecision: Int): Double {
             return if (regFormula.matches(t)) {
@@ -55,7 +58,7 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "") : TextFiel
                 formatText()
             else {
                 fixed = false
-                this.text = if (number == null) "" else number.toString()
+                this.text = if (number == null) "" else formatterWithoutSep(number!!, decimalPrecision)
             }
         }
     }

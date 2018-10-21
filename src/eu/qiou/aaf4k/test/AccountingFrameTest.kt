@@ -48,6 +48,26 @@ class AccountingFrameTest {
     }
 
     @Test
+    fun stat() {
+        val reporting = testReporting()
+        Entry(8, "dsder", reporting.categories.elementAt(0) as Category).add(
+                5202, 100.0
+        )
+
+        reporting.findAccountByID(5202)!!.let {
+            println(it.isStatistical)
+            println(it.toBuilder().isStatistical)
+            println(it.toBuilder()
+                    .setValue(v = 1000.0, decimalPrecision = it.decimalPrecision)
+                    .build().isStatistical)
+            println(Account.from(it.toBuilder()
+                    .setValue(v = 1000.0, decimalPrecision = it.decimalPrecision)
+                    .build(), it.reportingType).isStatistical)
+        }
+
+    }
+
+    @Test
     fun getFlattened() {
 
         testReporting().apply {

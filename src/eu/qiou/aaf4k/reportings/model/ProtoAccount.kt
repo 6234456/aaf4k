@@ -296,7 +296,6 @@ open class ProtoAccount(val id: Int, open val name: String,
             this.value = v
             this.subAccounts = null
             type = VALUE_SETTER_BASIC
-            isStatistical = false
             return this
         }
 
@@ -307,7 +306,6 @@ open class ProtoAccount(val id: Int, open val name: String,
             this.decimalPrecision = decimalPrecision
             this.value = (v * Math.pow(10.0, decimalPrecision.toDouble())).toLong()
             this.subAccounts = null
-            this.isStatistical = false
             this.type = VALUE_SETTER_EXTERNAL
             return this
         }
