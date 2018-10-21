@@ -9,6 +9,7 @@ import eu.qiou.aaf4k.test.AccountingFrameTest
 import eu.qiou.aaf4k.util.roundUpTo
 import javafx.application.Application
 import javafx.beans.property.ReadOnlyStringWrapper
+import javafx.collections.FXCollections
 import javafx.geometry.Side
 import javafx.scene.Scene
 import javafx.scene.control.*
@@ -16,6 +17,7 @@ import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.GridPane
 import javafx.stage.Stage
+import javafx.util.StringConverter
 
 class GUI : Application() {
 
@@ -30,6 +32,12 @@ class GUI : Application() {
         val reporting = AccountingFrameTest.testReporting()
 
         val suggestions = reporting.flatten().map { "${it.id} ${it.name}" to it.id }.toMap()
+
+        val categories = FXCollections.observableArrayList<Category>().apply {
+            reporting.categories.map {
+                this.add(it as Category)
+            }
+        }
 
         val colToCategory = reporting.categories.map { it.name to it }.toMap()
 
@@ -134,7 +142,7 @@ class GUI : Application() {
                                                         if (colToCategory.containsKey(it.tableColumnProperty().value.text)) {
 
                                                             val targetAccount = it.treeTableRow.treeItem.value
-                                                            val category = colToCategory[it.tableColumnProperty().value.text]!! as Category
+                                                            var category = colToCategory[it.tableColumnProperty().value.text]!! as Category
 
                                                             // booking mask
                                                             val dialog: Dialog<Entry> = Dialog()
@@ -178,7 +186,7 @@ class GUI : Application() {
                                                                                 setOnAction { g.remove(g.elements[i].indexOf(this), rootPane) }
                                                                             }
                                                                         }
-                                                                )).apply {
+                                                                ), 0, 1).apply {
                                                                     inflate(3)
 
                                                                     this.elements[0][0] = AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) "${targetAccount.id} ${targetAccount.name}" else "", suggestions).apply {
@@ -193,6 +201,28 @@ class GUI : Application() {
                                                                     vgap = 10.0
 
                                                                     prefHeight = 600.0
+
+                                                                    this.add(ComboBox<Category>().apply {
+                                                                        items = categories
+
+                                                                        this.converter = object : StringConverter<Category>() {
+                                                                            override fun toString(`object`: Category?): String {
+                                                                                return `object`!!.name
+                                                                            }
+
+                                                                            override fun fromString(string: String?): Category {
+                                                                                return reporting.categories.find { it.name.equals(string) } as Category
+                                                                            }
+
+                                                                        }
+
+                                                                        this.selectionModel.select(category)
+
+                                                                        valueProperty().addListener { _, _, newVal ->
+                                                                            category = newVal
+                                                                        }
+
+                                                                    }, 0, 0)
 
                                                                     group.attachToRoot(this)
                                                                 }

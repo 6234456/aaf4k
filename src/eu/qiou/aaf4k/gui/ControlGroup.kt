@@ -5,7 +5,10 @@ import javafx.scene.layout.GridPane
 
 
 // Int : the index of the Control type, ControlGroup this
-class ControlGroup(val methodAdd: List<(Int, ControlGroup) -> Control>) {
+class ControlGroup(val methodAdd: List<(Int, ControlGroup) -> Control>, startCol: Int = 0, startRow: Int = 0) {
+
+    private val startCol = startCol
+    private val startRow = startRow
 
     val elements = 0.until(methodAdd.size).map {
         mutableListOf(methodAdd[it](it, this))
@@ -28,7 +31,7 @@ class ControlGroup(val methodAdd: List<(Int, ControlGroup) -> Control>) {
     }
 
 
-    fun append(index: Int, root: GridPane? = null, startCol: Int = 0, startRow: Int = 0) {
+    fun append(index: Int, root: GridPane? = null, startCol: Int = this.startCol, startRow: Int = this.startRow) {
         val l = length - 1
         elements.forEachIndexed { i, mutableList ->
             val e = methodAdd[i](i, this)
@@ -45,7 +48,7 @@ class ControlGroup(val methodAdd: List<(Int, ControlGroup) -> Control>) {
         }
     }
 
-    fun attachToRoot(root: GridPane, startCol: Int = 0, startRow: Int = 0) {
+    fun attachToRoot(root: GridPane, startCol: Int = this.startCol, startRow: Int = this.startRow) {
         elements.forEachIndexed { i, list ->
             list.forEachIndexed { j, node ->
                 root.add(node, i + startCol, j + startRow)
