@@ -34,7 +34,7 @@ class GUI : Application() {
 
         val reporting = AccountingFrameTest.testReporting()
 
-        val suggestions = reporting.flatten().map { "${it.id} ${it.name}" to it.id }.toMap()
+        val suggestions = reporting.flattenWithStatistical().map { "${it.id} ${it.name}" to it.id }.toMap()
 
         val categories = FXCollections.observableArrayList<Category>().apply {
             reporting.categories.map {

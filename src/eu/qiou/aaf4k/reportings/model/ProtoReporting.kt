@@ -71,6 +71,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         } as List<T>
     }
 
+    fun flattenWithStatistical(): List<T> {
+        return structure.map { if (it.hasChildren()) it.flatten() else mutableListOf(it as Drilldownable) }.reduce { acc, mutableList ->
+            acc.apply { addAll(mutableList) }
+        } as List<T>
+    }
+
     fun flattenWithAllAccounts(): List<T> {
         return structure.fold(listOf()) { acc, t ->
             (acc + t.flattenIncludeSelf()) as List<T>
