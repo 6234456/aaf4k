@@ -149,6 +149,10 @@ open class ProtoAccount(val id: Int, open val name: String,
         }
     }
 
+    fun nullify(): ProtoAccount {
+        return this.deepCopy { it.toBuilder().setValue(0).build() }
+    }
+
     open fun findChildByID(id: Int): ProtoAccount? {
         if (this.id == id) {
             return this

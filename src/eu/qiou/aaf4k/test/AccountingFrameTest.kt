@@ -15,7 +15,10 @@ class AccountingFrameTest {
     companion object {
         fun testReporting(): Reporting {
             val frame = AccountingFrame.inflate(123, "cn_cas_2018").toReporting(123, "ED",
-                    displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016))
+                    displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016)).update(
+                    mapOf(3100 to 1203.0, 3400 to 23.0)
+            )
+
             val category = Category("年度账户", 0, "laufende Buchungen", frame)
             val category1 = Category("合并抵销分录", 1, "laufende Buchungen", frame)
             val category2 = Category("权益抵销分录", 2, "laufende Buchungen", frame)
@@ -95,6 +98,11 @@ class AccountingFrameTest {
         val acc = Account.from(ProtoAccount(1, "Hi", subAccounts = mutableSetOf(acc3, acc4)), ReportingType.LIABILITY)
 
         println(acc.subAccounts)
+    }
 
+
+    @Test
+    fun nullify() {
+        println(Account.from(ProtoAccount.Builder(123, "Demo").setValue(10.0).build(), ReportingType.LIABILITY).nullify())
     }
 }

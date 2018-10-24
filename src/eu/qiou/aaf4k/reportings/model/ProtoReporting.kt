@@ -51,7 +51,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     }
 
     fun mergeCategories(): Map<Int, Double> {
-        return categories.map { it.toDataMap() }.reduce { acc, map ->
+        return if (categories.isEmpty()) mapOf() else categories.map { it.toDataMap() }.reduce { acc, map ->
             acc.mergeReduce(map) { a, b -> a + b }
         }
     }
@@ -59,6 +59,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     fun shorten(): ProtoReporting<T> {
         return ProtoReporting(id, name, desc,
                 structure.map { it.shorten() as T }
+                , displayUnit, entity, timeParameters)
+    }
+
+    fun nullify(): ProtoReporting<T> {
+        return ProtoReporting(id, name, desc,
+                structure.map { it.nullify() as T }
                 , displayUnit, entity, timeParameters)
     }
 

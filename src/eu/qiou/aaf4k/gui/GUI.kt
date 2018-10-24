@@ -33,6 +33,7 @@ class GUI : Application() {
     override fun start(primaryStage: Stage?) {
 
         val reporting = AccountingFrameTest.testReporting()
+        val reportingNull = reporting.nullify()
 
         val suggestions = reporting.flattenWithStatistical().map { "${it.id} ${it.name}" to it.id }.toMap()
 
@@ -136,7 +137,7 @@ class GUI : Application() {
 
                         var category = it as Category
                         TreeTableColumn<Account, String>(it.name).apply {
-                            val data = reporting.update(it.toDataMap()).flattenWithAllAccounts().map { it.id to it.displayValue }.toMap()
+                            val data = reportingNull.update(it.toDataMap()).flattenWithAllAccounts().map { it.id to it.displayValue }.toMap()
 
                             setCellFactory {
                                 object : TreeTableCell<Account, String>() {
