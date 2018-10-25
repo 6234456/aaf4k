@@ -2,13 +2,17 @@ package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.accounting.model.*
 import eu.qiou.aaf4k.reportings.etl.AccountingFrame
+import eu.qiou.aaf4k.reportings.model.Address
+import eu.qiou.aaf4k.reportings.model.Person
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
+import eu.qiou.aaf4k.reportings.model.ProtoEntity
 import eu.qiou.aaf4k.util.groupNearby
-import eu.qiou.aaf4k.util.io.FromJSON
+import eu.qiou.aaf4k.util.io.*
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.UnitScalar
 import org.junit.Test
+import java.util.*
 
 class AccountingFrameTest {
 
@@ -114,6 +118,21 @@ class AccountingFrameTest {
 
         println(s2)
         println(FromJSON.timeParameters(FromJSON.read(s2)))
+
+        val p = Person(123, "Yang", "Qiou", true)
+        println(p.toJSON())
+        println(p.toJSON().toPerson())
+
+        val a = Address(123, Locale.CHINA, "Hubei", "Qianjiang", "433100", "myStreet", "123a")
+        println(a)
+        println(a.toJSON().toAddress())
+
+        val entity = ProtoEntity(1234, "Qiou GmbH", "Qiou", "dsf", p, a)
+        println(entity)
+        println(entity.toJSON().toEntity())
+
+        val re = AccountingFrameTest.testReporting()
+        println(re.toJSON().toReporting().entity.toJSON())
 
     }
 }

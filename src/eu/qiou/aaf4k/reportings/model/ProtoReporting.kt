@@ -5,6 +5,7 @@ import eu.qiou.aaf4k.util.foldTrackListInit
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.mergeReduce
+import eu.qiou.aaf4k.util.mkJSON
 import eu.qiou.aaf4k.util.mkString
 import eu.qiou.aaf4k.util.strings.CollectionToString
 import eu.qiou.aaf4k.util.time.TimeParameters
@@ -45,7 +46,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
     fun addCategory(category: ProtoCategory<T>) {
         if (categories.any { it.id == category.id })
-            throw Exception("Duplicated Category-ID ${category.id}")
+            throw Exception("Duplicated Category-ID ${category.id} in $categories")
 
         categories.add(category)
     }
@@ -126,7 +127,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     }
 
     override fun toJSON():String{
-        return """{"id":$id, "name":$name, "desc":$desc, "structure":${CollectionToString.mkJSON(structure)}, "entity":${entity.toJSON()}, "timeParameter":${timeParameters.toJSON()}}""".trimMargin()
+        return """{"id":$id, "name":"$name", "desc":"$desc", "structure":${CollectionToString.mkJSON(structure)}, "entity":${entity.toJSON()}, "timeParameters":${timeParameters.toJSON()}, "categories":${categories.mkJSON()}}"""
     }
 
     override fun toString(): String {

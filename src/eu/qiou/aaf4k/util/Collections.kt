@@ -1,5 +1,8 @@
 package eu.qiou.aaf4k.util
 
+import eu.qiou.aaf4k.util.io.JSONable
+import eu.qiou.aaf4k.util.strings.CollectionToString
+
 // https://gist.github.com/cy6erGn0m/97ecdc7191364572a94a
 fun <K, V> Map<K, V>.mergeReduce(other: Map<K, V>, reduce: (V, V) -> V): Map<K, V> {
     val result = LinkedHashMap<K, V>(this.size + other.size)
@@ -10,6 +13,8 @@ fun <K, V> Map<K, V>.mergeReduce(other: Map<K, V>, reduce: (V, V) -> V): Map<K, 
 
 fun Iterable<Any>.mkString(separator: String = ", ", prefix: String = "[", affix: String = "]") = eu.qiou.aaf4k.util.strings.CollectionToString.mkString(this, separator, prefix, affix)
 
+
+fun Iterable<JSONable>.mkJSON() = CollectionToString.mkJSON(this)
 /**
  * @sample   to [1,2,3,4]  -> [k, 1, 2, 3, 4]
  */

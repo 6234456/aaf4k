@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.reportings.model
 
 import eu.qiou.aaf4k.util.io.JSONable
+import eu.qiou.aaf4k.util.mkJSON
 import eu.qiou.aaf4k.util.strings.CollectionToString
 
 /**
@@ -11,8 +12,9 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
 data class ProtoEntity(val id: Int, var name: String, var abbreviation: String = name, var desc:String = "",
                        var contactPerson: Person? = null, var address: Address? = null) : Drilldownable, JSONable {
     override fun toJSON(): String {
-        return """{"id":$id, "name":$name, "abbreviation":$abbreviation, "desc":$desc, "contactPerson":${contactPerson?.toJSON()
-                ?: "null"}, "address":${address?.toJSON() ?: "null"}}"""
+        return """{"id":$id, "name":"$name", "abbreviation":"$abbreviation", "desc":"$desc", "contactPerson":${contactPerson?.toJSON()
+                ?: "null"}, "address":${address?.toJSON() ?: "null"}, "child":${childEntitis?.mkJSON()
+                ?: "null"}, "parent": ${parentEntitis?.mkJSON() ?: "null"}}"""
     }
 
     var childEntitis: MutableList<ProtoEntity>? = null
