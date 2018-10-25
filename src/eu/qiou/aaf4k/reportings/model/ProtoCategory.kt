@@ -16,7 +16,7 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
         reporting.addCategory(this)
     }
 
-    fun addEntry(entry: ProtoEntry<T>) {
+    fun add(entry: ProtoEntry<T>) {
         if (entries.any { it.id == entry.id })
             throw Exception("Duplicated Entry-ID ${entry.id}")
 
@@ -56,7 +56,7 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
     }
 
     override fun toJSON(): String {
-        return CollectionToString.mkJSON(entries)
+        return """{ "id": $id, "desc": "$desc", "name": "$name", "entries": ${CollectionToString.mkJSON(entries)} }"""
     }
 
     override fun toString(): String {

@@ -12,7 +12,7 @@ class EntryTest {
         val acc2 = Account.from(ProtoAccount.Builder().setBasicInfo(1235, "Asset2").setValue(200.0, 2).build(), ReportingType.ASSET)
         val acc3 = Account.from(ProtoAccount.Builder().setBasicInfo(1236, "Liab1").setValue(-150.0).build(), ReportingType.LIABILITY)
         val acc4 = Account.from(ProtoAccount.Builder().setBasicInfo(1237, "Equity").setValue(-150.0).build(), ReportingType.EQUITY)
-        val acc0 = Account(0, "DemoAssets", mutableSetOf(acc1, acc2), reportingType = ReportingType.ASSET)
+        val acc0 = Account(0, "DemoAssets", mutableListOf(acc1, acc2), reportingType = ReportingType.ASSET)
 
         val reporting = Reporting(123, "Test", "A Test Reporting", listOf(acc0, acc3, acc4))
         val c = Category("Demo", 1, "", reporting)

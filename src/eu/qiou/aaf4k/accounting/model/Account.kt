@@ -3,13 +3,14 @@ package eu.qiou.aaf4k.accounting.model
 import eu.qiou.aaf4k.reportings.model.Drilldownable
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.reportings.model.ProtoEntity
+import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.roundUpTo
 import eu.qiou.aaf4k.util.strings.CollectionToString
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 
 class Account(id: Int, name: String,
-              subAccounts: MutableSet<Account>? = null,
+              subAccounts: MutableList<Account>? = null,
               decimalPrecision: Int = 2,
               value: Long? = null,
               unit: CurrencyUnit = CurrencyUnit(),
@@ -44,13 +45,27 @@ class Account(id: Int, name: String,
     companion object {
         fun from(protoAccount: ProtoAccount, reportingType: ReportingType): Account {
             return Account(id = protoAccount.id, name = protoAccount.name,
-                    subAccounts = protoAccount.subAccounts as MutableSet<Account>?, decimalPrecision = protoAccount.decimalPrecision,
+                    subAccounts = protoAccount.subAccounts as MutableList<Account>?, decimalPrecision = protoAccount.decimalPrecision,
                     value = protoAccount.value, unit = protoAccount.unit as CurrencyUnit,
                     reportingType = reportingType, desc = protoAccount.desc, timeParameters = protoAccount.timeParameters,
                     entity = protoAccount.entity, isStatistical = protoAccount.isStatistical).apply {
                 this.displayUnit = protoAccount.displayUnit
                 this.localAccountName = protoAccount.localAccountName
                 this.localAccountID = protoAccount.localAccountID
+            }
+        }
+
+        val parseReportingType: (String) -> ReportingType = {
+            when (it) {
+                ReportingType.ASSET.code -> ReportingType.ASSET
+                ReportingType.EQUITY.code -> ReportingType.EQUITY
+                ReportingType.LIABILITY.code -> ReportingType.LIABILITY
+                ReportingType.REVENUE_GAIN.code -> ReportingType.REVENUE_GAIN
+                ReportingType.EXPENSE_LOSS.code -> ReportingType.EXPENSE_LOSS
+                ReportingType.PROFIT_LOSS_NEUTRAL.code -> ReportingType.PROFIT_LOSS_NEUTRAL
+                ReportingType.ANNUAL_RESULT.code -> ReportingType.ANNUAL_RESULT
+                ReportingType.AUTO.code -> ReportingType.AUTO
+                else -> throw java.lang.Exception("ParameterError: unknown ReportingType:$it")
             }
         }
 
@@ -76,6 +91,16 @@ class Account(id: Int, name: String,
             return "{$localAccountID $name ${reportingType.code}} : $textValue"
         else
             return "($localAccountID $name ${reportingType.code}) : $textValue"
+    }
+
+    override fun toJSON(): String {
+        if (this.hasChildren()) {
+            return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": $hasSubAccounts, "hasSuperAccounts": $hasSuperAccounts, "localAccountID": $localAccountID, "isStatistical": $isStatistical, "reportingType": "${reportingType.code}", "subAccounts": """ +
+                    CollectionToString.mkJSON(subAccounts as Iterable<JSONable>, ",\n") + "}"
+        }
+
+        return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": $hasSubAccounts, "hasSuperAccounts": $hasSuperAccounts, "localAccountID":$localAccountID, "isStatistical": $isStatistical, "scalar": ${unit.scalar}, "reportingType": "${reportingType.code}"}"""
+
     }
 
 

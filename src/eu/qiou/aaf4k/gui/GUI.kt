@@ -1,11 +1,7 @@
 package eu.qiou.aaf4k.gui
 
-import eu.qiou.aaf4k.accounting.model.Account
-import eu.qiou.aaf4k.accounting.model.Category
-import eu.qiou.aaf4k.accounting.model.Entry
-import eu.qiou.aaf4k.accounting.model.ReportingType
+import eu.qiou.aaf4k.accounting.model.*
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
-import eu.qiou.aaf4k.test.AccountingFrameTest
 import eu.qiou.aaf4k.util.roundUpTo
 import javafx.application.Application
 import javafx.beans.property.ReadOnlyStringWrapper
@@ -25,14 +21,17 @@ import javafx.util.StringConverter
 class GUI : Application() {
 
     companion object {
-        fun open() {
+        fun open(reporting: Reporting) {
+            GUI.reporting = reporting
             Application.launch(GUI::class.java)
         }
+
+        lateinit var reporting: Reporting
     }
 
     override fun start(primaryStage: Stage?) {
 
-        val reporting = AccountingFrameTest.testReporting()
+        val reporting = GUI.reporting
         val reportingNull = reporting.nullify()
 
         val suggestions = reporting.flattenWithStatistical().map { "${it.id} ${it.name}" to it.id }.toMap()
@@ -91,6 +90,8 @@ class GUI : Application() {
                 }
             }
         }
+
+        updateTab3()
 
         fun updateTab1(selectedRow: Int? = null) {
             val treeView = TreeTableView<Account>(root)

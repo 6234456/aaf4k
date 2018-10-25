@@ -126,7 +126,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     }
 
     override fun toJSON():String{
-        return CollectionToString.mkJSON(structure)
+        return """{"id":$id, "name":$name, "desc":$desc, "structure":${CollectionToString.mkJSON(structure)}, "entity":${entity.toJSON()}, "timeParameter":${timeParameters.toJSON()}}""".trimMargin()
     }
 
     override fun toString(): String {

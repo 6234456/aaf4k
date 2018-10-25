@@ -179,7 +179,7 @@ class AccountingFrame(id: Int, name: String, val accounts: List<Account>) :
                     val name = arr[1]
                     regIndent.find(src)?.groups!!.let {
                         return Account(it.get(3)!!.value.toInt(), name, decimalPrecision = 2,
-                                subAccounts = acc.toMutableSet(),
+                                subAccounts = acc.toMutableList(),
                                 isStatistical = it.get(2)!!.value.length == 1,
                                 reportingType = if (types(arr) == null) t!! else types(arr)!!
                         )

@@ -1,10 +1,10 @@
 package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.accounting.model.*
-import eu.qiou.aaf4k.gui.GUI
 import eu.qiou.aaf4k.reportings.etl.AccountingFrame
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.util.groupNearby
+import eu.qiou.aaf4k.util.io.FromJSON
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.UnitScalar
@@ -74,12 +74,9 @@ class AccountingFrameTest {
     fun getFlattened() {
 
         testReporting().apply {
-            println(this)
+            println(toJSON())
             toXl("data/demo.xlsx")
         }
-
-        GUI.open()
-
     }
 
     @Test
@@ -88,21 +85,35 @@ class AccountingFrameTest {
         println(listOf(1, 3, 3, 3, 4, 4, 5, 6, 1, 1).groupNearby { i -> i * 0.1 })
     }
 
-    @Test
-    fun findById() {
-        val acc1 = Account.from(ProtoAccount.Builder(123, "Demo").setValue(10.0).build(), ReportingType.LIABILITY)
-        val acc2 = Account.from(ProtoAccount.Builder(124, "Demo1").setValue(10).build(), ReportingType.LIABILITY)
-        val acc3 = Account.from(ProtoAccount.Builder(125, "Demo2").setValue(10).build(), ReportingType.LIABILITY)
-        val acc4 = Account.from(ProtoAccount.Builder(126, "Demo2").setValue(mutableSetOf(acc1, acc2) as MutableSet<ProtoAccount>).build(), ReportingType.LIABILITY)
-
-        val acc = Account.from(ProtoAccount(1, "Hi", subAccounts = mutableSetOf(acc3, acc4)), ReportingType.LIABILITY)
-
-        println(acc.subAccounts)
-    }
-
 
     @Test
     fun nullify() {
         println(Account.from(ProtoAccount.Builder(123, "Demo").setValue(10.0).build(), ReportingType.LIABILITY).nullify())
+    }
+
+    @Test
+    fun parseJSON() {
+        val s = AccountingFrameTest.testReporting()
+
+        print(s.categories.elementAt(0).toJSON())
+    }
+
+    @Test
+    fun parseJSONTimeParameter() {
+        val s = TimeParameters.forYear(2018).toJSON()
+
+        println(s)
+        println(FromJSON.timeParameters(FromJSON.read(s)))
+
+        val s1 = TimeParameters(null, null).toJSON()
+
+        println(s1)
+        println(FromJSON.timeParameters(FromJSON.read(s1)))
+
+        val s2 = TimeParameters(2017, 10, 11).toJSON()
+
+        println(s2)
+        println(FromJSON.timeParameters(FromJSON.read(s2)))
+
     }
 }

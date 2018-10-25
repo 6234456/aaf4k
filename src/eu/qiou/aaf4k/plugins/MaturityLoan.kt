@@ -58,7 +58,7 @@ class MaturityLoan(val id: Int, val desc: String = "", val nominalValue: Double,
         var cnt = 0
         val reporting = Reporting(0, "Demo Reporting", "Demo",
                 listOf(
-                        Account(0, "Langfristige Verbindlichkeit KI", subAccounts = mutableSetOf(
+                        Account(0, "Langfristige Verbindlichkeit KI", subAccounts = mutableListOf(
                                 Account(3, "Verbindlichkeit KI - Principal", reportingType = ReportingType.LIABILITY, value = 0),
                                 Account(4, "Verbindlichkeit KI - Accrued Interest", reportingType = ReportingType.LIABILITY, value = 0)
                         ), reportingType = ReportingType.LIABILITY),

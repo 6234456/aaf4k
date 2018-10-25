@@ -11,7 +11,7 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
 open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val category: ProtoCategory<T>) : JSONable {
 
     init {
-        category.addEntry(this)
+        category.add(this)
     }
 
     var isActive:Boolean = true
@@ -87,7 +87,7 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
     }
 
     override fun toJSON(): String {
-        return CollectionToString.mkJSON(accounts)
+        return """{ "id": $id, "desc": "$desc", "accounts": ${CollectionToString.mkJSON(accounts)} }"""
     }
 
 }

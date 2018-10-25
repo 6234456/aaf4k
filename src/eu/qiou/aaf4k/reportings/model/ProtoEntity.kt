@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.reportings.model
 
+import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.strings.CollectionToString
 
 /**
@@ -8,10 +9,14 @@ import eu.qiou.aaf4k.util.strings.CollectionToString
  */
 
 data class ProtoEntity(val id: Int, var name: String, var abbreviation: String = name, var desc:String = "",
-                       var contactPerson: Person? = null, var address: Address? = null): Drilldownable {
+                       var contactPerson: Person? = null, var address: Address? = null) : Drilldownable, JSONable {
+    override fun toJSON(): String {
+        return """{"id":$id, "name":$name, "abbreviation":$abbreviation, "desc":$desc, "contactPerson":${contactPerson?.toJSON()
+                ?: "null"}, "address":${address?.toJSON() ?: "null"}}"""
+    }
 
-    var childEntitis: MutableSet<ProtoEntity> ? = null
-    var parentEntitis: MutableSet<ProtoEntity> ? = null
+    var childEntitis: MutableList<ProtoEntity>? = null
+    var parentEntitis: MutableList<ProtoEntity>? = null
 
     override fun getChildren(): Collection<ProtoEntity>? {
         return childEntitis
@@ -24,12 +29,12 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
     override fun add(child: Drilldownable): ProtoEntity {
         if(child is ProtoEntity){
             if (childEntitis == null){
-                childEntitis = mutableSetOf()
+                childEntitis = mutableListOf()
             }
             childEntitis!!.add(child)
 
             if(child.parentEntitis == null){
-                child.parentEntitis = mutableSetOf()
+                child.parentEntitis = mutableListOf()
             }
             child.parentEntitis!!.add(this)
         }

@@ -1,8 +1,10 @@
 package eu.qiou.aaf4k.util.time
 
+import eu.qiou.aaf4k.util.io.JSONable
 import java.time.LocalDate
 
-data class TimeParameters(val timeSpan: TimeSpan?=null, val timePoint: LocalDate?=null) {
+data class TimeParameters(val timeSpan: TimeSpan? = null, val timePoint: LocalDate? = null) : JSONable {
+
     constructor(timeSpan: TimeSpan):this(timeSpan, null)
 
     constructor(timePoint: LocalDate):this(null, timePoint)
@@ -64,6 +66,15 @@ data class TimeParameters(val timeSpan: TimeSpan?=null, val timePoint: LocalDate
             throw Exception("The time span over 1 month!")
 
         return TimeParameters.forMonth(this.start.year, this.start.monthValue)
+    }
+
+    override fun toJSON(): String {
+        return """{"type":${timeAttribute.index}""" +
+                when (timeAttribute) {
+                    TimeAttribute.TIME_SPAN, TimeAttribute.TIME_POINT -> """, "start":"${this.start}", "end":"${this.end}" }"""
+                    TimeAttribute.CONSTANT -> """}"""
+                }
+
     }
 
     companion object {

@@ -7,6 +7,6 @@ class GUITest {
 
     @Test
     fun open() {
-        GUI.open()
+        GUI.open(AccountingFrameTest.testReporting())
     }
 }
