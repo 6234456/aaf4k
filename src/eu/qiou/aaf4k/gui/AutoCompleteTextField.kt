@@ -65,7 +65,6 @@ class AutoCompleteTextField<T>(text: String = "", val suggestions: Map<String, T
         this.addEventHandler(KeyEvent.KEY_PRESSED) {
             if (it.code == KeyCode.DOWN) {
                 if (dropDownList.isShowing) {
-
                     if (dropDownList.items.count() == 1) {
                         val res = dropDownList.items[0].userData as Pair<String, T>
                         this.text = res.first

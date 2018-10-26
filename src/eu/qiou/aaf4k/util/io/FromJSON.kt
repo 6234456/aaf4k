@@ -25,6 +25,10 @@ object FromJSON {
     fun account(json: JSONObject): Account {
 
         val hasSubAccounts = json.get("hasSubAccounts") as Boolean
+        val validate = json.get("validateUntil")
+
+        val date = if (validate == null) null else LocalDate.parse(validate as String)
+
 
         return if (hasSubAccounts) {
             Account.from(
@@ -37,7 +41,8 @@ object FromJSON {
                             } as MutableList<Account>,
                             desc = json.get("desc") as String,
                             decimalPrecision = (json.get("decimalPrecision") as Long).toInt(),
-                            isStatistical = json.get("isStatistical") as Boolean
+                            isStatistical = json.get("isStatistical") as Boolean,
+                            validateUntil = date
                     ),
 
                     parseReportingType(json.get("reportingType") as String))
@@ -47,7 +52,8 @@ object FromJSON {
                             id = (json.get("id") as Long).toInt(),
                             name = json.get("name") as String,
                             desc = json.get("desc") as String,
-                            isStatistical = json.get("isStatistical") as Boolean
+                            isStatistical = json.get("isStatistical") as Boolean,
+                            validateUntil = date
                     ).setValue(v = json.get("value") as Double, decimalPrecision = (json.get("decimalPrecision") as Long).toInt())
                             .build(),
 

@@ -8,6 +8,7 @@ import eu.qiou.aaf4k.util.roundUpTo
 import eu.qiou.aaf4k.util.strings.CollectionToString
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
+import java.time.LocalDate
 
 class Account(id: Int, name: String,
               subAccounts: MutableList<Account>? = null,
@@ -18,12 +19,14 @@ class Account(id: Int, name: String,
               desc: String = "",
               timeParameters: TimeParameters? = null,
               entity: ProtoEntity? = null,
-              isStatistical: Boolean = false) : ProtoAccount(id, name, subAccounts, decimalPrecision, value, unit, desc, timeParameters, entity, isStatistical) {
+              isStatistical: Boolean = false,
+              validateUntil: LocalDate? = null
+) : ProtoAccount(id, name, subAccounts, decimalPrecision, value, unit, desc, timeParameters, entity, isStatistical, validateUntil) {
 
     constructor(id: Int, name: String, decimalPrecision: Int, formula: String, accounts: Map<Int, Account>, unit: CurrencyUnit = CurrencyUnit(),
                 reportingType: ReportingType, desc: String = "", timeParameters: TimeParameters? = null,
                 entity: ProtoEntity? = null,
-                isStatistical: Boolean = false) : this(id, name, null, decimalPrecision, parse(formula, accounts).roundUpTo(decimalPrecision).toLong(), unit, reportingType, desc, timeParameters, entity, isStatistical)
+                isStatistical: Boolean = false, validateUntil: LocalDate? = null) : this(id, name, null, decimalPrecision, parse(formula, accounts).roundUpTo(decimalPrecision).toLong(), unit, reportingType, desc, timeParameters, entity, isStatistical, validateUntil)
     val reportingValue: Double = when (reportingType) {
         ReportingType.AUTO -> Math.abs(displayValue)
         else -> displayValue * reportingType.sign
@@ -48,7 +51,7 @@ class Account(id: Int, name: String,
                     subAccounts = protoAccount.subAccounts as MutableList<Account>?, decimalPrecision = protoAccount.decimalPrecision,
                     value = protoAccount.value, unit = protoAccount.unit as CurrencyUnit,
                     reportingType = reportingType, desc = protoAccount.desc, timeParameters = protoAccount.timeParameters,
-                    entity = protoAccount.entity, isStatistical = protoAccount.isStatistical).apply {
+                    entity = protoAccount.entity, isStatistical = protoAccount.isStatistical, validateUntil = protoAccount.validateUntil).apply {
                 this.displayUnit = protoAccount.displayUnit
                 this.localAccountName = protoAccount.localAccountName
                 this.localAccountID = protoAccount.localAccountID
@@ -95,11 +98,11 @@ class Account(id: Int, name: String,
 
     override fun toJSON(): String {
         if (this.hasChildren()) {
-            return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": $hasSubAccounts, "hasSuperAccounts": $hasSuperAccounts, "localAccountID": $localAccountID, "isStatistical": $isStatistical, "reportingType": "${reportingType.code}", "subAccounts": """ +
+            return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": $hasSubAccounts, "hasSuperAccounts": $hasSuperAccounts, "localAccountID": $localAccountID, "isStatistical": $isStatistical, "validateUntil":${if (validateUntil == null) "null" else "'$validateUntil'"}, "reportingType": "${reportingType.code}", "subAccounts": """ +
                     CollectionToString.mkJSON(subAccounts as Iterable<JSONable>, ",\n") + "}"
         }
 
-        return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": $hasSubAccounts, "hasSuperAccounts": $hasSuperAccounts, "localAccountID":$localAccountID, "isStatistical": $isStatistical, "scalar": ${unit.scalar}, "reportingType": "${reportingType.code}"}"""
+        return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": $hasSubAccounts, "hasSuperAccounts": $hasSuperAccounts, "localAccountID":$localAccountID, "isStatistical": $isStatistical, "validateUntil":${if (validateUntil == null) "null" else "'$validateUntil'"}, "scalar": ${unit.scalar}, "reportingType": "${reportingType.code}"}"""
 
     }
 

@@ -12,6 +12,8 @@ import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.UnitScalar
 import org.junit.Test
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
 
 class AccountingFrameTest {
@@ -93,6 +95,7 @@ class AccountingFrameTest {
     @Test
     fun nullify() {
         println(Account.from(ProtoAccount.Builder(123, "Demo").setValue(10.0).build(), ReportingType.LIABILITY).nullify())
+        Files.write(Paths.get("data/accounting.txt"), AccountingFrameTest.testReporting().toJSON().lines())
     }
 
     @Test
