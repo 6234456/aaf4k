@@ -17,11 +17,14 @@ import javafx.scene.layout.VBox
 import javafx.scene.text.Text
 import javafx.stage.Stage
 import javafx.util.StringConverter
+import java.nio.file.Files
+import java.nio.file.Paths
 
 class GUI : Application() {
 
     companion object {
         fun open(reporting: Reporting) {
+
             GUI.reporting = reporting
             Application.launch(GUI::class.java)
         }
@@ -283,7 +286,7 @@ class GUI : Application() {
                                                     }
 
                                                     showAndWait().ifPresent {
-                                                        println(it)
+                                                        Files.write(Paths.get("data/accounting.txt"), reporting.toJSON().lines())
                                                     }
                                                 }
                                             }
