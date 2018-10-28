@@ -49,12 +49,6 @@ class GUI : Application() {
             if (Math.abs(n.toDouble()) < Math.pow(10.0, -1.0 * (dec + 1))) "" else String.format("%,.${dec}f", n.roundUpTo(dec))
         }
 
-        val root = TreeItem(
-                Account.from(ProtoAccount(0, reporting.entity.name, 0L), ReportingType.AUTO)
-        ).apply {
-            isExpanded = true
-        }
-
         val tab1 = Tab().apply {
             text = "科目汇总"
             isClosable = false
@@ -97,7 +91,14 @@ class GUI : Application() {
         updateTab3()
 
         fun updateTab1(selectedRow: Int? = null) {
+            val root = TreeItem(
+                    Account.from(ProtoAccount(0, reporting.entity.name, 0L), ReportingType.AUTO)
+            ).apply {
+                isExpanded = true
+            }
+
             val treeView = TreeTableView<Account>(root)
+
             fun inflateTreeItem(item: TreeItem<Account> = root, accounts: List<Account> = reporting.structure) {
                 accounts.forEach {
                     val parent = TreeItem(it)
