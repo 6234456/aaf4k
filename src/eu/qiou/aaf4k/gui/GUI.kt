@@ -37,7 +37,8 @@ class GUI : Application() {
         val reporting = GUI.reporting
         val reportingNull = reporting.nullify()
 
-        val suggestions = reporting.flattenWithStatistical().map { "${it.id} ${it.name}" to it.id }.toMap()
+        val accountShown: (Account) -> String = { "${it.id} ${it.name}${if (it.hasParent()) "-" + it.superAccounts!![0].name else ""}" }
+        val suggestions = reporting.flattenWithStatistical().map { accountShown(it) to it.id }.toMap()
 
         val categories = FXCollections.observableArrayList<Category>().apply {
             reporting.categories.map {
@@ -159,7 +160,6 @@ class GUI : Application() {
                                             if (e.clickCount == 2) {
                                                 val targetAccount = this.treeTableRow?.item!!
 
-
                                                 // booking mask
                                                 val dialog: Dialog<Entry> = Dialog()
 
@@ -207,7 +207,7 @@ class GUI : Application() {
                                                     ), 0, 1).apply {
                                                         inflate(3)
 
-                                                        this.elements[0][0] = AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) "${targetAccount.id} ${targetAccount.name}" else "", suggestions).apply {
+                                                        this.elements[0][0] = AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) accountShown(targetAccount) else "", suggestions).apply {
                                                             if (!targetAccount.hasChildren())
                                                                 result = targetAccount.id
                                                         }

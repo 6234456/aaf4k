@@ -119,19 +119,7 @@ class AccountingFrame(id: Int, name: String, val accounts: List<Account>) :
                     it == size - 1 || pairs[it + 1].first <= pairs[it].first
                 }
 
-                val type: (String) -> ReportingType = {
-                    when (it) {
-                        ReportingType.ASSET.code -> ReportingType.ASSET
-                        ReportingType.EQUITY.code -> ReportingType.EQUITY
-                        ReportingType.LIABILITY.code -> ReportingType.LIABILITY
-                        ReportingType.REVENUE_GAIN.code -> ReportingType.REVENUE_GAIN
-                        ReportingType.EXPENSE_LOSS.code -> ReportingType.EXPENSE_LOSS
-                        ReportingType.PROFIT_LOSS_NEUTRAL.code -> ReportingType.PROFIT_LOSS_NEUTRAL
-                        ReportingType.ANNUAL_RESULT.code -> ReportingType.ANNUAL_RESULT
-                        ReportingType.AUTO.code -> ReportingType.AUTO
-                        else -> throw java.lang.Exception("ParameterError: unknown ReportingType:$it")
-                    }
-                }
+                val type: (String) -> ReportingType = Account.parseReportingType
 
                 val types: (List<String>) -> ReportingType? = {
                     if (it.count() > 2 && regType.containsMatchIn(it.last()))
