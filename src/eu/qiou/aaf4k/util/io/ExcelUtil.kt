@@ -15,66 +15,77 @@ import java.util.*
 object ExcelUtil {
     val digitRegex = """[-.\d]+""".toRegex()
 
-        fun processWorkbook(path: String, callback: (Workbook)-> Unit){
-            val inputStream = FileInputStream(path)
+    fun getWorkbook(path: String): Pair<Workbook, FileInputStream> {
+        val inputStream = FileInputStream(path)
 
-            val wb = if (path.endsWith(".xls"))
-                HSSFWorkbook(inputStream)
+        return (if (path.endsWith(".xls"))
+            HSSFWorkbook(inputStream)
+        else
+            XSSFWorkbook(inputStream)) to inputStream
+    }
+
+    fun processWorkbook(path: String, callback: (Workbook) -> Unit) {
+        val (wb, inputStream) = getWorkbook(path)
+
+        callback(wb)
+        inputStream.close()
+    }
+
+    fun getWorksheet(path: String, sheetIndex: Int = 0, sheetName: String? = null): Pair<Sheet, FileInputStream> {
+        val (wb, inputStream) = getWorkbook(path)
+
+        return (if (sheetName != null)
+            wb.getSheet(sheetName)
+        else
+            wb.getSheetAt(sheetIndex)) to inputStream
+    }
+
+    fun processWorksheet(path: String, sheetIndex: Int = 0, sheetName: String? = null, callback: (Sheet) -> Unit) {
+        val f: (Workbook) -> Unit = { wb ->
+
+            val sht = if (sheetName != null)
+                wb.getSheet(sheetName)
             else
-                XSSFWorkbook(inputStream)
+                wb.getSheetAt(sheetIndex)
 
-            callback(wb)
-            inputStream.close()
+            callback(sht)
         }
+        processWorkbook(path, f)
+    }
 
-        fun processWorksheet(path:String, sheetIndex: Int = 0, sheetName: String? = null, callback: (Sheet) -> Unit){
-            val f: (Workbook)-> Unit = {
-                wb ->
+    fun loopThroughRows(path: String, sheetIndex: Int = 0, sheetName: String? = null, callback: (Row) -> Unit) {
+        val f: (Sheet) -> Unit = { sht ->
 
-                val sht = if(sheetName != null)
-                    wb.getSheet(sheetName)
-                else
-                    wb.getSheetAt(sheetIndex)
+            val rows = sht.rowIterator()
 
-                callback(sht)
-            }
-            processWorkbook(path, f)
-        }
-
-        fun loopThroughRows(path:String, sheetIndex: Int = 0, sheetName: String? = null, callback: (Row) -> Unit){
-            val f: (Sheet)-> Unit = {
-                sht ->
-
-                val rows = sht.rowIterator()
-
-                while (rows.hasNext()){
-                    val row = rows.next()
-                    callback(row)
-                }
-            }
-            processWorksheet(path, sheetIndex, sheetName, f)
-        }
-
-        private fun fileExists(path: String):Boolean{
-            val f = File(path)
-            return f.exists() && !f.isDirectory
-        }
-
-        fun createWorkbookIfNotExists(path:String, callback: (Workbook) -> Unit = {}){
-
-            if(fileExists(path)){
-                processWorkbook(path, callback)
-            } else {
-
-                val workbook =  if (path.endsWith(".xls"))
-                    HSSFWorkbook()
-                else
-                    XSSFWorkbook()
-
-                callback(workbook)
-                saveWorkbook(path, workbook)
+            while (rows.hasNext()) {
+                val row = rows.next()
+                callback(row)
             }
         }
+        processWorksheet(path, sheetIndex, sheetName, f)
+    }
+
+    private fun fileExists(path: String): Boolean {
+        val f = File(path)
+        return f.exists() && !f.isDirectory
+    }
+
+    fun createWorkbookIfNotExists(path: String, callback: (Workbook) -> Unit = {}) {
+
+        if (fileExists(path)) {
+            processWorkbook(path, callback)
+        } else {
+
+            val workbook = if (path.endsWith(".xls"))
+                HSSFWorkbook()
+            else
+                XSSFWorkbook()
+
+            callback(workbook)
+            saveWorkbook(path, workbook)
+        }
+    }
 
     fun saveWorkbook(path: String, workbook: Workbook) {
         val stream = FileOutputStream(path)
@@ -144,10 +155,18 @@ object ExcelUtil {
         })
     }
 
+    // TODO parse xlFormat to javaFormat
+    fun numericToText(c: Cell): String {
+        return when (c.cellStyle.dataFormatString) {
+            "General", "#", "0", "#,###", "0,###" -> c.numericCellValue.toInt().toString()
+            else -> c.numericCellValue.toString()
+        }
+    }
+
     fun textValue(c: Cell, type: CellType = c.cellTypeEnum): String {
         return when (type) {
             CellType.BLANK, CellType.ERROR, CellType._NONE -> ""
-            CellType.NUMERIC -> c.numericCellValue.toString()
+            CellType.NUMERIC -> numericToText(c)
             CellType.BOOLEAN -> c.booleanCellValue.toString()
             CellType.STRING -> c.stringCellValue
             CellType.FORMULA -> textValue(c, c.cachedFormulaResultTypeEnum)

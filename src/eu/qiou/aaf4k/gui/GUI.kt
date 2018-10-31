@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.gui
 
 import eu.qiou.aaf4k.accounting.model.*
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
+import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.roundUpTo
 import javafx.application.Application
 import javafx.beans.property.ReadOnlyStringWrapper
@@ -83,7 +84,9 @@ class GUI : Application() {
                         }
                     }
                     right = VBox().apply {
-
+                        val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx", sheetIndex = 0)
+                        this.children.add(XlPane(sht))
+                        i.close()
                     }
                 }
             }

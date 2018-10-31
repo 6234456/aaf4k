@@ -15,6 +15,13 @@ class ExcelUtilTest {
     }
 
     @Test
+    fun formatString() {
+        val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx")
+        println(ExcelUtil.numericToText(sht.getRow(1).getCell(2)))
+        i.close()
+    }
+
+    @Test
     fun formatExcel() {
         Template(
                 listOf(
