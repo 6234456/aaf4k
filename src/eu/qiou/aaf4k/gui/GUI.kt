@@ -77,7 +77,7 @@ class GUI : Application() {
                             this.children.add(VBox().apply {
                                 children.add(Text(it.name))
                                 children.add(ListView<Entry>().apply {
-                                    this.items.addAll(it.entries as List<Entry>)
+                                    this.items.addAll((it.entries as List<Entry>).filter { it.isVisible })
                                 })
                             })
                         }
@@ -273,6 +273,7 @@ class GUI : Application() {
                                                                         e.unregister()
                                                                         null
                                                                     } else {
+                                                                        (e.category as Category).summarizeResult()
                                                                         updateTab3()
                                                                         updateTab1(treeView.selectionModel.selectedIndex)
                                                                         e

@@ -31,4 +31,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
                 , displayUnit, entity, timeParameters)
     }
 
+    val retainedEarning = flattened.find { it.reportingType == ReportingType.RESULT_BALANCE }
+    val oci = flattened.find { it.reportingType == ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE }
+
 }

@@ -15,6 +15,7 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
     }
 
     var isActive:Boolean = true
+    var isVisible: Boolean = true
 
     // in an entry there might be multiple accounts with the same id
     val accounts: MutableList<T> = mutableListOf()
@@ -64,6 +65,10 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
 
     fun remove(id: Int): ProtoEntry<T> {
         return remove(findById(id))
+    }
+
+    fun clear() {
+        accounts.clear()
     }
 
     fun findById(id: Int): List<T> {

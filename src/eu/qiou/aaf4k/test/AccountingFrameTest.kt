@@ -34,23 +34,27 @@ class AccountingFrameTest {
             entry.add(3400, 3400.0)
             entry.balanceWith(3200)
 
-            val entry1 = Entry(1, "Demo2", category)
+            val entry1 = Entry(category.nextEntryIndex, "Demo2", category)
 
             entry1.add(3100, 3000.0)
             entry1.add(3400, 3400.0)
             entry1.balanceWith(3200)
 
-            Entry(2, "Trail", category1).apply {
+            Entry(category1.nextEntryIndex, "Trail", category1).apply {
                 add(1005, 3000.0)
                 add(2900, 3400.0)
                 balanceWith(3200)
             }
 
-            Entry(2, "Demo3", category2).apply {
+            Entry(category2.nextEntryIndex, "Demo3", category2).apply {
                 add(1005, 3000.0)
                 add(2800, 3400.0)
                 balanceWith(3200)
             }
+
+            category.summarizeResult()
+            category1.summarizeResult()
+            category2.summarizeResult()
 
             return frame
         }
