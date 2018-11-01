@@ -55,20 +55,17 @@ class XlTable(xlSht: Sheet) : TableView<Map<String, Cell>>() {
     }
 
     init {
-        xlSht.rowIterator().forEach {
-            val r = it.rowNum
-            if (r > 0) {
-                val d = mutableMapOf<String, Cell>()
-                it.cellIterator().forEach {
-                    val c = it.columnIndex
-                    d.put(title[c]!!, it)
-                }
-                data.add(d)
-            }
+        1.until(xlSht.lastRowNum + 1)
+                .forEach {
+                    val d = mutableMapOf<String, Cell>()
+                    xlSht.getRow(it)?.cellIterator()?.forEach {
+                        val c = it.columnIndex
+                        d.put(title[c]!!, it)
+                    }
+                    data.add(d)
         }
 
         this.items = data
         this.getColumns().setAll(columns)
-
     }
 }

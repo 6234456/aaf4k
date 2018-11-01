@@ -83,7 +83,7 @@ class GUI : Application() {
                             })
                         }
                     }
-                    val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx", sheetIndex = 1)
+                    val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx", sheetIndex = 0)
                     right = XlTable(sht)
                     i.close()
                 }
