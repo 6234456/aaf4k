@@ -15,10 +15,23 @@ class ExcelUtilTest {
     }
 
     @Test
-    fun formatString() {
-        val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx")
-        println(ExcelUtil.numericToText(sht.getRow(1).getCell(2)))
-        i.close()
+    fun formatStrTest() {
+        println(ExcelUtil.formatSpecifier.matchEntire(",00#.#0#")!!.groups)
+        println(ExcelUtil.formatSpecifier.matchEntire("#,00#.#0#")!!.groups)
+        println(ExcelUtil.formatSpecifier.matchEntire("#")!!.groups)
+        println(ExcelUtil.formatSpecifier.matchEntire("#,00#.")!!.groups)
+        println(ExcelUtil.formatSpecifier.matchEntire("##,000,#00,00#.00##00")!!.groups)
+        println(ExcelUtil.formatSpecifier.matchEntire(",,,00#.")!!.groups)
+        println(ExcelUtil.formatSpecifier.find("######.")!!.groups)
+        println(ExcelUtil.formatSpecifier.find("###0#")!!.groups)
+
+        println(String.format("%,.0f", 123456.0))
+
+        println(ExcelUtil.parseXlFormatString("#")(11123))
+        println(ExcelUtil.parseXlFormatString("#.")(11123))
+        println(ExcelUtil.parseXlFormatString("#,###.")(11123))
+        println(ExcelUtil.parseXlFormatString("#,###.000")(11123))
+
     }
 
     @Test

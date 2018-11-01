@@ -14,6 +14,26 @@ import java.util.*
 
 object ExcelUtil {
     val digitRegex = """[-.\d]+""".toRegex()
+    val formatSpecifier = """(?:([0#]*)|(?:([0#]{1,3})?(\,(?:[0#]{3})?)*))(\.)?([0#]*)""".toRegex()
+
+
+    // the float numbers in the spreadsheet should be formatted, or by default in will be parsed to Int
+    fun parseXlFormatString(s: String): (Number) -> String {
+
+        if (s == "General")
+            return parseXlFormatString("#")
+
+        formatSpecifier.matchEntire(s)?.groups?.let {
+            val decimal = with(it.last()!!.range) { this.last - this.first + 1 }
+            val thousandSep = it[2] != null || it[3] != null
+            val hasDecimalPoint = it[it.size - 2] != null
+
+            return { String.format("%${if (thousandSep) "," else ""}.${decimal}f", it.toDouble()) + if (hasDecimalPoint && decimal == 0) "." else "" }
+        }
+
+        throw Exception("mal-format: xl-formatString")
+
+    }
 
     fun getWorkbook(path: String): Pair<Workbook, FileInputStream> {
         val inputStream = FileInputStream(path)
@@ -155,18 +175,10 @@ object ExcelUtil {
         })
     }
 
-    // TODO parse xlFormat to javaFormat
-    fun numericToText(c: Cell): String {
-        return when (c.cellStyle.dataFormatString) {
-            "General", "#", "0", "#,###", "0,###" -> c.numericCellValue.toInt().toString()
-            else -> c.numericCellValue.toString()
-        }
-    }
-
     fun textValue(c: Cell, type: CellType = c.cellTypeEnum): String {
         return when (type) {
             CellType.BLANK, CellType.ERROR, CellType._NONE -> ""
-            CellType.NUMERIC -> numericToText(c)
+            CellType.NUMERIC -> parseXlFormatString(c.cellStyle.dataFormatString)(c.numericCellValue)
             CellType.BOOLEAN -> c.booleanCellValue.toString()
             CellType.STRING -> c.stringCellValue
             CellType.FORMULA -> textValue(c, c.cachedFormulaResultTypeEnum)

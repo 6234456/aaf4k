@@ -83,11 +83,9 @@ class GUI : Application() {
                             })
                         }
                     }
-                    right = VBox().apply {
-                        val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx", sheetIndex = 0)
-                        this.children.add(XlPane(sht))
-                        i.close()
-                    }
+                    val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx", sheetIndex = 0)
+                    right = XlTable(sht)
+                    i.close()
                 }
             }
         }
@@ -358,6 +356,7 @@ class GUI : Application() {
             )
 
             title = "Reporting"
+            isFullScreen = true
             show()
         }
 
