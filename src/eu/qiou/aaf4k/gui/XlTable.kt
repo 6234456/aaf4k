@@ -1,46 +1,67 @@
 package eu.qiou.aaf4k.gui
 
 import eu.qiou.aaf4k.util.io.ExcelUtil
-import javafx.beans.value.ObservableValue
+import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.collections.FXCollections
+import javafx.geometry.Pos
+import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
-import javafx.scene.control.cell.MapValueFactory
-import javafx.scene.control.cell.TextFieldTableCell
-import javafx.util.Callback
-import javafx.util.StringConverter
+import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.Sheet
 
-class XlTable(xlSht: Sheet) : TableView<Map<String, String>>() {
-    private val data = FXCollections.observableArrayList<Map<String, String>>()
+class XlTable(xlSht: Sheet) : TableView<Map<String, Cell>>() {
+    private val data = FXCollections.observableArrayList<Map<String, Cell>>()
     private val title = xlSht.getRow(0).cellIterator().asSequence().map { it.columnIndex to ExcelUtil.textValue(it) }.toMap()
     private val columns = title.map {
-        TableColumn<Map<String, String>, String>(it.value).apply {
-            this.cellValueFactory = MapValueFactory<String>(it.value) as Callback<TableColumn.CellDataFeatures<Map<String, String>, String>, ObservableValue<String>>
+        val k = it.value
+        TableColumn<Map<String, Cell>, String>(it.value).apply {
 
-            this.setCellFactory {
-                TextFieldTableCell(object : StringConverter<String>() {
-                    override fun toString(`object`: String?): String {
-                        return `object` ?: ""
-                    }
+            setCellValueFactory {
+                it.value[k]?.let {
+                    return@setCellValueFactory ReadOnlyStringWrapper(ExcelUtil.textValue(it))
+                }
 
-                    override fun fromString(string: String?): String {
-                        return string ?: ""
+                return@setCellValueFactory ReadOnlyStringWrapper("")
+            }
+
+            setCellFactory {
+                object : TableCell<Map<String, Cell>, String>() {
+                    override fun updateItem(item: String?, empty: Boolean) {
+                        super.updateItem(item, empty)
+                        text = if (empty) "" else item ?: ""
+                        val i = this.index
+                        if (i >= 0 && i < data.size) {
+                            data[i][k]?.let {
+                                when (it.cellTypeEnum) {
+                                    CellType.NUMERIC, CellType.FORMULA -> this.alignment = Pos.CENTER_RIGHT
+                                    else -> this.alignment = Pos.CENTER_LEFT
+                                }
+
+
+                                when (it.cellStyle.alignmentEnum) {
+                                    HorizontalAlignment.RIGHT -> this.alignment = Pos.CENTER_RIGHT
+                                    HorizontalAlignment.LEFT -> this.alignment = Pos.CENTER_LEFT
+                                    HorizontalAlignment.CENTER -> this.alignment = Pos.CENTER
+                                }
+                            }
+                        }
                     }
-                })
+                }
             }
         }
     }
 
     init {
-
         xlSht.rowIterator().forEach {
             val r = it.rowNum
             if (r > 0) {
-                val d = mutableMapOf<String, String>()
+                val d = mutableMapOf<String, Cell>()
                 it.cellIterator().forEach {
                     val c = it.columnIndex
-                    d.put(title[c]!!, ExcelUtil.textValue(it))
+                    d.put(title[c]!!, it)
                 }
                 data.add(d)
             }
