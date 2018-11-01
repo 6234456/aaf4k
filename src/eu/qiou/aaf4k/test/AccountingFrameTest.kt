@@ -84,7 +84,6 @@ class AccountingFrameTest {
     fun getFlattened() {
 
         testReporting().apply {
-            println(toJSON())
             toXl("data/demo.xlsx")
         }
     }

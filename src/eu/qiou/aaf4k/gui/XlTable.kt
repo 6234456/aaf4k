@@ -1,27 +1,37 @@
 package eu.qiou.aaf4k.gui
 
 import eu.qiou.aaf4k.util.io.ExcelUtil
+import eu.qiou.aaf4k.util.strings.times
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.collections.FXCollections
 import javafx.geometry.Pos
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
-import org.apache.poi.ss.usermodel.Cell
-import org.apache.poi.ss.usermodel.CellType
-import org.apache.poi.ss.usermodel.HorizontalAlignment
-import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.usermodel.*
+import java.io.File
 
-class XlTable(xlSht: Sheet) : TableView<Map<String, Cell>>() {
+class XlTable(xlSht: Sheet, hasHeading: Boolean = true) : TableView<Map<String, Cell>>() {
+    private val firstRow = ExcelUtil.getFirstNonEmptyRowNum(xlSht)
+    private val heading = hasHeading && firstRow == 0
     private val data = FXCollections.observableArrayList<Map<String, Cell>>()
-    private val title = xlSht.getRow(0).cellIterator().asSequence().map { it.columnIndex to ExcelUtil.textValue(it) }.toMap()
+    private val title = if (heading)
+        xlSht.getRow(0).cellIterator().asSequence().map { it.columnIndex to ExcelUtil.textValue(it) }.toMap()
+    else
+        0.until(ExcelUtil.getColNum(xlSht) + 1).map { it to "Col-$it" }.toMap()
+
     private val columns = title.map {
         val k = it.value
         TableColumn<Map<String, Cell>, String>(it.value).apply {
 
+            isSortable = false
+            isResizable = true
+
             setCellValueFactory {
                 it.value[k]?.let {
-                    return@setCellValueFactory ReadOnlyStringWrapper(ExcelUtil.textValue(it))
+                    return@setCellValueFactory ReadOnlyStringWrapper(
+                            "  " * it.cellStyle.indention.toInt() + ExcelUtil.textValue(it)
+                    )
                 }
 
                 return@setCellValueFactory ReadOnlyStringWrapper("")
@@ -40,11 +50,15 @@ class XlTable(xlSht: Sheet) : TableView<Map<String, Cell>>() {
                                     else -> this.alignment = Pos.CENTER_LEFT
                                 }
 
-
                                 when (it.cellStyle.alignmentEnum) {
                                     HorizontalAlignment.RIGHT -> this.alignment = Pos.CENTER_RIGHT
                                     HorizontalAlignment.LEFT -> this.alignment = Pos.CENTER_LEFT
                                     HorizontalAlignment.CENTER -> this.alignment = Pos.CENTER
+                                }
+
+
+                                if (it.cellStyle.borderBottomEnum != BorderStyle.NONE) {
+                                    styleClass.add("btm-border")
                                 }
                             }
                         }
@@ -55,7 +69,7 @@ class XlTable(xlSht: Sheet) : TableView<Map<String, Cell>>() {
     }
 
     init {
-        1.until(xlSht.lastRowNum + 1)
+        (if (heading) 1 else 0).until(xlSht.lastRowNum + 1)
                 .forEach {
                     val d = mutableMapOf<String, Cell>()
                     xlSht.getRow(it)?.cellIterator()?.forEach {
@@ -65,7 +79,9 @@ class XlTable(xlSht: Sheet) : TableView<Map<String, Cell>>() {
                     data.add(d)
         }
 
-        this.items = data
-        this.getColumns().setAll(columns)
+        items = data
+        getColumns().setAll(columns)
+        if (!heading) styleClass.add("hide-header")
+        stylesheets.add("file:///" + File("src/eu/qiou/aaf4k/gui/main.css").absolutePath.replace("\\", "/"))
     }
 }

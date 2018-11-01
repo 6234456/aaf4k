@@ -238,7 +238,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                             this.createCell(0).setCellValue(it.category.id.toDouble())
                             this.createCell(1).setCellValue(acc.id.toDouble())
                             this.createCell(2).setCellValue(acc.name)
-                            this.createCell(colVal).setCellValue(acc.displayValue)
+
+                            this.createCell(colVal).run {
+                                setCellValue(acc.displayValue)
+                                ExcelUtil.Update(this).dataFormat(ExcelUtil.DataFormat.NUMBER.format)
+                            }
+
                             this.createCell(4).setCellValue(it.desc)
 
                             if (data.containsKey(acc.id)) {

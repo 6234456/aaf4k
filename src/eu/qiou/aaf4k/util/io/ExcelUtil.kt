@@ -60,6 +60,18 @@ object ExcelUtil {
             wb.getSheetAt(sheetIndex)) to inputStream
     }
 
+    fun getFirstNonEmptyRowNum(sht: Sheet): Int {
+        return sht.rowIterator().asSequence().first {
+            it.cellIterator().asSequence().any { cell -> textValue(cell).isNotEmpty() }
+        }.rowNum
+    }
+
+    fun getColNum(sht: Sheet): Int {
+        return sht.rowIterator().asSequence().reduce { acc, row ->
+            if (row.lastCellNum > acc.lastCellNum) row else acc
+        }.lastCellNum.toInt()
+    }
+
     fun processWorksheet(path: String, sheetIndex: Int = 0, sheetName: String? = null, callback: (Sheet) -> Unit) {
         val f: (Workbook) -> Unit = { wb ->
 
