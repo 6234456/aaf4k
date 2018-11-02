@@ -43,9 +43,8 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
 
         val rowDark: (wb: Workbook) -> CellStyle = {
             ExcelUtil.StyleBuilder(it)
+                    .fromStyle(rowLight(it))
                     .fillLong(theme.second)
-                    .alignment(vertical = VerticalAlignment.CENTER)
-                    .font().borderStyle(up = BorderStyle.DASHED, down = BorderStyle.DASHED, left = BorderStyle.THIN, right = BorderStyle.THIN)
                     .build()
         }
     }
@@ -124,7 +123,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
             var cnt = rowStart + 1
 
 
-            this@Template.data.forEach({ v ->
+            this@Template.data.forEach { v ->
                 with(it.createRow(cnt++)) {
                     this.heightInPoints = rowHeight
 
@@ -160,7 +159,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
                         }
                     }
                 }
-            })
+            }
 
             if (extraRow == 1) {
                 with(it.createRow(cnt++)) {

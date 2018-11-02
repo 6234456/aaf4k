@@ -8,12 +8,14 @@ import eu.qiou.aaf4k.util.mergeReduce
 import eu.qiou.aaf4k.util.mkJSON
 import eu.qiou.aaf4k.util.mkString
 import eu.qiou.aaf4k.util.strings.CollectionToString
+import eu.qiou.aaf4k.util.strings.times
 import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.ProtoUnit
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.util.CellUtil
 
@@ -144,10 +146,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         val colOriginal = colName + 1
         val colLast = colOriginal + categories.size + 1
         var col = colOriginal + 1
-        var heading: CellStyle? = null
         var light: CellStyle? = null
         var dark: CellStyle? = null
-        var shtOverview: Sheet? = null
 
 
         fun writeAccountToXl(account: ProtoAccount, sht: Sheet, indent: Int = 0) {
@@ -158,7 +158,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             col = colOriginal + 1
 
             sht.createRow(cnt++).apply {
-                createCell(colId).setCellValue(account.id.toDouble())
+                createCell(colId, CellType.STRING).setCellValue(account.id.toString())
                 createCell(colName).setCellValue("${if (account.isStatistical) prefixStatistical else ""}${account.name}")
 
                 if (l > 1) {
@@ -184,8 +184,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                             CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it, sht), colOriginal).address
                         }.mkString("+", prefix = "", affix = "")
 
-
-                        this@ProtoReporting.categories.forEach {
+                        this@ProtoReporting.categories.forEach { _ ->
                             createCell(col).cellFormula = tmp.map {
                                 CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it, sht), col).address
                             }.mkString("+", prefix = "", affix = "")
@@ -197,19 +196,21 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                 } else
                     createCell(colOriginal).setCellValue(account.displayValue)
 
+                createCell(colLast).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(colLast - 1)
+                        ?: createCell(colLast - 1)).address})"
+
                 colId.until(colLast + 1).forEach { i ->
                     val c = getCell(i) ?: createCell(i, CellType.NUMERIC)
+                    ExcelUtil.Update(c).style(ExcelUtil.StyleBuilder(sht.workbook).fromStyle(if (rowNum % 2 == 0) light!! else dark!!).indent(if (c.columnIndex == colName) indent else 0)
+                            .dataFormat("#,##0.${"0" * account.decimalPrecision}")
+                            .font(bold = (c.columnIndex == colLast))
+                            .alignment(if (c.columnIndex == colId) HorizontalAlignment.RIGHT else null)
+                            .build()
+                    )
 
-                    ExcelUtil.Update(c).style(if (rowNum % 2 == 0) light!! else dark!!).indent(if (c.columnIndex == colName) indent else 0).let {
-                        if (c.columnIndex != colId)
-                            it.numberFormat(account.decimalPrecision)
-                    }
-
-                    if (rowNum % 2 == 0) {
-                        ExcelUtil.fillLong(c, Template.theme.second)
-                    }
                 }
             }
+
             account.subAccounts?.let {
                 it.forEach {
                     writeAccountToXl(it, sht, indent + 1)
@@ -222,11 +223,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         }
 
         ExcelUtil.createWorksheetIfNotExists(path, callback = { sht ->
+            val w = sht.workbook
+            val heading = Template.heading(w)
+            light = Template.rowLight(w)
+            dark = Template.rowDark(w)
 
-            shtOverview = sht
-            heading = Template.heading(sht.workbook)
-            light = Template.rowLight(sht.workbook)
-            dark = Template.rowDark(sht.workbook)
+            sht.isDisplayGridlines = false
 
             sht.createRow(0).apply {
                 createCell(colId).setCellValue(titleID)
@@ -244,56 +246,73 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
             sht.getRow(0).apply {
                 this.forEach {
-                    ExcelUtil.Update(it).style(heading!!)
+                    ExcelUtil.Update(it).style(heading)
                     sht.setColumnWidth(it.columnIndex, 4000)
                 }
                 heightInPoints = 50f
             }
-        })
 
-        cnt = startRow
+            //booking
+            cnt = startRow
 
-        var bookings = listOf<Map<Int, String>>()
-        val colVal = 3
+            var bookings = listOf<Map<Int, String>>()
+            val colVal = 3
 
-        ExcelUtil.createWorksheetIfNotExists(path, "adj", { shtCat ->
-            bookings = this.categories.fold(listOf<Map<Int, String>>()) { acc, e ->
-                val data = mutableMapOf<Int, String>()
-                e.entries.forEach {
-                    it.accounts.forEach { acc ->
-                        shtCat.createRow(cnt++).apply {
-                            this.createCell(0).setCellValue(it.category.id.toDouble())
-                            this.createCell(1).setCellValue(acc.id.toDouble())
-                            this.createCell(2).setCellValue(acc.name)
+            val bookingCallback: (Sheet) -> Unit = { shtCat ->
+                shtCat.isDisplayGridlines = false
+                shtCat.createRow(0).apply {
+                    createCell(0).setCellValue("Category-ID")
+                    createCell(1).setCellValue(titleID)
+                    createCell(2).setCellValue(titleName)
+                    createCell(colVal).setCellValue("Amount")
+                    createCell(4).setCellValue("Desc")
+                    createCell(5).setCellValue("Category-Name")
 
-                            this.createCell(colVal).run {
-                                setCellValue(acc.displayValue)
-                                ExcelUtil.Update(this).dataFormat(ExcelUtil.DataFormat.NUMBER.format)
-                            }
-
-                            this.createCell(4).setCellValue(it.desc)
-
-                            if (data.containsKey(acc.id)) {
-                                data[acc.id] = "${data[acc.id]}+'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"
-                            } else {
-                                data[acc.id] = "'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"
-                            }
-                        }
+                    0.until(6).forEach { i ->
+                        ExcelUtil.Update(this.getCell(i)).style(heading)
                     }
 
-                    shtCat.createRow(cnt++)
+                    heightInPoints = 50f
                 }
-                acc + listOf(data)
+
+                bookings = this.categories.fold(listOf<Map<Int, String>>()) { acc, e ->
+                    val data = mutableMapOf<Int, String>()
+                    e.entries.forEach {
+                        it.accounts.forEach { acc ->
+                            shtCat.createRow(cnt++).apply {
+                                this.createCell(0).setCellValue(it.category.id.toString())
+                                this.createCell(1).setCellValue(acc.id.toString())
+                                this.createCell(2).setCellValue(acc.name)
+                                this.createCell(colVal).setCellValue(acc.displayValue)
+                                this.createCell(4).setCellValue(it.desc)
+                                this.createCell(5).setCellValue(e.name)
+
+                                0.until(6).forEach { i ->
+                                    ExcelUtil.Update(this.getCell(i)).style(ExcelUtil.StyleBuilder(w).fromStyle(dark!!).dataFormat(ExcelUtil.DataFormat.NUMBER.format).build())
+                                }
+
+                                if (data.containsKey(acc.id)) {
+                                    data[acc.id] = "${data[acc.id]}+'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"
+                                } else {
+                                    data[acc.id] = "'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"
+                                }
+                            }
+                        }
+
+                        shtCat.createRow(cnt++)
+                    }
+                    acc + listOf(data)
+                }
+            }
+
+            bookingCallback(w.createSheet("adj"))
+
+            col = colOriginal + 1
+            bookings.forEach {
+                ExcelUtil.unload(it, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toInt() else -1 }, 0, col++, { false }, { c, v ->
+                    c.cellFormula = v
+                }, sht)
             }
         })
-
-        col = colOriginal + 1
-
-        bookings.forEach {
-            ExcelUtil.unload(it, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toInt() else -1 }, 0, col++, shtOverview!!, { false }, { c, v ->
-                c.cellFormula = v
-                //  ExcelUtil.Update(c).numberFormat(GlobalConfiguration.DEFAULT_DECIMAL_PRECISION)
-            }, path)
-        }
     }
 }
