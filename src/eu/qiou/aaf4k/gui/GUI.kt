@@ -3,6 +3,7 @@ package eu.qiou.aaf4k.gui
 import eu.qiou.aaf4k.accounting.model.*
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.util.roundUpTo
+import eu.qiou.aaf4k.util.template.Template
 import javafx.application.Application
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.beans.property.SimpleStringProperty
@@ -161,7 +162,7 @@ class GUI : Application() {
                                                 if (it.exists())
                                                     it.delete()
                                             }
-                                            reporting.toXl("data/demo.xlsx")
+                                            reporting.toXl("data/demo.xlsx", t = Template.Theme.ORANGE)
                                             println("exported")
                                         }
 

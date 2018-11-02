@@ -13,10 +13,7 @@ import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.ProtoUnit
-import org.apache.poi.ss.usermodel.CellStyle
-import org.apache.poi.ss.usermodel.CellType
-import org.apache.poi.ss.usermodel.HorizontalAlignment
-import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
 
 
@@ -137,7 +134,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     }
 
     fun toXl(path: String, titleID: String = "科目代码", titleName: String = "科目名称"
-             , titleOriginal: String = "账户余额:调整前", titleFinal: String = "账户余额:调整后", prefixStatistical: String = " 其中: "
+             , titleOriginal: String = "账户余额:调整前", titleFinal: String = "账户余额:调整后", prefixStatistical: String = " 其中: ", t: Template.Theme = Template.Theme.DEFAULT
     ) {
         val startRow = 1
         var cnt = startRow
@@ -204,6 +201,10 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     ExcelUtil.Update(c).style(ExcelUtil.StyleBuilder(sht.workbook).fromStyle(if (rowNum % 2 == 0) light!! else dark!!).indent(if (c.columnIndex == colName) indent else 0)
                             .dataFormat("#,##0.${"0" * account.decimalPrecision}")
                             .font(bold = (c.columnIndex == colLast))
+                            .borderStyle(
+                                    right = if (c.columnIndex == colLast) BorderStyle.MEDIUM else null,
+                                    left = if (c.columnIndex == colId) BorderStyle.MEDIUM else null
+                            )
                             .alignment(if (c.columnIndex == colId) HorizontalAlignment.RIGHT else null)
                             .build()
                     )
@@ -224,9 +225,9 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
         ExcelUtil.createWorksheetIfNotExists(path, callback = { sht ->
             val w = sht.workbook
-            val heading = Template.heading(w)
-            light = Template.rowLight(w)
-            dark = Template.rowDark(w)
+            val heading = Template.heading(w, t)
+            light = Template.rowLight(w, t)
+            dark = Template.rowDark(w, t)
 
             sht.isDisplayGridlines = false
 
@@ -246,7 +247,13 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
             sht.getRow(0).apply {
                 this.forEach {
-                    ExcelUtil.Update(it).style(heading)
+                    ExcelUtil.Update(it).style(ExcelUtil.StyleBuilder(w)
+                            .fromStyle(heading)
+                            .borderStyle(
+                                    right = if (it.columnIndex == colLast) BorderStyle.MEDIUM else null,
+                                    left = if (it.columnIndex == colId) BorderStyle.MEDIUM else null
+                            )
+                            .build())
                     sht.setColumnWidth(it.columnIndex, 4000)
                 }
                 heightInPoints = 50f
@@ -270,6 +277,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
                     0.until(6).forEach { i ->
                         ExcelUtil.Update(this.getCell(i)).style(heading)
+                        shtCat.setColumnWidth(i, 4000)
                     }
 
                     heightInPoints = 50f
@@ -288,7 +296,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                                 this.createCell(5).setCellValue(e.name)
 
                                 0.until(6).forEach { i ->
-                                    ExcelUtil.Update(this.getCell(i)).style(ExcelUtil.StyleBuilder(w).fromStyle(dark!!).dataFormat(ExcelUtil.DataFormat.NUMBER.format).build())
+                                    ExcelUtil.Update(this.getCell(i))
+                                            .style(
+                                                    ExcelUtil.StyleBuilder(w).fromStyle(dark!!)
+                                                            .dataFormat(ExcelUtil.DataFormat.NUMBER.format).alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
+                                                            .build()
+                                            )
                                 }
 
                                 if (data.containsKey(acc.id)) {

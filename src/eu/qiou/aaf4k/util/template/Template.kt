@@ -11,40 +11,38 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
     data class ColorSchema(val colorHeading: IndexedColors = IndexedColors.ROYAL_BLUE, val colorDarkRow: IndexedColors = IndexedColors.PALE_BLUE, val colorCaption: IndexedColors = colorHeading)
     data class HeadingFormat(val value: Any, val formatHeading: String = ExcelUtil.DataFormat.STRING.format, val formatData: String = ExcelUtil.DataFormat.NUMBER.format)
 
+    enum class Theme(val param: Pair<Long, Long>) {
+        DEFAULT(11892015L to 16247773L),
+        BLACK_WHITE(7434613L to 14277081L),
+        LAVENA(10498160L to 16306927L),
+        ORANGE(3243501L to 14083324L),
+        SKY_BLUE(15773696L to 16247773L),
+        LIGHT_GREEN(9359529L to 14348258L),
+        BLOOD(3620091L to 9147389L)
+    }
 
     companion object {
-
-        var theme: Pair<Long, Long> = 11892015L to 16247773L
-
-        val fillLight: (cell: Cell) -> Unit = {
-            ExcelUtil.fillLong(it, Template.theme.second)
-        }
-
-        val fillDark: (cell: Cell) -> Unit = {
-            ExcelUtil.fillLong(it, Template.theme.first)
-        }
-
-        val heading: (wb: Workbook) -> CellStyle = {
-            ExcelUtil.StyleBuilder(it)
-                    .fillLong(theme.first)
+        fun heading(wb: Workbook, theme: Template.Theme = Theme.DEFAULT): CellStyle {
+            return ExcelUtil.StyleBuilder(wb)
+                    .fillLong(theme.param.first)
                     .font(name = DEFAULT_FONT_NAME, color = IndexedColors.WHITE.index, bold = true)
                     .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
                     .borderStyle(down = BorderStyle.THICK, up = BorderStyle.MEDIUM, left = BorderStyle.THIN, right = BorderStyle.THIN)
                     .build()
         }
 
-        val rowLight: (wb: Workbook) -> CellStyle = {
-            ExcelUtil.StyleBuilder(it)
+        fun rowLight(wb: Workbook, theme: Template.Theme = Theme.DEFAULT): CellStyle {
+            return ExcelUtil.StyleBuilder(wb)
                     .alignment(vertical = VerticalAlignment.CENTER)
                     .font()
                     .borderStyle(up = BorderStyle.DASHED, down = BorderStyle.DASHED, left = BorderStyle.THIN, right = BorderStyle.THIN)
                     .build()
         }
 
-        val rowDark: (wb: Workbook) -> CellStyle = {
-            ExcelUtil.StyleBuilder(it)
-                    .fromStyle(rowLight(it))
-                    .fillLong(theme.second)
+        fun rowDark(wb: Workbook, theme: Template.Theme = Theme.DEFAULT): CellStyle {
+            return ExcelUtil.StyleBuilder(wb)
+                    .fromStyle(rowLight(wb))
+                    .fillLong(theme.param.second)
                     .build()
         }
     }
