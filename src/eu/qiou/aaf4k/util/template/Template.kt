@@ -1,7 +1,6 @@
 package eu.qiou.aaf4k.util.template
 
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_FONT_NAME
-import eu.qiou.aaf4k.util.flatList
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
@@ -15,13 +14,19 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
 
     companion object {
 
-        fun dataAdapter(data: Map<*, *>): List<List<*>> {
-            return data.flatList()
+        var theme: Pair<Long, Long> = 11892015L to 16247773L
+
+        val fillLight: (cell: Cell) -> Unit = {
+            ExcelUtil.fillLong(it, Template.theme.second)
+        }
+
+        val fillDark: (cell: Cell) -> Unit = {
+            ExcelUtil.fillLong(it, Template.theme.first)
         }
 
         val heading: (wb: Workbook) -> CellStyle = {
             ExcelUtil.StyleBuilder(it)
-                    .fill(IndexedColors.ROYAL_BLUE.index)
+                    .fillLong(theme.first)
                     .font(name = DEFAULT_FONT_NAME, color = IndexedColors.WHITE.index, bold = true)
                     .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
                     .borderStyle(down = BorderStyle.THICK, up = BorderStyle.MEDIUM, left = BorderStyle.THIN, right = BorderStyle.THIN)
@@ -31,12 +36,14 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
         val rowLight: (wb: Workbook) -> CellStyle = {
             ExcelUtil.StyleBuilder(it)
                     .alignment(vertical = VerticalAlignment.CENTER)
-                    .font().borderStyle(up = BorderStyle.DASHED, down = BorderStyle.DASHED, left = BorderStyle.THIN, right = BorderStyle.THIN)
+                    .font()
+                    .borderStyle(up = BorderStyle.DASHED, down = BorderStyle.DASHED, left = BorderStyle.THIN, right = BorderStyle.THIN)
                     .build()
         }
 
         val rowDark: (wb: Workbook) -> CellStyle = {
-            ExcelUtil.StyleBuilder(it).fill(IndexedColors.PALE_BLUE.index)
+            ExcelUtil.StyleBuilder(it)
+                    .fillLong(theme.second)
                     .alignment(vertical = VerticalAlignment.CENTER)
                     .font().borderStyle(up = BorderStyle.DASHED, down = BorderStyle.DASHED, left = BorderStyle.THIN, right = BorderStyle.THIN)
                     .build()

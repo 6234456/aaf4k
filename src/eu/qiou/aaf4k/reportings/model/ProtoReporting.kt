@@ -8,13 +8,13 @@ import eu.qiou.aaf4k.util.mergeReduce
 import eu.qiou.aaf4k.util.mkJSON
 import eu.qiou.aaf4k.util.mkString
 import eu.qiou.aaf4k.util.strings.CollectionToString
+import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.ProtoUnit
-import org.apache.poi.ss.usermodel.HorizontalAlignment
-import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.ss.usermodel.CellStyle
+import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Sheet
-import org.apache.poi.ss.usermodel.VerticalAlignment
 import org.apache.poi.ss.util.CellUtil
 
 
@@ -142,22 +142,18 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         val colId = 0
         val colName = colId + 1
         val colOriginal = colName + 1
+        val colLast = colOriginal + categories.size + 1
         var col = colOriginal + 1
+        var heading: CellStyle? = null
+        var light: CellStyle? = null
+        var dark: CellStyle? = null
+        var shtOverview: Sheet? = null
+
 
         fun writeAccountToXl(account: ProtoAccount, sht: Sheet, indent: Int = 0) {
 
             val l = account.countRecursively(true)
             val lvl = account.levels()
-
-            sht.createRow(0).apply {
-                createCell(colId).setCellValue(titleID)
-                createCell(colName).setCellValue(titleName)
-                createCell(colOriginal).setCellValue(titleOriginal)
-                this@ProtoReporting.categories.forEach {
-                    createCell(col++).setCellValue(it.name)
-                }
-                createCell(col).setCellValue(titleFinal)
-            }
 
             col = colOriginal + 1
 
@@ -201,7 +197,18 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                 } else
                     createCell(colOriginal).setCellValue(account.displayValue)
 
-                ExcelUtil.Update(getCell(colOriginal)).numberFormat(account.decimalPrecision)
+                colId.until(colLast + 1).forEach { i ->
+                    val c = getCell(i) ?: createCell(i, CellType.NUMERIC)
+
+                    ExcelUtil.Update(c).style(if (rowNum % 2 == 0) light!! else dark!!).indent(if (c.columnIndex == colName) indent else 0).let {
+                        if (c.columnIndex != colId)
+                            it.numberFormat(account.decimalPrecision)
+                    }
+
+                    if (rowNum % 2 == 0) {
+                        ExcelUtil.fillLong(c, Template.theme.second)
+                    }
+                }
             }
             account.subAccounts?.let {
                 it.forEach {
@@ -214,21 +221,41 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             }
         }
 
-        var shtOverview: Sheet? = null
-
         ExcelUtil.createWorksheetIfNotExists(path, callback = { sht ->
+
+            shtOverview = sht
+            heading = Template.heading(sht.workbook)
+            light = Template.rowLight(sht.workbook)
+            dark = Template.rowDark(sht.workbook)
+
+            sht.createRow(0).apply {
+                createCell(colId).setCellValue(titleID)
+                createCell(colName).setCellValue(titleName)
+                createCell(colOriginal).setCellValue(titleOriginal)
+                this@ProtoReporting.categories.forEach {
+                    createCell(col++).setCellValue(it.name)
+                }
+                createCell(col).setCellValue(titleFinal)
+            }
+
             this.structure.forEach {
                 writeAccountToXl(it, sht)
             }
 
-            shtOverview = sht
+            sht.getRow(0).apply {
+                this.forEach {
+                    ExcelUtil.Update(it).style(heading!!)
+                    sht.setColumnWidth(it.columnIndex, 4000)
+                }
+                heightInPoints = 50f
+            }
         })
 
         cnt = startRow
 
         var bookings = listOf<Map<Int, String>>()
-
         val colVal = 3
+
         ExcelUtil.createWorksheetIfNotExists(path, "adj", { shtCat ->
             bookings = this.categories.fold(listOf<Map<Int, String>>()) { acc, e ->
                 val data = mutableMapOf<Int, String>()
@@ -265,27 +292,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         bookings.forEach {
             ExcelUtil.unload(it, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toInt() else -1 }, 0, col++, shtOverview!!, { false }, { c, v ->
                 c.cellFormula = v
-                ExcelUtil.Update(c).numberFormat(GlobalConfiguration.DEFAULT_DECIMAL_PRECISION)
+                //  ExcelUtil.Update(c).numberFormat(GlobalConfiguration.DEFAULT_DECIMAL_PRECISION)
             }, path)
         }
-
-
-        // format
-        ExcelUtil.createWorksheetIfNotExists(path, callback = { sht ->
-            sht.getRow(0).apply {
-                this.forEach {
-                    ExcelUtil.Update(it).alignment(
-                            HorizontalAlignment.CENTER,
-                            VerticalAlignment.CENTER
-                    ).fill(color = IndexedColors.GREY_50_PERCENT.index)
-                            .font(bold = true, color = IndexedColors.WHITE.index)
-
-                    sht.setColumnWidth(it.columnIndex, 4000)
-                }
-
-                heightInPoints = 50f
-            }
-
-        })
     }
 }

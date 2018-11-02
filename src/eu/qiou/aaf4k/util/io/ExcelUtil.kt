@@ -5,6 +5,8 @@ import eu.qiou.aaf4k.util.strings.times
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
+import org.apache.poi.xssf.usermodel.XSSFCellStyle
+import org.apache.poi.xssf.usermodel.XSSFColor
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileInputStream
@@ -197,6 +199,38 @@ object ExcelUtil {
         }
     }
 
+    fun longToRGB(l: Long): Triple<Int, Int, Int> {
+        val r = l % 256
+        val g = ((l - r) / 256) % 256
+        val b = (((l - r) / 256 - g) / 256) % 256
+
+        return Triple(r.toInt(), g.toInt(), b.toInt())
+    }
+
+    fun fill(cell: Cell, color: Short? = IndexedColors.WHITE.index, style: FillPatternType? = FillPatternType.SOLID_FOREGROUND) {
+        color?.let {
+            CellUtil.setCellStyleProperty(cell, CellUtil.FILL_FOREGROUND_COLOR, color)
+        }
+        style?.let {
+            CellUtil.setCellStyleProperty(cell, CellUtil.FILL_PATTERN, style)
+        }
+    }
+
+    fun fillRGB(c: Cell, rgb: Triple<Int, Int, Int>, style: FillPatternType = FillPatternType.SOLID_FOREGROUND) {
+        val wb = c.sheet.workbook
+        val cellStyle = c.cellStyle
+        if (wb is HSSFWorkbook)
+            fill(c, wb.customPalette.findSimilarColor(rgb.first, rgb.second, rgb.third).index, style)
+        else {
+            (cellStyle as XSSFCellStyle).setFillForegroundColor(XSSFColor(byteArrayOf(rgb.first.toByte(), rgb.second.toByte(), rgb.third.toByte()), (wb as XSSFWorkbook).stylesSource.indexedColors))
+            cellStyle.setFillPattern(style)
+        }
+    }
+
+    fun fillLong(c: Cell, l: Long, style: FillPatternType = FillPatternType.SOLID_FOREGROUND) {
+        fillRGB(c, longToRGB(l), style)
+    }
+
     /**
      *  Update the style of the cell in place
      */
@@ -205,7 +239,10 @@ object ExcelUtil {
         private val createHelper = wb.creationHelper
 
         fun style(style: CellStyle, deepCopy: Boolean = false): Update {
-            cell.cellStyle = if (!deepCopy) style else StyleBuilder(wb).fromStyle(style).build()
+            cell.cellStyle =
+                    if (!deepCopy) style
+                    else StyleBuilder(wb).fromStyle(style).build()
+
             return this
         }
 
@@ -246,6 +283,22 @@ object ExcelUtil {
             return this
         }
 
+        fun fillRGB(rgb: Triple<Int, Int, Int>, style: FillPatternType? = FillPatternType.SOLID_FOREGROUND): Update {
+            if (wb is HSSFWorkbook)
+                return fill(wb.customPalette.findSimilarColor(rgb.first, rgb.second, rgb.third).index, style)
+
+            //(cell.cellStyle as XSSFCellStyle).setFillForegroundColor(XSSFColor(byteArrayOf(rgb.first.toByte(), rgb.second.toByte(), rgb.third.toByte()), (wb as XSSFWorkbook).stylesSource.indexedColors))
+            (cell.cellStyle as XSSFCellStyle).setFillForegroundColor(XSSFColor(java.awt.Color(rgb.first, rgb.second, rgb.third)))
+            style?.let {
+                CellUtil.setCellStyleProperty(cell, CellUtil.FILL_PATTERN, style)
+            }
+            return this
+        }
+
+        fun fillLong(l: Long, style: FillPatternType? = FillPatternType.SOLID_FOREGROUND): Update {
+            return fillRGB(longToRGB(l), style)
+        }
+
         fun borderStyle(up: BorderStyle? = null, right: BorderStyle? = null, down: BorderStyle? = null, left: BorderStyle? = null): Update {
             if (up != null) CellUtil.setCellStyleProperty(cell, CellUtil.BORDER_TOP, up)
             if (right != null) CellUtil.setCellStyleProperty(cell, CellUtil.BORDER_RIGHT, right)
@@ -267,6 +320,13 @@ object ExcelUtil {
         fun alignment(horizontal: HorizontalAlignment? = null, vertical: VerticalAlignment? = null): Update {
             if (horizontal != null) CellUtil.setCellStyleProperty(cell, CellUtil.ALIGNMENT, horizontal)
             if (vertical != null) CellUtil.setCellStyleProperty(cell, CellUtil.VERTICAL_ALIGNMENT, vertical)
+
+            return this
+        }
+
+        fun indent(level: Int? = null): Update {
+            if (level != null)
+                CellUtil.setCellStyleProperty(cell, CellUtil.INDENTION, level.toShort())
 
             return this
         }
@@ -305,7 +365,7 @@ object ExcelUtil {
 
         fun fromStyle(style: CellStyle): StyleBuilder {
             val font = wb.getFontAt(style.fontIndex)
-            cellStyle = StyleBuilder(wb)
+            cellStyle = with(StyleBuilder(wb)
                     .alignment(style.alignmentEnum, style.verticalAlignmentEnum)
                     .borderStyle(style.borderTopEnum, style.borderRightEnum, style.borderBottomEnum, style.borderLeftEnum)
                     .borderColor(style.topBorderColor, style.rightBorderColor, style.bottomBorderColor, style.leftBorderColor)
@@ -314,8 +374,16 @@ object ExcelUtil {
                             color = font.color, bold = font.bold,
                             italic = font.italic, strikeout = font.strikeout,
                             underline = font.underline)
-                    .fill(color = style.fillForegroundColor, style = style.fillPatternEnum)
-                    .multiLineInCell(style.wrapText)
+                    .indent(level = style.indention.toInt())
+                    .multiLineInCell(style.wrapText)) {
+                if (wb is HSSFWorkbook)
+                    this.fill(color = style.fillForegroundColor, style = style.fillPatternEnum)
+                else
+                    this.fillColor(
+                            (style as XSSFCellStyle).fillForegroundXSSFColor
+                            , style = style.fillPatternEnum
+                    )
+            }
                     .build()
 
             return this
@@ -343,10 +411,38 @@ object ExcelUtil {
             return this
         }
 
+        fun indent(level: Int = 0): StyleBuilder {
+            cellStyle.indention = level.toShort()
+
+            return this
+        }
+
         fun fill(color: Short = IndexedColors.WHITE.index, style: FillPatternType = FillPatternType.SOLID_FOREGROUND): StyleBuilder {
             cellStyle.fillForegroundColor = color
             cellStyle.setFillPattern(style)
 
+            return this
+        }
+
+        fun fillRGB(rgb: Triple<Int, Int, Int>, style: FillPatternType = FillPatternType.SOLID_FOREGROUND): StyleBuilder {
+
+            if (wb is HSSFWorkbook)
+                return fill(wb.customPalette.findSimilarColor(rgb.first, rgb.second, rgb.third).index, style)
+
+            (cellStyle as XSSFCellStyle).setFillForegroundColor(XSSFColor(byteArrayOf(rgb.first.toByte(), rgb.second.toByte(), rgb.third.toByte()), (wb as XSSFWorkbook).stylesSource.indexedColors))
+            cellStyle.setFillPattern(style)
+            return this
+        }
+
+        fun fillLong(l: Long, style: FillPatternType = FillPatternType.SOLID_FOREGROUND): StyleBuilder {
+            return fillRGB(longToRGB(l), style)
+        }
+
+        private fun fillColor(color: XSSFColor?, style: FillPatternType): StyleBuilder {
+            color?.let {
+                (cellStyle as XSSFCellStyle).setFillForegroundColor(color)
+                cellStyle.setFillPattern(style)
+            }
             return this
         }
 

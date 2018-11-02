@@ -81,6 +81,7 @@ class XlTable(xlSht: Sheet, hasHeading: Boolean = true) : TableView<Map<String, 
 
         items = data
         getColumns().setAll(columns)
+        style = "-fx-font-family: Bahnschrift, Arial, sans-serif;"
         if (!heading) styleClass.add("hide-header")
         stylesheets.add("file:///" + File("src/eu/qiou/aaf4k/gui/main.css").absolutePath.replace("\\", "/"))
     }

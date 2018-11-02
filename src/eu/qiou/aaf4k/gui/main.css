@@ -3,7 +3,7 @@
     -fx-padding: -1em;
 }
 
-.table-view .btm-border {
+.table-row-cell.btm-border {
     -fx-table-cell-border-bottom-color: red;
 }
 
@@ -28,6 +28,10 @@
     -fx-text-fill: white;
 }
 
+.table-view .column-header-label {
+    -fx-label-padding: 8;
+}
+
 .table-view .column-header {
     -fx-background-color: transparent;
 }
@@ -35,6 +39,12 @@
 .table-view .table-cell {
     -fx-text-fill: white;
 }
+
+.table-view {
+    -fx-font-family: Bahnschrift, Arial, sans-serif;
+    -fx-font-size:1.13em;
+}
+
 
 .table-row-cell {
     -fx-background-color: -fx-table-cell-border-color, #616161;
@@ -67,5 +77,3 @@
 .table-view > .virtual-flow > .scroll-bar > .decrement-button {
     -fx-opacity: 0;
 }
-
-*

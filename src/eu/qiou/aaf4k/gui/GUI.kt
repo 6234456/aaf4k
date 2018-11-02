@@ -2,7 +2,6 @@ package eu.qiou.aaf4k.gui
 
 import eu.qiou.aaf4k.accounting.model.*
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
-import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.roundUpTo
 import javafx.application.Application
 import javafx.beans.property.ReadOnlyStringWrapper
@@ -83,9 +82,9 @@ class GUI : Application() {
                             })
                         }
                     }
-                    val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx", sheetIndex = 2)
-                    right = XlTable(sht, false)
-                    i.close()
+                    /*  val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx", sheetIndex = 0)
+                      right = XlTable(sht, true)
+                      i.close()*/
                 }
             }
         }
@@ -157,6 +156,16 @@ class GUI : Application() {
                                     }
                                 }.apply {
                                     this.setOnMouseClicked { e ->
+                                        if (e.button == MouseButton.SECONDARY) {
+                                            Paths.get("data/demo.xlsx").toFile().let {
+                                                if (it.exists())
+                                                    it.delete()
+                                            }
+                                            reporting.toXl("data/demo.xlsx")
+                                            println("exported")
+                                        }
+
+
                                         if (e.button == MouseButton.PRIMARY) {
                                             if (e.clickCount == 2) {
                                                 val targetAccount = this.treeTableRow?.item!!

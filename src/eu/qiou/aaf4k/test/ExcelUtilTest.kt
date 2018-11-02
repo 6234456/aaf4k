@@ -35,6 +35,11 @@ class ExcelUtilTest {
     }
 
     @Test
+    fun rgb() {
+        println(ExcelUtil.longToRGB(11892015L))
+    }
+
+    @Test
     fun formatExcel() {
         Template(
                 listOf(
