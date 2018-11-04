@@ -145,6 +145,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         var col = colOriginal + 1
         var light: CellStyle? = null
         var dark: CellStyle? = null
+        var fontBold: Font? = null
+        var fontNormal: Font? = null
 
 
         fun writeAccountToXl(account: ProtoAccount, sht: Sheet, indent: Int = 0) {
@@ -198,9 +200,10 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
                 colId.until(colLast + 1).forEach { i ->
                     val c = getCell(i) ?: createCell(i, CellType.NUMERIC)
-                    ExcelUtil.Update(c).style(ExcelUtil.StyleBuilder(sht.workbook).fromStyle(if (rowNum % 2 == 0) light!! else dark!!).indent(if (c.columnIndex == colName) indent else 0)
+                    ExcelUtil.Update(c).style(ExcelUtil.StyleBuilder(sht.workbook).fromStyle(if (rowNum % 2 == 0) light!! else dark!!, false)
+                            .indent(if (c.columnIndex == colName) indent else 0)
                             .dataFormat("#,##0.${"0" * account.decimalPrecision}")
-                            .font(bold = (c.columnIndex == colLast))
+                            .font(if (c.columnIndex == colLast) fontBold!! else null)
                             .borderStyle(
                                     right = if (c.columnIndex == colLast) BorderStyle.MEDIUM else null,
                                     left = if (c.columnIndex == colId) BorderStyle.MEDIUM else null
@@ -208,7 +211,6 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                             .alignment(if (c.columnIndex == colId) HorizontalAlignment.RIGHT else null)
                             .build()
                     )
-
                 }
             }
 
@@ -228,6 +230,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             val heading = Template.heading(w, t)
             light = Template.rowLight(w, t)
             dark = Template.rowDark(w, t)
+            fontNormal = ExcelUtil.StyleBuilder(w).buildFontFrom(light!!)
+            fontBold = ExcelUtil.StyleBuilder(w).buildFontFrom(fontNormal!!, bold = true)
 
             sht.isDisplayGridlines = false
 
@@ -248,7 +252,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             sht.getRow(0).apply {
                 this.forEach {
                     ExcelUtil.Update(it).style(ExcelUtil.StyleBuilder(w)
-                            .fromStyle(heading)
+                            .fromStyle(heading, false)
                             .borderStyle(
                                     right = if (it.columnIndex == colLast) BorderStyle.MEDIUM else null,
                                     left = if (it.columnIndex == colId) BorderStyle.MEDIUM else null
@@ -276,7 +280,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     createCell(5).setCellValue("Category-Name")
 
                     0.until(6).forEach { i ->
-                        ExcelUtil.Update(this.getCell(i)).style(heading)
+                        ExcelUtil.Update(this.getCell(i)).style(ExcelUtil.StyleBuilder(w).fromStyle(heading, false).build())
                         shtCat.setColumnWidth(i, 4000)
                     }
 
@@ -298,7 +302,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                                 0.until(6).forEach { i ->
                                     ExcelUtil.Update(this.getCell(i))
                                             .style(
-                                                    ExcelUtil.StyleBuilder(w).fromStyle(dark!!)
+                                                    ExcelUtil.StyleBuilder(w).fromStyle(dark!!, false)
                                                             .dataFormat(ExcelUtil.DataFormat.NUMBER.format).alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
                                                             .build()
                                             )

@@ -3,6 +3,7 @@ package eu.qiou.aaf4k.util.io
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_FONT_NAME
 import eu.qiou.aaf4k.util.strings.times
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
+import org.apache.poi.hssf.util.HSSFColor
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
 import org.apache.poi.xssf.usermodel.XSSFCellStyle
@@ -203,34 +204,6 @@ object ExcelUtil {
         return Triple(r.toInt(), g.toInt(), b.toInt())
     }
 
-    fun fill(cell: Cell, color: Short? = IndexedColors.WHITE.index) {
-        color?.let {
-            CellUtil.setCellStyleProperty(cell, CellUtil.FILL_FOREGROUND_COLOR, color)
-        }
-
-    }
-
-    fun fillRGB(c: Cell, rgb: Triple<Int, Int, Int>) {
-        val wb = c.sheet.workbook
-        val cellStyle = c.cellStyle
-        if (wb is HSSFWorkbook)
-            fill(c, wb.customPalette.findSimilarColor(rgb.first, rgb.second, rgb.third).index)
-        else {
-            fillColor(c, XSSFColor(byteArrayOf(rgb.first.toByte(), rgb.second.toByte(), rgb.third.toByte()), (wb as XSSFWorkbook).stylesSource.indexedColors))
-        }
-    }
-
-    fun fillLong(c: Cell, l: Long, style: FillPatternType = FillPatternType.SOLID_FOREGROUND) {
-        fillRGB(c, longToRGB(l))
-    }
-
-    fun fillColor(c: Cell, color: XSSFColor?) {
-        color?.let {
-            val cellStyle = c.cellStyle
-            (cellStyle as XSSFCellStyle).setFillForegroundColor(color)
-        }
-    }
-
     /**
      *  Update the style of the cell in place
      */
@@ -358,23 +331,21 @@ object ExcelUtil {
         STRING("#")
     }
 
+    //due to the limitation of HSSF, font should be possibly re-used
+    //if defaultFont is set, it will be applied without creating a new instance
     class StyleBuilder(val wb: Workbook) {
 
         private val createHelper = wb.creationHelper
         private var cellStyle = wb.createCellStyle()
         private var multilines: Int = 1
 
-        fun fromStyle(style: CellStyle): StyleBuilder {
+        fun fromStyle(style: CellStyle, fontDeepCopy: Boolean = true): StyleBuilder {
             val font = wb.getFontAt(style.fontIndex)
             cellStyle = with(StyleBuilder(wb)
                     .alignment(style.alignmentEnum, style.verticalAlignmentEnum)
                     .borderStyle(style.borderTopEnum, style.borderRightEnum, style.borderBottomEnum, style.borderLeftEnum)
                     .borderColor(style.topBorderColor, style.rightBorderColor, style.bottomBorderColor, style.leftBorderColor)
                     .dataFormat(format = style.dataFormatString)
-                    .font(name = font.fontName, size = font.fontHeightInPoints,
-                            color = font.color, bold = font.bold,
-                            italic = font.italic, strikeout = font.strikeout,
-                            underline = font.underline)
                     .indent(level = style.indention.toInt())
                     .multiLineInCell(style.wrapText)) {
                 if (wb is HSSFWorkbook)
@@ -384,6 +355,14 @@ object ExcelUtil {
                             (style as XSSFCellStyle).fillForegroundXSSFColor
                             , style = style.fillPatternEnum
                     )
+
+                if (!fontDeepCopy)
+                    this.font(font)
+                else
+                    this.font(name = font.fontName, size = font.fontHeightInPoints,
+                            color = font.color, bold = font.bold,
+                            italic = font.italic, strikeout = font.strikeout,
+                            underline = font.underline)
             }
                     .build()
 
@@ -401,7 +380,18 @@ object ExcelUtil {
         }
 
         fun font(name: String = DEFAULT_FONT_NAME, size: Short = 11, color: Short = IndexedColors.BLACK.index, bold: Boolean = false, italic: Boolean = false, strikeout: Boolean = false, underline: Byte = 0): StyleBuilder {
-            cellStyle.setFont(wb.createFont().apply {
+            cellStyle.setFont(buildFont(name, size, color, bold, italic, strikeout, underline))
+            return this
+        }
+
+        fun font(f: Font? = null): StyleBuilder {
+            if (f != null)
+                cellStyle.setFont(f)
+            return this
+        }
+
+        fun buildFont(name: String = DEFAULT_FONT_NAME, size: Short = 11, color: Short = IndexedColors.BLACK.index, bold: Boolean = false, italic: Boolean = false, strikeout: Boolean = false, underline: Byte = 0): Font {
+            return wb.createFont().apply {
                 this.color = color
                 this.fontName = name
                 this.bold = bold
@@ -409,8 +399,18 @@ object ExcelUtil {
                 this.strikeout = strikeout
                 this.underline = underline
                 this.fontHeightInPoints = size
-            })
-            return this
+            }
+        }
+
+        fun buildFontFrom(f: Font, name: String? = null, size: Short? = null, color: Short? = null, bold: Boolean? = null, italic: Boolean? = null, strikeout: Boolean? = null, underline: Byte? = null): Font {
+            return buildFont(name = name ?: f.fontName, size = size ?: f.fontHeightInPoints, color = color ?: f.color,
+                    bold = bold ?: f.bold, italic = italic ?: f.italic,
+                    strikeout = strikeout ?: f.strikeout, underline = underline ?: f.underline)
+        }
+
+        fun buildFontFrom(style: CellStyle, name: String? = null, size: Short? = null, color: Short? = null, bold: Boolean? = null, italic: Boolean? = null, strikeout: Boolean? = null, underline: Byte? = null): Font {
+            val f = wb.getFontAt(style.fontIndex)
+            return buildFontFrom(f, name, size, color, bold, italic, strikeout, underline)
         }
 
         fun indent(level: Int? = 0): StyleBuilder {
@@ -429,8 +429,11 @@ object ExcelUtil {
 
         fun fillRGB(rgb: Triple<Int, Int, Int>, style: FillPatternType = FillPatternType.SOLID_FOREGROUND): StyleBuilder {
 
-            if (wb is HSSFWorkbook)
-                return fill(wb.customPalette.findSimilarColor(rgb.first, rgb.second, rgb.third).index, style)
+            if (wb is HSSFWorkbook) {
+                wb.customPalette.setColorAtIndex(get(rgb), rgb.first.toByte(), rgb.second.toByte(), rgb.third.toByte())
+                return fill(get(rgb), style)
+                //return fill(wb.customPalette.findSimilarColor(rgb.first, rgb.second, rgb.third).index, style)
+            }
 
             (cellStyle as XSSFCellStyle).setFillForegroundColor(XSSFColor(byteArrayOf(rgb.first.toByte(), rgb.second.toByte(), rgb.third.toByte()), (wb as XSSFWorkbook).stylesSource.indexedColors))
             cellStyle.setFillPattern(style)
@@ -493,6 +496,34 @@ object ExcelUtil {
         fun applyTo(cell: Cell) {
             cell.cellStyle = this.cellStyle
             cell.row.heightInPoints = cell.row.sheet.defaultRowHeightInPoints * this.multilines
+        }
+
+        companion object {
+            private val replaceableHSSFColors = listOf(
+                    HSSFColor.OLIVE_GREEN.index, HSSFColor.GREEN.index
+            )
+
+            private var index = 0
+            private val lastIndex = replaceableHSSFColors.size
+            private val m = mutableMapOf<Triple<Int, Int, Int>, Short>()
+
+            fun reset() {
+                m.clear()
+                index = 0
+            }
+
+            fun get(rgb: Triple<Int, Int, Int>): Short {
+
+                if (m.containsKey(rgb))
+                    return m.get(rgb)!!
+                else {
+                    if (index == lastIndex) {
+                        throw Exception("All the replaceable slots are taken!")
+                    }
+                    m[rgb] = replaceableHSSFColors[index++]
+                    return get(rgb)
+                }
+            }
         }
     }
 
