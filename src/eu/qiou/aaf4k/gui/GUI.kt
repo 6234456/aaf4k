@@ -159,6 +159,12 @@ class GUI : Application() {
                                 }.apply {
                                     this.setOnMouseClicked { e ->
                                         if (e.button == MouseButton.SECONDARY) {
+                                            Paths.get("data/demo.xlsx").toFile().let {
+                                                if (it.exists())
+                                                    it.delete()
+                                            }
+                                            reporting.toXl("data/demo.xlsx", t = Template.Theme.BLACK_WHITE)
+
                                             Paths.get("data/demo.xls").toFile().let {
                                                 if (it.exists())
                                                     it.delete()

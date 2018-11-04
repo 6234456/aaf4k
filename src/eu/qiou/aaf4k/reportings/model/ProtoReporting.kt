@@ -200,17 +200,25 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
                 colId.until(colLast + 1).forEach { i ->
                     val c = getCell(i) ?: createCell(i, CellType.NUMERIC)
-                    ExcelUtil.Update(c).style(ExcelUtil.StyleBuilder(sht.workbook).fromStyle(if (rowNum % 2 == 0) light!! else dark!!, false)
-                            .indent(if (c.columnIndex == colName) indent else 0)
-                            .dataFormat("#,##0.${"0" * account.decimalPrecision}")
-                            .font(if (c.columnIndex == colLast) fontBold!! else null)
-                            .borderStyle(
-                                    right = if (c.columnIndex == colLast) BorderStyle.MEDIUM else null,
-                                    left = if (c.columnIndex == colId) BorderStyle.MEDIUM else null
-                            )
-                            .alignment(if (c.columnIndex == colId) HorizontalAlignment.RIGHT else null)
-                            .build()
-                    )
+
+                    if (rowNum >= 3) {
+                        ExcelUtil.Update(c).style(sht.getRow(rowNum - 2).getCell(i).cellStyle)
+                    } else {
+                        ExcelUtil.StyleBuilder(sht.workbook).fromStyle(if (rowNum % 2 == 1) light!! else dark!!, false)
+                                .dataFormat("#,##0.${"0" * account.decimalPrecision}")
+                                .fontObj(if (c.columnIndex == colLast) fontBold!! else null)
+                                .borderStyle(
+                                        right = if (c.columnIndex == colLast) BorderStyle.MEDIUM else null,
+                                        left = if (c.columnIndex == colId) BorderStyle.MEDIUM else null
+                                )
+                                .alignment(if (c.columnIndex == colId) HorizontalAlignment.RIGHT else null)
+                                .applyTo(c)
+                    }
+
+                    if (c.columnIndex == colName) {
+                        ExcelUtil.Update(c).prepare().indent(indent).restore()
+                    }
+
                 }
             }
 
@@ -279,10 +287,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     createCell(4).setCellValue("Desc")
                     createCell(5).setCellValue("Category-Name")
 
-                    0.until(6).forEach { i ->
-                        ExcelUtil.Update(this.getCell(i)).style(ExcelUtil.StyleBuilder(w).fromStyle(heading, false).build())
-                        shtCat.setColumnWidth(i, 4000)
-                    }
+                    ExcelUtil.StyleBuilder(w).fromStyle(heading, false).applyTo(
+                            0.until(6).map { i ->
+                                shtCat.setColumnWidth(i, 4000)
+                                getCell(i)
+                            }
+                    )
 
                     heightInPoints = 50f
                 }
@@ -299,14 +309,14 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                                 this.createCell(4).setCellValue(it.desc)
                                 this.createCell(5).setCellValue(e.name)
 
-                                0.until(6).forEach { i ->
-                                    ExcelUtil.Update(this.getCell(i))
-                                            .style(
-                                                    ExcelUtil.StyleBuilder(w).fromStyle(dark!!, false)
-                                                            .dataFormat(ExcelUtil.DataFormat.NUMBER.format).alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
-                                                            .build()
-                                            )
-                                }
+                                ExcelUtil.StyleBuilder(w).fromStyle(dark!!, false)
+                                        .dataFormat(ExcelUtil.DataFormat.NUMBER.format).applyTo(
+                                                0.until(6).map { i ->
+                                                    ExcelUtil.Update(this.getCell(i)).alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
+                                                    this.getCell(i)
+                                                }
+                                        )
+
 
                                 if (data.containsKey(acc.id)) {
                                     data[acc.id] = "${data[acc.id]}+'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"

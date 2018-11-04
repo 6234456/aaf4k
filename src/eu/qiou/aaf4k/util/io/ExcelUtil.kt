@@ -210,6 +210,31 @@ object ExcelUtil {
     class Update(val cell: Cell) {
         private val wb = cell.sheet.workbook
         private val createHelper = wb.creationHelper
+        private var colorIndex: XSSFColor? = null
+        private val isXXSF = wb is XSSFWorkbook
+        private var black: XSSFColor? = if (isXXSF) XSSFColor(byteArrayOf(0.toByte(), 0.toByte(), 0.toByte()), (wb as XSSFWorkbook).stylesSource.indexedColors) else null
+
+        //poi lib-bug  use cellutil will erase fore/backgroundColor by XSSF-rgb color
+        //https://bz.apache.org/bugzilla/show_bug.cgi?id=59442
+        fun prepare(): Update {
+            if (isXXSF) {
+                colorIndex = (cell.cellStyle as XSSFCellStyle).fillForegroundXSSFColor
+            }
+
+            return this
+        }
+
+        fun restore(): Update {
+            if (isXXSF) {
+                if (colorIndex != null && colorIndex != black) {
+                    (cell.cellStyle as XSSFCellStyle).run {
+                        setFillForegroundColor(colorIndex)
+                    }
+                }
+            }
+
+            return this
+        }
 
         fun style(style: CellStyle, deepCopy: Boolean = false): Update {
             cell.cellStyle =
@@ -259,12 +284,15 @@ object ExcelUtil {
         }
 
         fun fillRGB(rgb: Triple<Int, Int, Int>, style: FillPatternType? = FillPatternType.SOLID_FOREGROUND): Update {
-            if (wb is HSSFWorkbook)
-                return fill(wb.customPalette.findSimilarColor(rgb.first, rgb.second, rgb.third).index, style)
 
-            (cell.cellStyle as XSSFCellStyle).setFillForegroundColor(XSSFColor(java.awt.Color(rgb.first, rgb.second, rgb.third)))
+            if (wb is HSSFWorkbook) {
+                wb.customPalette.setColorAtIndex(StyleBuilder.get(rgb), rgb.first.toByte(), rgb.second.toByte(), rgb.third.toByte())
+                return fill(StyleBuilder.get(rgb), style)
+            }
+
+            (cell.cellStyle as XSSFCellStyle).setFillForegroundColor(XSSFColor(byteArrayOf(rgb.first.toByte(), rgb.second.toByte(), rgb.third.toByte()), (wb as XSSFWorkbook).stylesSource.indexedColors))
             style?.let {
-                CellUtil.setCellStyleProperty(cell, CellUtil.FILL_PATTERN, style)
+                cell.cellStyle.setFillPattern(style)
             }
             return this
         }
@@ -357,7 +385,7 @@ object ExcelUtil {
                     )
 
                 if (!fontDeepCopy)
-                    this.font(font)
+                    this.fontObj(font)
                 else
                     this.font(name = font.fontName, size = font.fontHeightInPoints,
                             color = font.color, bold = font.bold,
@@ -384,7 +412,7 @@ object ExcelUtil {
             return this
         }
 
-        fun font(f: Font? = null): StyleBuilder {
+        fun fontObj(f: Font? = null): StyleBuilder {
             if (f != null)
                 cellStyle.setFont(f)
             return this
@@ -498,7 +526,14 @@ object ExcelUtil {
             cell.row.heightInPoints = cell.row.sheet.defaultRowHeightInPoints * this.multilines
         }
 
+        fun applyTo(cells: Iterable<Cell>) {
+            cells.forEach { applyTo(it) }
+        }
+
+
         companion object {
+
+            // facilitate the rgb-color setting in xls
             private val replaceableHSSFColors = listOf(
                     HSSFColor.OLIVE_GREEN.index, HSSFColor.GREEN.index
             )
