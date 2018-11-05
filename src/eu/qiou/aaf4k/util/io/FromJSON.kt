@@ -81,7 +81,10 @@ object FromJSON {
                 reporting = reporting
         ).apply {
             (json.get("entries") as JSONArray).forEach {
-                entry(it as JSONObject, this)
+                it as JSONObject
+                // id 0 is reserved for the balance entry, omitted
+                if ((it.get("id") as Long).toInt() != 0)
+                    entry(it, this)
             }
         }
     }
@@ -171,7 +174,9 @@ object FromJSON {
                 timeParameters = timeParameters(json.get("timeParameters") as JSONObject)
         ).apply {
             (json.get("categories") as JSONArray).forEach {
-                category(it as JSONObject, this)
+                category(it as JSONObject, this).apply {
+                    summarizeResult()
+                }
             }
         }
     }

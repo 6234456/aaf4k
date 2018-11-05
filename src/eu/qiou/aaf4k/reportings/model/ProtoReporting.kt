@@ -297,6 +297,9 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     heightInPoints = 50f
                 }
 
+                val bookingFormat = ExcelUtil.StyleBuilder(w).fromStyle(dark!!, false)
+                        .dataFormat(ExcelUtil.DataFormat.NUMBER.format)
+
                 bookings = this.categories.fold(listOf<Map<Int, String>>()) { acc, e ->
                     val data = mutableMapOf<Int, String>()
                     e.entries.forEach {
@@ -309,13 +312,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                                 this.createCell(4).setCellValue(it.desc)
                                 this.createCell(5).setCellValue(e.name)
 
-                                ExcelUtil.StyleBuilder(w).fromStyle(dark!!, false)
-                                        .dataFormat(ExcelUtil.DataFormat.NUMBER.format).applyTo(
-                                                0.until(6).map { i ->
-                                                    ExcelUtil.Update(this.getCell(i)).alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
-                                                    this.getCell(i)
-                                                }
-                                        )
+                                bookingFormat.applyTo(
+                                        0.until(6).map { i ->
+                                            ExcelUtil.Update(this.getCell(i)).alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
+                                            this.getCell(i)
+                                        }
+                                )
 
 
                                 if (data.containsKey(acc.id)) {

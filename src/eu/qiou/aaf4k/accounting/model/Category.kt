@@ -5,7 +5,7 @@ import eu.qiou.aaf4k.reportings.model.ProtoCategory
 class Category(name: String, id: Int, desc: String, reporting: Reporting) : ProtoCategory<Account>(name, id, desc, reporting) {
 
     // balance via result and oci to the balance stmt
-    val transferEntry = Entry(this.nextEntryIndex, "transfer result/OCI", this).apply {
+    val transferEntry = Entry(0, "transfer result/OCI", this).apply {
         isVisible = false
     }
 

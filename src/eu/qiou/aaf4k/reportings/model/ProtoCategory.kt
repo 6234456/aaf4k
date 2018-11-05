@@ -18,7 +18,7 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
 
     fun add(entry: ProtoEntry<T>) {
         if (entries.any { it.id == entry.id })
-            throw Exception("Duplicated Entry-ID ${entry.id}")
+            throw Exception("Duplicated Entry-ID ${entry.id} in Category:'$name'")
 
         entries.add(entry)
 
