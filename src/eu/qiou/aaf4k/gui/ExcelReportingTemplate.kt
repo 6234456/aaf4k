@@ -14,13 +14,15 @@ class ExcelReportingTemplate(val tpl: String,
         } else
             wb.getSheetAt(shtIndex)
 
-        val engine = TemplateEngine(data, prefix, affix)
+        val engine = TemplateEngine(prefix, affix)
+
+        val d = data.map { it.key.toString() to it.value!! }.toMap()
 
         sht.rowIterator().forEach {
             it.cellIterator().forEach {
                 if (it.cellTypeEnum == CellType.STRING) {
                     if (engine.containsTemplate(it.stringCellValue)) {
-                        val v = engine.parse(it.stringCellValue)
+                        val v = engine.compile(it.stringCellValue)(d)
 
                         try {
                             it.setCellValue(v.toDouble())
@@ -32,6 +34,7 @@ class ExcelReportingTemplate(val tpl: String,
             }
         }
 
+        wb.forceFormulaRecalculation = true
         ExcelUtil.saveWorkbook(path, wb)
         wb.close()
         ips.close()

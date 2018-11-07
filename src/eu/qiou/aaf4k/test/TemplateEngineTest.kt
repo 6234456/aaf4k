@@ -6,38 +6,24 @@ import org.junit.Test
 
 class TemplateEngineTest {
 
-    @Test
-    fun parse() {
-        val t = TemplateEngine(mapOf(1234 to 2, 2345 to 5, 2 to 7))
-
-        println(t.parse("abc[1234]+[2345]"))
-        println(t.parse("abc[1234"))
-        println(t.parse("abc[1234]]"))
-        println(t.parse("abc[=1+2]++"))
-        println(t.parse("abc[= 1>2?3:4 ]++"))
-        println(t.parse("abc[= [1234] > 0 ]++"))
-        println(t.parse("abc[[1234]]"))
-        //println(t.parse("abc[[1234]] [=[1234]]"))
-        println(t.parse("abc[=[1234] * [2345]]++"))
-        //println(t.parse("abc[=[1234] * [2345]]++[= [2345]]"))
-
-        val t1 = TemplateEngine(mapOf(1234 to 2, 2345 to 5, 2 to 7), "{", "}")
-
-        println(t1.parse("abc{1234}+[2345]"))
-
-
-        /*println(t.parse("€ [1234]"))
-        println(t.parse("[[1234]+[2345]]"))*/
-    }
 
     @Test
     fun export() {
         val t = ExcelReportingTemplate("data/demo.xls")
-        t.export(mapOf(1 to 0, 2 to 3), "data/exp.xls")
+        t.export(mapOf(1 to 0, 2 to 3, "公司" to "示例公司", "年份" to 2018), "data/exp.xls")
     }
 
     @Test
     fun trail() {
         println(String.format("%,.3f", 12300.0))
+        println(TemplateEngine.replaceRng("sss", mapOf(1.until(2) to "1", 2.until(3) to "ss")))
+        val s: Any = 3.0
+        println(s is Number)
+        val t = TemplateEngine(fmt = "%.0f")
+        val d = mapOf("1234" to 2.0, "2345" to 5.0, "2" to 7.0)
+
+        println(t.compile("abc[=[1234] * [2345]]++ [= 1+ 2]")(d))
+        println(t.compile("abc[=[1234] * [2345] | %.0f ]++[= [2345]]")(d))
+        println(t.compile("abc[[1234] | %.6f ] [=[1234] | %.2f ] sersdf8[")(d))
     }
 }
