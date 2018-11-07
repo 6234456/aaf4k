@@ -9,8 +9,8 @@ class TemplateEngineTest {
 
     @Test
     fun export() {
-        val t = ExcelReportingTemplate("data/demo.xls")
-        t.export(mapOf(1 to 0, 2 to 3, "公司" to "示例公司", "年份" to 2018), "data/exp.xls")
+        val t = ExcelReportingTemplate("data/demo.xlsx")
+        t.export(mapOf(1 to 0, 2 to 3, 3 to 0, "公司" to "示例公司", "年份" to 2018), "data/exp.xlsx", { true })
     }
 
     @Test

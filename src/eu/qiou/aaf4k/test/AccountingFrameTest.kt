@@ -22,7 +22,7 @@ class AccountingFrameTest {
         fun testReporting(): Reporting {
             val frame = AccountingFrame.inflate(123, "cn_cas_2018").toReporting(123, "ED",
                     displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016)).update(
-                    mapOf(3100 to 1203.0, 3400 to 23.0)
+                    mapOf(3100 to 1203.0, 3400 to -1203.0)
             )
 
             val category = Category("年度账户", 0, "laufende Buchungen", frame)

@@ -7,16 +7,15 @@ import javax.script.ScriptEngineManager
 /**
  * @param prefix by default [
  * @param affix by default ]
+ * @param fmt default number format, the format of the value can be specified separately
  * @sample [1500] will be parsed as the value of the account
  *         [=[1005]+[1500]|%.2f]
+ *         [= new Date()]
  */
 class TemplateEngine(val prefix: String = "[", val affix: String = "]", val fmt: String = "%,.2f") {
-    //private val regEvaluate = """\${prefix}=(.+)\s*\${affix}""".toRegex()
     private val regEvaluate = """\${prefix}=([^\|]+)(?:\s*\|\s*(%[\d\w.,]+))?\s*\${affix}""".toRegex()
     private val regElement = """\${prefix}([^\${prefix}\${affix}\|]+)(?:\s*\|\s*(%[\d\w.,]+))?\s*\${affix}""".toRegex()
-    //private val regElement = """\${prefix}([^\${prefix}\${affix}]+)\${affix}""".toRegex()
     private val js = ScriptEngineManager().getEngineByName("js")
-
 
     private fun parse(tpl: String, data: Map<String, Any>): String {
         var fmt = fmt
