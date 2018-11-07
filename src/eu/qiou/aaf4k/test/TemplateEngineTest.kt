@@ -2,7 +2,10 @@ package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.gui.ExcelReportingTemplate
 import eu.qiou.aaf4k.gui.TemplateEngine
+import eu.qiou.aaf4k.util.io.toReporting
 import org.junit.Test
+import java.nio.file.Files
+import java.nio.file.Paths
 
 class TemplateEngineTest {
 
@@ -11,6 +14,16 @@ class TemplateEngineTest {
     fun export() {
         val t = ExcelReportingTemplate("data/demo.xlsx")
         t.export(mapOf(1 to 0, 2 to 3, 3 to 0, "公司" to "示例公司", "年份" to 2018), "data/exp.xlsx", { true })
+    }
+
+    @Test
+    fun fillReporting() {
+        val r = Files.readAllLines(Paths.get("data/accounting.txt")).joinToString("").toReporting()
+                .generate()
+        val data = r.flattened.map { it.id to it.decimalValue }.toMap() +
+                mapOf("E" to r.entity.abbreviation, "Y" to r.timeParameters.end.year, "M" to r.timeParameters.end.monthValue, "D" to r.timeParameters.end.dayOfMonth)
+
+        ExcelReportingTemplate("data/Account CAS.xlsx", shtName = "BS").export(data, "data/exp.xlsx")
     }
 
     @Test

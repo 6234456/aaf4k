@@ -6,7 +6,7 @@ import org.apache.poi.ss.usermodel.Sheet
 
 class ExcelReportingTemplate(val tpl: String,
                              val prefix: String = "[", val affix: String = "]",
-                             val shtName: String? = null, val shtIndex: Int = 0, val fmt: String = "%,.2f") {
+                             val shtName: String? = null, val shtIndex: Int = 0, val fmt: String = "%.2f") {
 
     fun export(data: Map<*, *>, path: String, filter: (Sheet) -> Boolean = { if (shtName != null) it.sheetName == shtName else it.workbook.getSheetIndex(it) == shtIndex }) {
         val (wb, ips) = ExcelUtil.getWorkbook(tpl)
@@ -20,7 +20,6 @@ class ExcelReportingTemplate(val tpl: String,
                         if (it.cellTypeEnum == CellType.STRING) {
                             if (engine.containsTemplate(it.stringCellValue)) {
                                 val v = engine.compile(it.stringCellValue)(d)
-
                                 try {
                                     it.setCellValue(v.toDouble())
                                 } catch (e: Exception) {
