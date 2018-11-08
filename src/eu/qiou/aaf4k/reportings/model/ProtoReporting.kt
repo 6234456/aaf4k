@@ -175,17 +175,18 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                         }
                         col = colOriginal + 1
                     } else {
+                        //a sum account can not only contain the statistical children
                         val tmp = account.subAccounts!!.foldTrackListInit(0) { a, protoAccount, _ ->
                             a + protoAccount.countRecursively(true)
-                        }.dropLast(1)
+                        }.dropLast(1).zip(account.subAccounts.map { !it.isStatistical })
 
-                        createCell(colOriginal).cellFormula = tmp.map {
-                            CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it, sht), colOriginal).address
+                        createCell(colOriginal).cellFormula = tmp.filter { it.second }.map {
+                            CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), colOriginal).address
                         }.mkString("+", prefix = "", affix = "")
 
                         this@ProtoReporting.categories.forEach { _ ->
-                            createCell(col).cellFormula = tmp.map {
-                                CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it, sht), col).address
+                            createCell(col).cellFormula = tmp.filter { it.second }.map {
+                                CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), col).address
                             }.mkString("+", prefix = "", affix = "")
                             col++
                         }
@@ -227,7 +228,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     writeAccountToXl(it, sht, indent + 1)
                 }
 
-                if (l > 2 && account.levels() == 2) {
+                if (l >= 1 && account.levels() == 2) {
                     sht.groupRow(cnt - l + 1, cnt - 1)
                 }
             }

@@ -111,7 +111,7 @@ open class ProtoAccount(val id: Int, open val name: String,
         get() {
             return if (isAggregate)
                 subAccounts!!.fold(0.0) { acc, e ->
-                    acc + e.decimalValue
+                    acc + if (e.isStatistical) 0.0 else e.decimalValue
                 }
             else
                 value!!.toDouble() / Math.pow(10.0, decimalPrecision.toDouble())

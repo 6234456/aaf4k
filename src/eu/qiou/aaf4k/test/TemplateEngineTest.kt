@@ -12,8 +12,8 @@ class TemplateEngineTest {
 
     @Test
     fun export() {
-        val t = ExcelReportingTemplate("data/demo.xlsx")
-        t.export(mapOf(1 to 0, 2 to 3, 3 to 0, "公司" to "示例公司", "年份" to 2018), "data/exp.xlsx", { true })
+        val t = ExcelReportingTemplate("data/demo.xls")
+        t.export(mapOf(1 to 0, 2 to 3, 3 to 0, "公司" to "示例公司", "年份" to 2018), "data/exp.xls", { true })
     }
 
     @Test
@@ -23,7 +23,7 @@ class TemplateEngineTest {
         val data = r.flattened.map { it.id to it.decimalValue }.toMap() +
                 mapOf("E" to r.entity.abbreviation, "Y" to r.timeParameters.end.year, "M" to r.timeParameters.end.monthValue, "D" to r.timeParameters.end.dayOfMonth)
 
-        ExcelReportingTemplate("data/Account CAS.xlsx", shtName = "BS").export(data, "data/exp.xlsx")
+        ExcelReportingTemplate("data/demo.xls").export(data, "data/exp.xls")
     }
 
     @Test

@@ -1,6 +1,7 @@
 .idea/*
 *.iml
 *.credentials
+credentials/*
 *.xlsx
 *.xls
 *.xlsm

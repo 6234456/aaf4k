@@ -61,8 +61,12 @@ class Account(id: Int, name: String,
         val parseReportingType: (String) -> ReportingType = {
             when (it) {
                 ReportingType.ASSET.code -> ReportingType.ASSET
+                ReportingType.ASSET_LONG_TERM.code -> ReportingType.ASSET_LONG_TERM
+                ReportingType.ASSET_SHORT_TERM.code -> ReportingType.ASSET_SHORT_TERM
                 ReportingType.EQUITY.code -> ReportingType.EQUITY
                 ReportingType.LIABILITY.code -> ReportingType.LIABILITY
+                ReportingType.LIABILITY_LONG_TERM.code -> ReportingType.LIABILITY_LONG_TERM
+                ReportingType.LIABILITY_SHORT_TERM.code -> ReportingType.LIABILITY_SHORT_TERM
                 ReportingType.REVENUE_GAIN.code -> ReportingType.REVENUE_GAIN
                 ReportingType.EXPENSE_LOSS.code -> ReportingType.EXPENSE_LOSS
                 ReportingType.PROFIT_LOSS_NEUTRAL.code -> ReportingType.PROFIT_LOSS_NEUTRAL
@@ -119,8 +123,12 @@ class Account(id: Int, name: String,
 
 enum class ReportingType(val sign: Int, val code: String) {
     ASSET(1, "AS"),
+    ASSET_SHORT_TERM(1, "AK"),
+    ASSET_LONG_TERM(1, "AL"),
     EQUITY(-1, "EQ"),
     LIABILITY(-1, "LB"),
+    LIABILITY_SHORT_TERM(-1, "LK"),
+    LIABILITY_LONG_TERM(-1, "LL"),
     REVENUE_GAIN(-1, "RV"),
     EXPENSE_LOSS(1, "EP"),
     PROFIT_LOSS_NEUTRAL(-1, "NT"),

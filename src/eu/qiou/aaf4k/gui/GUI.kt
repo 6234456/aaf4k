@@ -1,8 +1,10 @@
 package eu.qiou.aaf4k.gui
 
 import eu.qiou.aaf4k.accounting.model.*
+import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.util.io.ExcelUtil
+import eu.qiou.aaf4k.util.io.toReporting
 import eu.qiou.aaf4k.util.roundUpTo
 import eu.qiou.aaf4k.util.template.Template
 import javafx.application.Application
@@ -21,17 +23,34 @@ import javafx.stage.Stage
 import javafx.util.StringConverter
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.*
 
+// TODO: Implement Locale to the GUI
 class GUI : Application() {
 
     companion object {
-        fun open(reporting: Reporting) {
+        val supportedLocale: List<Locale> = listOf(
+                Locale.CHINESE, Locale.ENGLISH, Locale.GERMAN
+        )
 
+        fun open(reporting: Reporting) {
             GUI.reporting = reporting
             Application.launch(GUI::class.java)
         }
 
+        fun open(srcFile: String) {
+            GUI.reporting = Files.readAllLines(Paths.get(srcFile)).joinToString("\n").toReporting()
+            srcJSONFile = srcFile
+
+            Application.launch(GUI::class.java)
+        }
+
         lateinit var reporting: Reporting
+        var srcJSONFile: String? = null
+        var locale: Locale = GlobalConfiguration.DEFAULT_LOCALE
+            set(value) {
+                if (supportedLocale.contains(value)) value else GlobalConfiguration.DEFAULT_LOCALE
+            }
     }
 
     override fun start(primaryStage: Stage?) {
@@ -85,7 +104,7 @@ class GUI : Application() {
                         }
                     }
                     val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx", sheetIndex = 0)
-                      right = XlTable(sht, true)
+                    right = XlTable(sht, true)
                     i.close()
                 }
             }
@@ -306,7 +325,9 @@ class GUI : Application() {
                                                     }
 
                                                     showAndWait().ifPresent {
-                                                        Files.write(Paths.get("data/accounting.txt"), reporting.toJSON().lines())
+                                                        srcJSONFile?.let {
+                                                            Files.write(Paths.get(it), reporting.toJSON().lines())
+                                                        }
                                                     }
                                                 }
                                             }

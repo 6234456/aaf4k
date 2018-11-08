@@ -46,16 +46,13 @@ class AccountingFrame(id: Int, name: String, val accounts: List<Account>) :
     }
 
     companion object {
-        /**
-         * @param fileName  the name of frame file in format "cn_cas_2018"
-         */
-        fun inflate(id: Int, fileName: String): AccountingFrame {
-            val f = if (fileName.endsWith(".txt")) fileName.removeSuffix(".txt") else fileName
-            val (dir, frame, _) = f.split("_")
+
+        fun inflate(id: Int, frame: String, fileName: String): AccountingFrame {
+
+            val lines = Files.lines(Paths.get(fileName)).toList().filter { !it.isBlank() }
 
             val regIndent = """^(\s*)(\[?)(\d+)""".toRegex()
             val regType = """^\s*[A-Z]{2}\s*$""".toRegex()
-            val lines = Files.lines(Paths.get("data/${dir}/${f}.txt")).toList().filter { !it.isBlank() }
 
 
             // throw error in case of illegal indent
@@ -131,12 +128,25 @@ class AccountingFrame(id: Int, name: String, val accounts: List<Account>) :
                 var lastType: ReportingType = ReportingType.ASSET
                 var tmpType: ReportingType?
 
+                fun getParentTypeRecursively(i: Int): ReportingType? {
+                    val p = getParent(i)
+                    val e = types(this[p].last().split("#"))
+
+                    if (e == null && pairs[p].first == 0)
+                        return null
+
+                    return e ?: getParentTypeRecursively(p)
+                }
+
+                // the type-attribute will be inherited directly from the parent recursively
+                // if the uttermost level reached without type specified, adopt the very first type
+
                 val parentTypes = this.mapIndexed { i, e ->
                     if (i == 0) {
                         lastType = types(e.last().split("#"))!!
                         lastType
                     } else {
-                        tmpType = types(this[i - 1].last().split("#"))
+                        tmpType = getParentTypeRecursively(i)
                         if (tmpType == null) {
                             lastType
                         } else {
@@ -189,6 +199,16 @@ class AccountingFrame(id: Int, name: String, val accounts: List<Account>) :
 
                 return AccountingFrame(id, frame, scopeToAccount(0))
             }
+        }
+
+        /**
+         * @param fileName  the name of frame file in format "cn_cas_2018"
+         */
+        fun inflate(id: Int, fileName: String): AccountingFrame {
+            val f = if (fileName.endsWith(".txt")) fileName.removeSuffix(".txt") else fileName
+            val (dir, frame, _) = f.split("_")
+
+            return inflate(id, frame, "data/${dir}/${f}.txt")
         }
     }
 }

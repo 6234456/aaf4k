@@ -10,7 +10,7 @@ class GUITest {
 
     @Test
     fun open() {
-        GUI.open(Files.readAllLines(Paths.get("data/accounting.txt")).joinToString("\n").toReporting())
+        GUI.open(Files.readAllLines(Paths.get("data/de_accounting.txt")).joinToString("\n").toReporting())
         //GUI.open(AccountingFrameTest.testReporting())
     }
 }

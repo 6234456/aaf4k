@@ -1,0 +1,93 @@
+1#Anlagevermögen#AL
+    11#Immaterielle Vermögensgegenstände
+        111#Selbst geschaffene gewerbliche Schutzrechte und ähnliche Rechte und Werte
+        112#entgeltlich erworbene Konzessionen, gewerbliche Schutzrechte und ähnliche Rechte und Werte sowie Lizenzen an solchen Rechten und Werten
+        113#Geschäfts- oder Firmenwert
+        114#geleistete Anzahlungen
+    12#Sachanlagen
+        121#Grundstücke, grundstücksgleiche Rechte und Bauten einschließlich der Bauten auf fremden Grundstücken
+        122#technische Anlagen und Maschinen
+        123#andere Anlagen, Betriebs- und Geschäftsausstattung
+        124#geleistete Anzahlungen und Anlagen im Bau
+    13#Finanzanlagen
+        131#Anteile an verbundenen Unternehmen
+        132#Ausleihungen an verbundene Unternehmen
+        133#Beteiligungen
+        134#Ausleihungen an Unternehmen, mit denen ein Beteiligungsverhältnis besteht
+        135#Wertpapiere des Anlagevermögens
+        136#sonstige Ausleihungen
+2#Umlaufvermögen#AK
+    21#Vorräte
+        211#Roh-, Hilfs- und Betriebsstoffe
+        212#unfertige Erzeugnisse, unfertige Leistungen
+        213#fertige Erzeugnisse und Waren
+        214#geleistete Anzahlungen
+    22#Forderungen und sonstige Vermögensgegenstände
+        221#Forderungen aus Lieferungen und Leistungen
+        222#Forderungen gegen verbundene Unternehmen
+        223#Forderungen gegen Unternehmen, mit denen ein Beteiligungsverhältnis besteht
+        224#sonstige Vermögensgegenstände
+    23#Wertpapiere
+        231#Anteile an verbundenen Unternehmen
+        232#sonstige Wertpapiere
+    24#Kassenbestand, Bundesbankguthaben, Guthaben bei Kreditinstituten und Schecks
+3#Rechnungsabgrenzungsposten#AS
+4#Aktive latente Steuern#AL
+5#Aktiver Unterschiedsbetrag aus der Vermögensverrechnung#AS
+6#Eigenkapital#EQ
+    61#Gezeichnetes Kapital
+    62#Kapitalrücklage
+    63#Gewinnrücklagen
+        631#gesetzliche Rücklage;
+        632#Rücklage für Anteile an einem herrschenden oder mehrheitlich beteiligten Unternehmen
+        633#satzungsmäßige Rücklagen
+        634#andere Gewinnrücklagen
+    64#Gewinnvortrag/Verlustvortrag
+    65#Jahresüberschuß/Jahresfehlbetrag#RE
+7#Rückstellungen#LB
+    71#Rückstellungen für Pensionen und ähnliche Verpflichtungen
+    72#Steuerrückstellungen
+    73#sonstige Rückstellungen
+8#Verbindlichkeiten#LB
+    81#Anleihen
+    [811#davon konvertibel
+    82#Verbindlichkeiten gegenüber Kreditinstituten
+    83#erhaltene Anzahlungen auf Bestellungen
+    84#Verbindlichkeiten aus Lieferungen und Leistungen
+    85#Verbindlichkeiten aus der Annahme gezogener Wechsel und der Ausstellung eigener Wechsel
+    86#Verbindlichkeiten gegenüber verbundenen Unternehmen
+    87#Verbindlichkeiten gegenüber Unternehmen, mit denen ein Beteiligungsverhältnis besteht
+    88#sonstige Verbindlichkeiten
+    [881#davon aus Steuern
+    [882#davon im Rahmen der sozialen Sicherheit
+9#Rechnungsabgrenzungsposten#LB
+10#Passive latente Steuern#LB
+
+100#Jahresüberschuss/Jahresfehlbetrag#RV
+    1001#sonstige Steuern#EP
+    1002#Ergebnis nach Steuern
+        1003#Umsatzerlöse
+        1004#Erhöhung oder Verminderung des Bestands an fertigen und unfertigen Erzeugnissen
+        1005#andere aktivierte Eigenleistungen
+        1006#sonstige betriebliche Erträge
+        1007#Materialaufwand#EP
+            10071#Aufwendungen für Roh-, Hilfs- und Betriebsstoffe und für bezogene Waren
+            10072#Aufwendungen für bezogene Leistungen
+        1008#Personalaufwand#EP
+            10081#Löhne und Gehälter
+            10082#soziale Abgaben und Aufwendungen für Altersversorgung und für Unterstützung
+            [10083#davon für Altersversorgung
+        1009#Abschreibungen#EP
+            10091#auf immaterielle Vermögensgegenstände des Anlagevermögens und Sachanlagen
+            10092#auf Vermögensgegenstände des Umlaufvermögens, soweit diese die in der Kapitalgesellschaft üblichen Abschreibungen überschreiten
+        1010#sonstige betriebliche Aufwendungen#EP
+        1011#Erträge aus Beteiligungen
+        [1012#davon aus verbundenen Unternehmen
+        1013#Erträge aus anderen Wertpapieren und Ausleihungen des Finanzanlagevermögens
+        [1014#davon aus verbundenen Unternehmen
+        1015#sonstige Zinsen und ähnliche Erträge
+        [1016#davon aus verbundenen Unternehmen
+        1017#Abschreibungen auf Finanzanlagen und auf Wertpapiere des Umlaufvermögens#EP
+        1018#Zinsen und ähnliche Aufwendungen#EP
+        [1019#davon an verbundene Unternehmen#EP
+        1020#Steuern vom Einkommen und vom Ertrag#EP

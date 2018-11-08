@@ -8,6 +8,7 @@ import eu.qiou.aaf4k.reportings.model.ProtoAccount
 import eu.qiou.aaf4k.reportings.model.ProtoEntity
 import eu.qiou.aaf4k.util.groupNearby
 import eu.qiou.aaf4k.util.io.*
+import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.UnitScalar
@@ -17,6 +18,47 @@ import java.nio.file.Paths
 import java.util.*
 
 class AccountingFrameTest {
+    @Test
+    fun trailDE() {
+        val frame: Reporting = AccountingFrame.inflate(123, "de_hgb_2018").toReporting(123, "ED",
+                displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016)).update(
+                mapOf(24 to 25000.0, 61 to -25000.0)
+        )
+
+        val cat1 = Category("KapKons-Erst", 1, "Kapital Konsolidierung", frame)
+        val cat4 = Category("KapKons-Folge", 2, "Kapital Konsolidierung", frame)
+        val cat5 = Category("ZG-Elimilierung", 3, "Kapital Konsolidierung", frame)
+        val cat2 = Category("SchuKons", 4, "Kapital Konsolidierung", frame)
+        val cat3 = Category("A/E-Kons", 5, "Kapital Konsolidierung", frame)
+
+        Paths.get("data/de_trail.xlsx").toFile().let {
+            if (it.exists())
+                it.delete()
+        }
+        frame.toXl("data/de_trail.xlsx", titleID = "Konto-Nr.", titleName = "Konto-Name", titleOriginal = "Vor Anpassung", titleFinal = "Nach Anpassung", prefixStatistical = "", t = Template.Theme.LAVENA)
+
+        Files.write(Paths.get("data/de_accounting.txt"), frame.toJSON().lines())
+    }
+
+    @Test
+    fun trailDE1() {
+        val frame: Reporting = AccountingFrame.inflate(123, "hgb", "credentials/de_hgb_2018.txt").toReporting(123, "ED",
+                displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016))
+        val cat1 = Category("KapKons-Erst", 1, "Kapital Konsolidierung", frame)
+        val cat4 = Category("KapKons-Folge", 2, "Kapital Konsolidierung", frame)
+        val cat5 = Category("ZG-Elimilierung", 3, "Kapital Konsolidierung", frame)
+        val cat2 = Category("SchuKons", 4, "Kapital Konsolidierung", frame)
+        val cat3 = Category("A/E-Kons", 5, "Kapital Konsolidierung", frame)
+
+        Paths.get("data/de_trail.xlsx").toFile().let {
+            if (it.exists())
+                it.delete()
+        }
+        frame.toXl("data/de_trail.xlsx", titleID = "Konto-Nr.", titleName = "Konto-Name", titleOriginal = "Vor Anpassung", titleFinal = "Nach Anpassung", prefixStatistical = "", t = Template.Theme.LAVENA)
+
+        Files.write(Paths.get("data/de_accounting.txt"), frame.toJSON().lines())
+    }
+
 
     companion object {
         fun testReporting(): Reporting {
