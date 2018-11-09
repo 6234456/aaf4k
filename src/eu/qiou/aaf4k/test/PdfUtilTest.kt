@@ -58,7 +58,7 @@ class PdfUtilTest {
         }
 
         val a1 = PdfUtil.extractText(
-                PdfUtil.readFile("src/eu/qiou/aaf4k/test/credentials.SKR 04 2017.pdf"),
+                PdfUtil.readFile("data/de/SKR-04.pdf"),
                 pageFilter = {_ ,_-> true},
                 regions = mutableMapOf(
                         "a" to Rectangle(130,50,690,750)
@@ -76,11 +76,35 @@ class PdfUtilTest {
             )
         }
 
-        val map = l.mapIndexed { index: Int, s: String ->
-            index.toString() to listOf(s)
+        val reg1 = """^[A-Z\s]{0,5}(\d{4})\s(\S.+)""".toRegex()
+        val reg2 = """[a-zA-Z]""".toRegex()
+        val reg3 = """^\s*-\d{2}\s*""".toRegex()
+        val reg4 = """^–\sRestlaufzeit""".toRegex()
+
+        val fs: (String) -> String = {
+            val e = reg1.find(it)!!.groups
+            reg3.replace(e[2]!!.value, "")
+        }
+
+        val map1 = l.filter { it.isNotBlank() && reg1.containsMatchIn(it) && reg2.containsMatchIn(reg1.find(it)!!.groups[2]!!.value) }
+
+        val map = map1.mapIndexed { index: Int, s: String ->
+            val e = reg1.find(s)!!.groups
+            var f = fs(s)
+            if (reg4.containsMatchIn(f)) {
+                var i = index - 1
+                while (reg4.containsMatchIn(map1[i--])) {
+
+                }
+
+                f = fs(map1[i + 1]).split("–")[0].trim() + " " + f
+            }
+            index.toString() to listOf(e[1]!!.value + "#" + f)
         }.toMap()
 
-        ExcelUtil.writeData("skr4.xls", data = map)
+
+
+        ExcelUtil.writeData("data/de/skr4.xls", data = map)
 
         val regexFirstUpper = Regex("""^\s*(?:([A-ZÄÜ]\s+)*)(\d{4,})""")
 
