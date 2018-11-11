@@ -9,6 +9,8 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
     val entries: MutableList<ProtoEntry<T>> = mutableListOf()
     val timeParameters = reporting.timeParameters
 
+    var isWritable: Boolean = true
+
     //might exist multi-thread problem
     var nextEntryIndex = 1
 

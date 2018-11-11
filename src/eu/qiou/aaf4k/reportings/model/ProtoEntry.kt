@@ -16,6 +16,7 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
 
     var isActive:Boolean = true
     var isVisible: Boolean = true
+    var isWritable: Boolean = true
 
     // in an entry there might be multiple accounts with the same id
     val accounts: MutableList<T> = mutableListOf()

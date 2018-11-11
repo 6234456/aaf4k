@@ -155,6 +155,20 @@ open class ProtoAccount(val id: Int, open val name: String,
         }
     }
 
+    fun notStatistical(): List<ProtoAccount> {
+        if (!isStatistical) {
+            if (isAggregate) {
+                return subAccounts!!.fold(listOf<ProtoAccount>()) { acc, protoAccount ->
+                    acc + protoAccount.notStatistical()
+                }
+            }
+
+            return listOf(this)
+        }
+
+        return listOf()
+    }
+
     fun nullify(): ProtoAccount {
         return this.deepCopy { it.toBuilder().setValue(0).build() }
     }

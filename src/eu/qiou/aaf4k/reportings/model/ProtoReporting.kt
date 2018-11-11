@@ -56,6 +56,19 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         }
     }
 
+    fun checkDuplicate(): Map<Int, Int> {
+        return structure
+                .fold(listOf<ProtoAccount>()) { acc, t -> acc + t.notStatistical() }
+                .fold(mutableMapOf<Int, Int>()) { acc, protoAccount ->
+                    if (acc.containsKey(protoAccount.id)) {
+                        acc[protoAccount.id] = acc[protoAccount.id]!! + 1
+                    } else {
+                        acc[protoAccount.id] = 1
+                    }
+                    acc
+                }.filterValues { it > 1 }
+    }
+
     fun shorten(): ProtoReporting<T> {
         return ProtoReporting(id, name, desc,
                 structure.map { it.shorten() as T }
