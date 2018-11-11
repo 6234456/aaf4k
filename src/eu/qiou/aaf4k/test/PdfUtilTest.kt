@@ -79,7 +79,7 @@ class PdfUtilTest {
         val reg1 = """^[A-Z\s]{0,5}(\d{4})\s(\S.+)""".toRegex()
         val reg2 = """[a-zA-Z]""".toRegex()
         val reg3 = """^\s*-\d{2}\s*""".toRegex()
-        val reg4 = """^–\sRestlaufzeit""".toRegex()
+        val reg4 = """^\s*–\s*Restlaufzeit""".toRegex()
 
         val fs: (String) -> String = {
             val e = reg1.find(it)!!.groups
@@ -93,11 +93,20 @@ class PdfUtilTest {
             var f = fs(s)
             if (reg4.containsMatchIn(f)) {
                 var i = index - 1
-                while (reg4.containsMatchIn(map1[i--])) {
-
+                if (e[1]!!.value == "1335") {
+                    println("$i ${map1[i]}")
+                    println("${i - 1} ${map1[i - 1]}")
+                }
+                while (reg4.containsMatchIn(fs(map1[i]))) {
+                    i--
                 }
 
-                f = fs(map1[i + 1]).split("–")[0].trim() + " " + f
+                if (e[1]!!.value == "1335") {
+                    println("${i} ${map1[i]}")
+                    println("${fs(map1[i])}")
+                }
+
+                f = fs(map1[i]).split("–")[0].trim() + " " + f
             }
             index.toString() to listOf(e[1]!!.value + "#" + f)
         }.toMap()
