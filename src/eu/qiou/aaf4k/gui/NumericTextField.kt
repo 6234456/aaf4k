@@ -1,13 +1,14 @@
 package eu.qiou.aaf4k.gui
 
+import eu.qiou.aaf4k.gui.StringParser.parseBindingString
 import eu.qiou.aaf4k.util.roundUpTo
 import javafx.scene.control.TextField
 import javax.script.ScriptEngineManager
 
 
-class NumericTextField(val decimalPrecision: Int, text: String? = "") : TextField(text) {
+class NumericTextField(val decimalPrecision: Int, text: String? = "", bindingContext: List<NumericTextField>? = null) : TextField(text) {
     companion object {
-        private val regFormula = """^=([\(\)\.\+\-\*/\d]*)""".toRegex()
+        private val regFormula = """^=([\$\(\)\.\+\-\*/\d]*)\s*$""".toRegex()
         private val regNormal = """\-?\d*\.?\d*""".toRegex()
         private val js = ScriptEngineManager().getEngineByName("js")
         private val formatter: (Number, Int) -> String = { n, dec ->
@@ -24,15 +25,59 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "") : TextFiel
                 t.toDouble()
             }.roundUpTo(decimalPrecision)
         }
+
+        // bindingString starts with $()
+        // $1 position of the target element in the srcList
+
+        private fun bindingWith(bindingString: String, list: List<NumericTextField>): (() -> Double) {
+            return parseBindingString(bindingString, NumericTextField::doubleValue, list)
+        }
+
     }
 
     private var fixed: Boolean = false
     var number: Number? = null
+    private fun doubleValue(): Double {
+        return if (number == null) 0.0 else number!!.toDouble()
+    }
+
+    private val observerList: MutableList<NumericTextField> = mutableListOf()
+    private val srcList: MutableList<NumericTextField> = mutableListOf()
+
+    private lateinit var bindingMethod: (() -> Double)
+    var bindingString: String? = null
+        set(value) {
+            if (value == null)
+                unbind()
+            else
+                bindingMethod = bindingWith(value, srcList)
+        }
+
+    fun bind(other: NumericTextField) {
+        srcList.add(other)
+        other.observerList.add(this)
+    }
+
+    fun unbind() {
+        srcList.forEach { it.observerList.remove(this) }
+        srcList.clear()
+    }
+
+    fun updateOnBinding() {
+        writeNumber(bindingMethod())
+    }
+
+    fun notifyObservers() {
+        observerList.forEach {
+            it.updateOnBinding()
+        }
+    }
 
     fun writeNumber(n: Number) {
         fixed = true
         number = n
         this.text = formatter(number!!, decimalPrecision)
+        notifyObservers()
     }
 
 
@@ -59,6 +104,7 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "") : TextFiel
             else {
                 fixed = false
                 this.text = if (number == null) "" else formatterWithoutSep(number!!, decimalPrecision)
+                notifyObservers()
             }
         }
     }

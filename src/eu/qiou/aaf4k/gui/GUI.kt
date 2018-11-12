@@ -26,6 +26,10 @@ import java.nio.file.Paths
 import java.util.*
 
 // TODO: Implement Locale to the GUI
+// TODO: binding between numericfields
+// TODO: Add date field to the entry
+// TODO: tempo entry
+// TODO: template entries
 class GUI : Application() {
 
     companion object {
@@ -214,10 +218,10 @@ class GUI : Application() {
                                                     val valuePos = 1
 
                                                     val group = ControlGroup(listOf(
-                                                            { i: Int, g: ControlGroup ->
+                                                            { _: Int, g: ControlGroup ->
                                                                 AutoCompleteTextField<Int>("", suggestions = suggestions)
                                                             },
-                                                            { i: Int, g: ControlGroup ->
+                                                            { _: Int, g: ControlGroup ->
                                                                 NumericTextField(targetAccount.decimalPrecision)
                                                             },
                                                             { i: Int, g: ControlGroup ->
@@ -282,6 +286,16 @@ class GUI : Application() {
                                                         this.add(TextField().apply {
                                                             this.textProperty().bindBidirectional(description)
                                                         }, 1, 0)
+
+                                                        this.add(Button("R").apply {
+                                                            setOnAction {
+                                                                (group.elements[valuePos] as MutableList<NumericTextField>).forEach { x ->
+                                                                    if (x.number != null) {
+                                                                        x.writeNumber(x.number!!.toDouble() * -1)
+                                                                    }
+                                                                }
+                                                            }
+                                                        }, 4, 0)
 
                                                         group.attachToRoot(this)
                                                     }
