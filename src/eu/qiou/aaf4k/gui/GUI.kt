@@ -59,6 +59,7 @@ class GUI : Application() {
     override fun start(primaryStage: Stage?) {
 
         val msg = ResourceBundle.getBundle("aaf4k", GUI.locale)
+        println(GUI.locale)
 
         val reporting = GUI.reporting
         val reportingNull = reporting.nullify()
@@ -306,7 +307,7 @@ class GUI : Application() {
 
                                                         this.add(TextField().apply {
                                                             this.textProperty().bindBidirectional(description)
-                                                            promptText = "Descriptions"
+                                                            promptText = msg.getString("desc")
                                                         }, 0, 1)
 
                                                         this.add(Button("R").apply {
