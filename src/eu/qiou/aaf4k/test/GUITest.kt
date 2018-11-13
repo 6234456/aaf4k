@@ -5,6 +5,7 @@ import eu.qiou.aaf4k.gui.GUI
 import eu.qiou.aaf4k.gui.StringParser
 import eu.qiou.aaf4k.reportings.etl.AccountingFrame
 import org.junit.Test
+import java.util.*
 
 class GUITest {
 
@@ -29,6 +30,7 @@ class GUITest {
 
     @Test
     fun open2() {
+        GUI.locale = Locale.GERMANY
         GUI.open("data/de_accounting.txt")
         //GUI.open(AccountingFrameTest.testReporting())
 

@@ -58,6 +58,8 @@ class GUI : Application() {
 
     override fun start(primaryStage: Stage?) {
 
+        val msg = ResourceBundle.getBundle("aaf4k", GUI.locale)
+
         val reporting = GUI.reporting
         val reportingNull = reporting.nullify()
 
@@ -75,19 +77,19 @@ class GUI : Application() {
         }
 
         val tab1 = Tab().apply {
-            text = "科目汇总"
+            text = msg.getString("generalLedger")
             isClosable = false
         }
 
 
         val tab2 = Tab().apply {
-            text = "财务报表"
+            text = msg.getString("financialStatements")
             isClosable = false
 
         }
 
         val tab3 = Tab().apply {
-            text = "调整分录"
+            text = msg.getString("adjustments")
             isClosable = false
         }
 
@@ -140,22 +142,22 @@ class GUI : Application() {
             inflateTreeItem()
 
             val cols = listOf(
-                    TreeTableColumn<Account, String>("科目代码").apply {
+                    TreeTableColumn<Account, String>(msg.getString("accountId")).apply {
                         setCellValueFactory {
                             ReadOnlyStringWrapper(it.value.value.id.toString())
                         }
                     },
-                    TreeTableColumn<Account, String>("账户名称").apply {
+                    TreeTableColumn<Account, String>(msg.getString("accountName")).apply {
                         setCellValueFactory {
                             ReadOnlyStringWrapper(
                                     with(it.value.value) {
-                                        if (isStatistical) "其中:$name" else name
+                                        if (isStatistical) "${msg.getString("thereOf")}:$name" else name
                                     }
                             )
                         }
 
                     },
-                    TreeTableColumn<Account, String>("科目余额：调整前").apply {
+                    TreeTableColumn<Account, String>(msg.getString("balanceBeforeAdj")).apply {
                         setCellValueFactory {
                             ReadOnlyStringWrapper(formatter(it.value.value.displayValue, it.value.value.decimalPrecision))
                         }
@@ -204,7 +206,7 @@ class GUI : Application() {
                                                 val dialog: Dialog<Entry> = Dialog()
 
                                                 dialog.run {
-                                                    title = "Booking"
+                                                    title = msg.getString("booking")
                                                     dialogPane.buttonTypes.addAll(
                                                             ButtonType.OK,
                                                             ButtonType.CANCEL
@@ -219,12 +221,12 @@ class GUI : Application() {
                                                     val group = ControlGroup(listOf(
                                                             { _: Int, g: ControlGroup ->
                                                                 AutoCompleteTextField<Int>("", suggestions = suggestions).apply {
-                                                                    promptText = "Account id"
+                                                                    promptText = msg.getString("accountId")
                                                                 }
                                                             },
                                                             { _: Int, g: ControlGroup ->
                                                                 NumericTextField(targetAccount.decimalPrecision).apply {
-                                                                    promptText = "Value"
+                                                                    promptText = msg.getString("bookingPHValue")
                                                                 }
                                                             },
                                                             { i: Int, g: ControlGroup ->
@@ -393,7 +395,7 @@ class GUI : Application() {
                         }
                     } +
                     listOf(
-                            TreeTableColumn<Account, String>("科目余额：调整后").apply {
+                            TreeTableColumn<Account, String>(msg.getString("balanceAfterAdj")).apply {
                                 val data = reporting.generate().flattenWithAllAccounts().map { it.id to it.displayValue }.toMap()
                                 setCellValueFactory {
                                     ReadOnlyStringWrapper(
@@ -444,7 +446,7 @@ class GUI : Application() {
 
             )
 
-            title = "Reporting"
+            title = msg.getString("reporting")
             isFullScreen = true
             show()
         }

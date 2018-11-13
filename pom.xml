@@ -93,6 +93,10 @@
             </resource>
 
             <resource>
+                <directory>locale</directory>
+            </resource>
+
+            <resource>
                 <directory>data/de</directory>
             </resource>
         </resources>
