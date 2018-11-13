@@ -45,20 +45,31 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindin
     // two options to bind: one input in the textfield
     private fun parseString(t: String, decimalPrecision: Int): Double {
         return try {
-            if (regFormula.matches(t)) {
-                formula = t
+            if (t.isBlank()) {
+                formula = null
+                unbind()
+                0.0
+            } else if (regFormula.matches(t)) {
                 val e = regFormula.find(t)!!.groups[1]!!.value
                 if (regBindingElement.containsMatchIn(e)) {
-                    if (bindingContext == null)
-                        throw Exception("BindingContext should be specified!")
-                    bindingString = t
+                    if (formula != t) {
+                        if (bindingContext == null)
+                            throw Exception("BindingContext should be specified!")
+
+                        bindingString = t
+                        formula = t
+                    }
+
                     bindingMethod()
 
                 } else {
-                    js.eval(e).toString().toDouble()
+                    formula = t
+                    js.eval(e).toString().replace(",", "").toDouble()
                 }
             } else {
-                t.toDouble()
+                formula = null
+                unbind()
+                t.replace(",", "").toDouble()
             }
         } catch (x: javax.script.ScriptException) {
             0.0
@@ -100,16 +111,13 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindin
     fun writeNumber(n: Number) {
         fixed = true
         number = n
-        this.text = formatter(number!!, decimalPrecision)
+        this.text = if (n == 0.0) "" else formatter(number!!, decimalPrecision)
         notifyObservers()
     }
 
-
     private fun formatText() {
         text?.let { t ->
-            if (!t.isBlank()) {
-                writeNumber(parseString(t, decimalPrecision))
-            }
+            writeNumber(parseString(t, decimalPrecision))
         }
     }
 
@@ -130,7 +138,7 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindin
                 if (formula != null)
                     this.text = formula
                 else
-                    this.text = if (number == null) "" else formatterWithoutSep(number!!, decimalPrecision)
+                    this.text = if (number == null || number == 0.0) "" else formatterWithoutSep(number!!, decimalPrecision)
             }
         }
     }

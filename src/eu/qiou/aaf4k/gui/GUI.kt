@@ -240,7 +240,15 @@ class GUI : Application() {
                                                             },
                                                             { i: Int, g: ControlGroup ->
                                                                 Button("+").apply {
-                                                                    setOnAction { g.append(g.elements[i].indexOf(this), rootPane) }
+                                                                    setOnAction {
+                                                                        g.append(g.elements[i].indexOf(this), rootPane)
+
+                                                                        val f = (g.elements[valuePos] as List<NumericTextField>)
+
+                                                                        f.forEach {
+                                                                            it.bindingContext = f
+                                                                        }
+                                                                    }
                                                                 }
                                                             },
                                                             { i: Int, g: ControlGroup ->
@@ -349,7 +357,7 @@ class GUI : Application() {
                                                                         }
                                                                     }
 
-                                                                    if (!e.balanced()) {
+                                                                    if ((!e.balanced()) || e.accounts.all { it.decimalValue == 0.0 }) {
                                                                         e.unregister()
                                                                         null
                                                                     } else {
