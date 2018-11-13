@@ -1,15 +1,18 @@
 package eu.qiou.aaf4k.gui
 
 import eu.qiou.aaf4k.gui.StringParser.parseBindingString
+import eu.qiou.aaf4k.gui.StringParser.regBindingElement
 import eu.qiou.aaf4k.util.roundUpTo
+import javafx.application.Platform
 import javafx.scene.control.TextField
 import javax.script.ScriptEngineManager
 
-
-class NumericTextField(val decimalPrecision: Int, text: String? = "", bindingContext: List<NumericTextField>? = null) : TextField(text) {
+// bindingContext specifies a range of components to be chosen from
+class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindingContext: List<NumericTextField>? = null) : TextField(text) {
     companion object {
         private val regFormula = """^=([\$\(\)\.\+\-\*/\d]*)\s*$""".toRegex()
         private val regNormal = """\-?\d*\.?\d*""".toRegex()
+
         private val js = ScriptEngineManager().getEngineByName("js")
         private val formatter: (Number, Int) -> String = { n, dec ->
             if (Math.abs(n.toDouble()) < Math.pow(10.0, -1.0 * (dec + 1))) "0" else String.format("%,.${dec}f", n.roundUpTo(dec))
@@ -18,23 +21,17 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", bindingCon
             if (Math.abs(n.toDouble()) < Math.pow(10.0, -1.0 * (dec + 1))) "0" else String.format("%.${dec}f", n.roundUpTo(dec))
         }
 
-        private fun parseString(t: String, decimalPrecision: Int): Double {
-            return if (regFormula.matches(t)) {
-                js.eval(regFormula.find(t)!!.groups[1]!!.value).toString().toDouble()
-            } else {
-                t.toDouble()
-            }.roundUpTo(decimalPrecision)
-        }
-
-        // bindingString starts with $()
-        // $1 position of the target element in the srcList
-
-        private fun bindingWith(bindingString: String, list: List<NumericTextField>): (() -> Double) {
-            return parseBindingString(bindingString, NumericTextField::doubleValue, list)
-        }
-
     }
 
+    // bindingString starts with $()
+    // $1 position of the target element in the srcList
+    private fun bindingWith(bindingString: String, bindingContext: List<NumericTextField>? = this.bindingContext): (() -> Double) {
+        return parseBindingString(bindingString, NumericTextField::doubleValue, bindingContext!!) {
+            this.bind(it)
+        }
+    }
+
+    var formula: String? = null
     private var fixed: Boolean = false
     var number: Number? = null
     private fun doubleValue(): Double {
@@ -44,13 +41,38 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", bindingCon
     private val observerList: MutableList<NumericTextField> = mutableListOf()
     private val srcList: MutableList<NumericTextField> = mutableListOf()
 
+
+    // two options to bind: one input in the textfield
+    private fun parseString(t: String, decimalPrecision: Int): Double {
+        return try {
+            if (regFormula.matches(t)) {
+                formula = t
+                val e = regFormula.find(t)!!.groups[1]!!.value
+                if (regBindingElement.containsMatchIn(e)) {
+                    if (bindingContext == null)
+                        throw Exception("BindingContext should be specified!")
+                    bindingString = t
+                    bindingMethod()
+
+                } else {
+                    js.eval(e).toString().toDouble()
+                }
+            } else {
+                t.toDouble()
+            }
+        } catch (x: javax.script.ScriptException) {
+            0.0
+        }.roundUpTo(decimalPrecision)
+    }
+
+    // or set bindingString programmtically
     private lateinit var bindingMethod: (() -> Double)
     var bindingString: String? = null
         set(value) {
-            if (value == null)
-                unbind()
-            else
-                bindingMethod = bindingWith(value, srcList)
+            unbind()
+            if (value != null) {
+                bindingMethod = bindingWith(value)
+            }
         }
 
     fun bind(other: NumericTextField) {
@@ -63,11 +85,13 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", bindingCon
         srcList.clear()
     }
 
-    fun updateOnBinding() {
-        writeNumber(bindingMethod())
+    private fun updateOnBinding() {
+        Platform.runLater {
+            writeNumber(bindingMethod())
+        }
     }
 
-    fun notifyObservers() {
+    private fun notifyObservers() {
         observerList.forEach {
             it.updateOnBinding()
         }
@@ -103,8 +127,10 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", bindingCon
                 formatText()
             else {
                 fixed = false
-                this.text = if (number == null) "" else formatterWithoutSep(number!!, decimalPrecision)
-                notifyObservers()
+                if (formula != null)
+                    this.text = formula
+                else
+                    this.text = if (number == null) "" else formatterWithoutSep(number!!, decimalPrecision)
             }
         }
     }

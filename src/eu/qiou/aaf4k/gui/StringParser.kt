@@ -9,7 +9,7 @@ object StringParser {
 
     // bindingString starts with $()
     // $1 position of the target element in the srcList
-    fun <T> parseBindingString(bindingString: String, f: T.() -> Double, list: List<T>): (() -> Double) {
+    fun <T> parseBindingString(bindingString: String, f: T.() -> Double, list: List<T>, callback: (T) -> Unit = {}): (() -> Double) {
         if (!regBinding.matches(bindingString))
             throw Exception("IllegalBindingString: $bindingString ")
 
@@ -17,7 +17,9 @@ object StringParser {
 
         return {
             js.eval(regBindingElement.replace(content) {
-                list[it.groups[1]!!.value.toInt()].f().toString()
+                val e = list[it.groups[1]!!.value.toInt()]
+                callback(e)
+                e.f().toString()
             }).toString().toDouble()
         }
     }

@@ -26,7 +26,6 @@ import java.nio.file.Paths
 import java.util.*
 
 // TODO: Implement Locale to the GUI
-// TODO: binding between numericfields
 // TODO: Add date field to the entry
 // TODO: tempo entry
 // TODO: template entries
@@ -251,6 +250,12 @@ class GUI : Application() {
                                                         this.elements[0][0] = AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) accountShown(targetAccount) else "", suggestions).apply {
                                                             if (!targetAccount.hasChildren())
                                                                 result = targetAccount.id
+                                                        }
+
+                                                        val f = (this.elements[valuePos] as List<NumericTextField>)
+
+                                                        f.forEach {
+                                                            it.bindingContext = f
                                                         }
                                                     }
 
