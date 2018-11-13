@@ -12,6 +12,9 @@ import java.time.LocalDate
 open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val category: ProtoCategory<T>, val date: LocalDate = category.timeParameters.end) : JSONable {
 
     init {
+        if (!category.timeParameters.contains(date))
+            throw Exception("IllegalAttribute: date $date should be within the TimeSpan of the Category!")
+
         category.add(this)
     }
 
