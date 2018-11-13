@@ -65,7 +65,8 @@ object FromJSON {
     fun entry(json: JSONObject, category: Category): Entry {
         return Entry(id = (json.get("id") as Long).toInt(),
                 desc = json.get("desc") as String,
-                category = category
+                category = category,
+                date = if (json.get("date") == null) category.timeParameters.end else LocalDate.parse(json.get("date") as String)
         ).apply {
             (json.get("accounts") as JSONArray).forEach {
                 add(account(it as JSONObject))

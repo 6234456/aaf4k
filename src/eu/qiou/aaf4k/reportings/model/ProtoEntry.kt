@@ -3,12 +3,13 @@ package eu.qiou.aaf4k.reportings.model
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.mkString
 import eu.qiou.aaf4k.util.strings.CollectionToString
+import java.time.LocalDate
 
 
 /**
  *  all the attribute at atomic level
  */
-open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val category: ProtoCategory<T>) : JSONable {
+open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val category: ProtoCategory<T>, val date: LocalDate = category.timeParameters.end) : JSONable {
 
     init {
         category.add(this)
@@ -93,7 +94,7 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
     }
 
     override fun toJSON(): String {
-        return """{ "id": $id, "desc": "$desc", "accounts": ${CollectionToString.mkJSON(accounts)} }"""
+        return """{ "id": $id, "desc": "$desc", "accounts": ${CollectionToString.mkJSON(accounts)}, "date": "$date" }"""
     }
 
 }

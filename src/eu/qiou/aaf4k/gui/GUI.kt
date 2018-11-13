@@ -23,10 +23,10 @@ import javafx.stage.Stage
 import javafx.util.StringConverter
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.time.LocalDate
 import java.util.*
 
 // TODO: Implement Locale to the GUI
-// TODO: Add date field to the entry
 // TODO: tempo entry
 // TODO: template entries
 class GUI : Application() {
@@ -218,10 +218,14 @@ class GUI : Application() {
 
                                                     val group = ControlGroup(listOf(
                                                             { _: Int, g: ControlGroup ->
-                                                                AutoCompleteTextField<Int>("", suggestions = suggestions)
+                                                                AutoCompleteTextField<Int>("", suggestions = suggestions).apply {
+                                                                    promptText = "Account id"
+                                                                }
                                                             },
                                                             { _: Int, g: ControlGroup ->
-                                                                NumericTextField(targetAccount.decimalPrecision)
+                                                                NumericTextField(targetAccount.decimalPrecision).apply {
+                                                                    promptText = "Value"
+                                                                }
                                                             },
                                                             { i: Int, g: ControlGroup ->
                                                                 Button("b").apply {
@@ -244,7 +248,7 @@ class GUI : Application() {
                                                                     setOnAction { g.remove(g.elements[i].indexOf(this), rootPane) }
                                                                 }
                                                             }
-                                                    ), 0, 1).apply {
+                                                    ), 0, 5).apply {
                                                         inflate(3)
 
                                                         this.elements[0][0] = AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) accountShown(targetAccount) else "", suggestions).apply {
@@ -258,6 +262,8 @@ class GUI : Application() {
                                                             it.bindingContext = f
                                                         }
                                                     }
+
+                                                    var entryDate: LocalDate = category.timeParameters.end
 
 
                                                     rootPane.apply {
@@ -290,7 +296,8 @@ class GUI : Application() {
 
                                                         this.add(TextField().apply {
                                                             this.textProperty().bindBidirectional(description)
-                                                        }, 1, 0)
+                                                            promptText = "Descriptions"
+                                                        }, 0, 1)
 
                                                         this.add(Button("R").apply {
                                                             setOnAction {
@@ -301,6 +308,23 @@ class GUI : Application() {
                                                                 }
                                                             }
                                                         }, 4, 0)
+
+                                                        this.add(DatePicker(entryDate).apply {
+                                                            setDayCellFactory {
+                                                                object : DateCell() {
+                                                                    override fun updateItem(item: LocalDate?, empty: Boolean) {
+                                                                        super.updateItem(item, empty)
+                                                                        isDisable = empty || item == null || !category.timeParameters.contains(item)
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            promptText = "Date of Entry"
+
+                                                            setOnAction {
+                                                                entryDate = value
+                                                            }
+                                                        }, 0, 2)
 
                                                         group.attachToRoot(this)
                                                     }
@@ -315,7 +339,7 @@ class GUI : Application() {
                                                             with(text.map { it.result }.zip(values.map { it.number })) {
                                                                 if (this.any { it.first != null && it.second != null }) {
                                                                     val e = Entry(category.nextEntryIndex, description.value
-                                                                            ?: "", category).apply {
+                                                                            ?: "", category, entryDate).apply {
                                                                         this@with.forEach { p ->
                                                                             p.first?.let { id ->
                                                                                 p.second?.let {

@@ -1,8 +1,9 @@
 package eu.qiou.aaf4k.accounting.model
 
 import eu.qiou.aaf4k.reportings.model.ProtoEntry
+import java.time.LocalDate
 
-class Entry(id: Int, desc: String = "", category: Category) : ProtoEntry<Account>(id, desc, category) {
+class Entry(id: Int, desc: String = "", category: Category, date: LocalDate = category.timeParameters.end) : ProtoEntry<Account>(id, desc, category, date) {
 
     override fun add(id: Int, value: Double): Entry {
 
