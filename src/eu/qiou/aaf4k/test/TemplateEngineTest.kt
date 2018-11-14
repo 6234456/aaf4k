@@ -33,10 +33,13 @@ class TemplateEngineTest {
         val s: Any = 3.0
         println(s is Number)
         val t = TemplateEngine(fmt = "%.0f")
-        val d = mapOf("1234" to 2.0, "2345" to 5.0, "2" to 7.0)
+        val d = mapOf("1234" to 2.0, "2345" to 5.0, "2" to 7.0, "9" to -1121, "10" to -12222)
 
         println(t.compile("abc[=[1234] * [2345]]++ [= 1+ 2]")(d))
         println(t.compile("abc[=[1234] * [2345] | %.0f ]++[= [2345]]")(d))
         println(t.compile("abc[[1234] | %.6f ] [=[1234] | %.2f ] sersdf8[")(d))
+        println(t.compile("abc[=[10] | %,.2f]")(d))
+        println(t.compile("abc[=[9]-[10] | %,.2f]")(d))
+        println(t.compile("abc[10 | %,.2f] | %,.2f]")(d))
     }
 }

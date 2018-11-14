@@ -27,14 +27,24 @@ object ExcelUtil {
             return parseXlFormatString("#")
 
         formatSpecifier.matchEntire(s)?.groups?.let {
+            val indexOfSharp = it.last()!!.value.indexOfFirst { it == '#' }
             val decimal = with(it.last()!!.range) { this.last - this.first + 1 }
             val thousandSep = it[2] != null || it[3] != null
             val hasDecimalPoint = it[it.size - 2] != null
 
-            return { String.format("%${if (thousandSep) "," else ""}.${decimal}f", it.toDouble()) + if (hasDecimalPoint && decimal == 0) "." else "" }
+            return {
+                val p1 = String.format("%${if (thousandSep) "," else ""}.${decimal}f", it.toDouble())
+
+                if (indexOfSharp == -1) {
+                    p1 + if (hasDecimalPoint && decimal == 0) "." else ""
+                } else {
+                    val pos = with(p1.takeLast(decimal - indexOfSharp)) { length - (1 + indexOfLast { it != '0' }) }
+                    p1.dropLast(if (pos == decimal) pos + 1 else pos)
+                }
+            }
         }
 
-        throw Exception("mal-format: xl-formatString")
+        throw Exception("Malformed pattern: \"$s\"")
 
     }
 

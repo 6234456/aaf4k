@@ -17,7 +17,7 @@ class TemplateEngine(val prefix: String = "[", val affix: String = "]", val fmt:
     private val regElement = """\${prefix}([^\${prefix}\${affix}\|]+)(?:\s*\|\s*(%[\d\w.,]+))?\s*\${affix}""".toRegex()
     private val js = ScriptEngineManager().getEngineByName("js")
 
-    private fun parse(tpl: String, data: Map<String, Any>): String {
+    private fun parse(tpl: String, data: Map<String, Any>, withBrackets: Boolean = false): String {
         var fmt = fmt
 
         if (regEvaluate.containsMatchIn(tpl)) {
@@ -26,9 +26,9 @@ class TemplateEngine(val prefix: String = "[", val affix: String = "]", val fmt:
             }
 
             return regEvaluate.replace(tpl) {
-                val v = js.eval(parse(it.groups[1]!!.value, data))
+                val v = js.eval(parse(it.groups[1]!!.value, data, true))
                 if (v is Number)
-                    String.format(fmt, v.toDouble())
+                    if (v.toDouble() < 0 && withBrackets) "(${v.toDouble()})" else String.format(fmt, v.toDouble())
                 else
                     String.format("%s", v)
 
@@ -47,7 +47,7 @@ class TemplateEngine(val prefix: String = "[", val affix: String = "]", val fmt:
 
                 val value = data[v]!!
                 if (value is Number)
-                    String.format(fmt, value.toDouble())
+                    if (value.toDouble() < 0 && withBrackets) "(${value.toDouble()})" else String.format(fmt, value.toDouble())
                 else
                     String.format("%s", value)
 

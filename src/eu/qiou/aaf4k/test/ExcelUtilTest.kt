@@ -4,7 +4,10 @@ import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.template.Template
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.junit.Test
+import java.text.DecimalFormat
+import java.text.NumberFormat
 import java.time.LocalDate
+import java.util.*
 
 
 class ExcelUtilTest {
@@ -37,6 +40,17 @@ class ExcelUtilTest {
     @Test
     fun rgb() {
         println(ExcelUtil.longToRGB(11892015L))
+    }
+
+    @Test
+    fun fmtStr() {
+        val f = (NumberFormat.getInstance(Locale.ENGLISH) as DecimalFormat)
+
+        val s = "#"
+        val n = -1123.34
+        f.applyPattern(s)
+        println(f.format(n))
+        println(ExcelUtil.parseXlFormatString(s)(n))
     }
 
     @Test

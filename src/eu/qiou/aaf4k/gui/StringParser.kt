@@ -19,7 +19,8 @@ object StringParser {
             js.eval(regBindingElement.replace(content) {
                 val e = list[it.groups[1]!!.value.toInt()]
                 callback(e)
-                e.f().toString()
+                // JS parse 1--1
+                "(${e.f()})"
             }).toString().toDouble()
         }
     }
