@@ -97,6 +97,10 @@
             </resource>
 
             <resource>
+                <directory>stylesheet</directory>
+            </resource>
+
+            <resource>
                 <directory>data/de</directory>
             </resource>
         </resources>

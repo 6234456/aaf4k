@@ -15,6 +15,7 @@ import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.ProtoUnit
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
+import java.util.*
 
 
 /**
@@ -146,9 +147,23 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return CollectionToString.mkString(structure)
     }
 
-    fun toXl(path: String, titleID: String = "科目代码", titleName: String = "科目名称"
-             , titleOriginal: String = "账户余额:调整前", titleFinal: String = "账户余额:调整后", prefixStatistical: String = " 其中: ", t: Template.Theme = Template.Theme.DEFAULT
+    fun toXl(path: String, t: Template.Theme = Template.Theme.DEFAULT, locale: Locale = GlobalConfiguration.DEFAULT_LOCALE
     ) {
+
+        val msg = ResourceBundle.getBundle("aaf4k", locale)
+
+        val titleID: String = msg.getString("accountId")
+        val titleName: String = msg.getString("accountName")
+        val titleOriginal: String = msg.getString("balanceBeforeAdj")
+        val titleFinal: String = msg.getString("balanceAfterAdj")
+        val prefixStatistical: String = " ${msg.getString("thereOf")}: "
+
+        val categoryID = msg.getString("categoryId")
+        val categoryName = msg.getString("categoryName")
+        val descStr = msg.getString("desc")
+        val amount = msg.getString("amount")
+
+
         val startRow = 1
         var cnt = startRow
         val colId = 0
@@ -294,12 +309,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             val bookingCallback: (Sheet) -> Unit = { shtCat ->
                 shtCat.isDisplayGridlines = false
                 shtCat.createRow(0).apply {
-                    createCell(0).setCellValue("Category-ID")
+                    createCell(0).setCellValue(categoryID)
                     createCell(1).setCellValue(titleID)
                     createCell(2).setCellValue(titleName)
-                    createCell(colVal).setCellValue("Amount")
-                    createCell(4).setCellValue("Desc")
-                    createCell(5).setCellValue("Category-Name")
+                    createCell(colVal).setCellValue(amount)
+                    createCell(4).setCellValue(descStr)
+                    createCell(5).setCellValue(categoryName)
 
                     ExcelUtil.StyleBuilder(w).fromStyle(heading, false).applyTo(
                             0.until(6).map { i ->

@@ -3,15 +3,22 @@ package eu.qiou.aaf4k.gui
 import eu.qiou.aaf4k.gui.StringParser.parseBindingString
 import eu.qiou.aaf4k.gui.StringParser.regBindingElement
 import eu.qiou.aaf4k.util.roundUpTo
+import eu.qiou.aaf4k.util.strings.times
 import javafx.application.Platform
 import javafx.scene.control.TextField
+import java.text.DecimalFormat
+import java.text.NumberFormat
 import javax.script.ScriptEngineManager
 
 // bindingContext specifies a range of components to be chosen from
+// TODO: JS parse 1 -- 1
 class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindingContext: List<NumericTextField>? = null) : TextField(text) {
     companion object {
-        private val regFormula = """^=([\$\(\)\.\+\-\*/\d]*)\s*$""".toRegex()
-        private val regNormal = """\-?\d*\.?\d*""".toRegex()
+        private val parser = (NumberFormat.getNumberInstance() as DecimalFormat).decimalFormatSymbols
+        private val thousandSep = parser.groupingSeparator
+        private val decimalSep = parser.decimalSeparator
+        private val regFormula = """^=([\$\(\)\$decimalSep\+\-\*/\d]*)\s*$""".toRegex()
+        private val regNormal = """\-?\d*\$decimalSep?\d*""".toRegex()
 
         private val js = ScriptEngineManager().getEngineByName("js")
         private val formatter: (Number, Int) -> String = { n, dec ->
@@ -21,12 +28,16 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindin
             if (Math.abs(n.toDouble()) < Math.pow(10.0, -1.0 * (dec + 1))) "0" else String.format("%.${dec}f", n.roundUpTo(dec))
         }
 
+
     }
 
+    private val formatParser = (NumberFormat.getNumberInstance() as DecimalFormat).apply {
+        applyPattern("#,###.${"0" * decimalPrecision}")
+    }
     // bindingString starts with $()
     // $1 position of the target element in the srcList
     private fun bindingWith(bindingString: String, bindingContext: List<NumericTextField>? = this.bindingContext): (() -> Double) {
-        return parseBindingString(bindingString, NumericTextField::doubleValue, bindingContext!!) {
+        return parseBindingString(bindingString.replace(thousandSep.toString(), "").replace(decimalSep.toString(), "."), NumericTextField::doubleValue, bindingContext!!) {
             this.bind(it)
         }
     }
@@ -38,8 +49,8 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindin
         return if (number == null) 0.0 else number!!.toDouble()
     }
 
-    private val observerList: MutableList<NumericTextField> = mutableListOf()
-    private val srcList: MutableList<NumericTextField> = mutableListOf()
+    val observerList: MutableList<NumericTextField> = mutableListOf()
+    val srcList: MutableList<NumericTextField> = mutableListOf()
 
 
     // two options to bind: one input in the textfield
@@ -64,12 +75,14 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindin
 
                 } else {
                     formula = t
-                    js.eval(e).toString().replace(",", "").toDouble()
+                    js.eval(
+                            e.replace(thousandSep.toString(), "").replace(decimalSep.toString(), ".")
+                    ).toString().toDouble()
                 }
             } else {
                 formula = null
                 unbind()
-                t.replace(",", "").toDouble()
+                formatParser.parse(t).toDouble()
             }
         } catch (x: javax.script.ScriptException) {
             0.0
@@ -86,9 +99,18 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindin
             }
         }
 
+    fun circleBinded(other: NumericTextField): Boolean {
+        return (other == this) || other.srcList.any { it.circleBinded(this) }
+    }
+
     fun bind(other: NumericTextField) {
-        srcList.add(other)
-        other.observerList.add(this)
+        if (!circleBinded(other)) {
+            srcList.add(other)
+            other.observerList.add(this)
+        } else {
+            formula = null
+            number = 0
+        }
     }
 
     fun unbind() {

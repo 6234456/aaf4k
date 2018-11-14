@@ -35,7 +35,7 @@ class AccountingFrameTest {
             if (it.exists())
                 it.delete()
         }
-        frame.toXl("data/de_trail.xlsx", titleID = "Konto-Nr.", titleName = "Konto-Name", titleOriginal = "Vor Anpassung", titleFinal = "Nach Anpassung", prefixStatistical = "", t = Template.Theme.LAVENA)
+        frame.toXl("data/de_trail.xlsx", t = Template.Theme.LAVENA)
 
         Files.write(Paths.get("data/de_accounting.txt"), frame.toJSON().lines())
     }
@@ -54,7 +54,7 @@ class AccountingFrameTest {
             if (it.exists())
                 it.delete()
         }
-        frame.toXl("data/de_trail.xlsx", titleID = "Konto-Nr.", titleName = "Konto-Name", titleOriginal = "Vor Anpassung", titleFinal = "Nach Anpassung", prefixStatistical = "", t = Template.Theme.LAVENA)
+        frame.toXl("data/de_trail.xlsx", t = Template.Theme.LAVENA)
 
         Files.write(Paths.get("data/de_accounting.txt"), frame.toJSON().lines())
     }

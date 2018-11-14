@@ -9,7 +9,6 @@ import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import org.apache.poi.ss.usermodel.*
-import java.io.File
 
 class XlTable(xlSht: Sheet, hasHeading: Boolean = true) : TableView<Map<String, Cell>>() {
     private val firstRow = ExcelUtil.getFirstNonEmptyRowNum(xlSht)
@@ -81,8 +80,6 @@ class XlTable(xlSht: Sheet, hasHeading: Boolean = true) : TableView<Map<String, 
 
         items = data
         getColumns().setAll(columns)
-        style = "-fx-font-family: Bahnschrift, Arial, sans-serif;"
         if (!heading) styleClass.add("hide-header")
-        stylesheets.add("file:///" + File("src/eu/qiou/aaf4k/gui/main.css").absolutePath.replace("\\", "/"))
     }
 }

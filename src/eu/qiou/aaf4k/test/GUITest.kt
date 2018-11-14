@@ -30,10 +30,7 @@ class GUITest {
 
     @Test
     fun open2() {
-        println(GUI.supportedLocale.contains(Locale.GERMAN))
         GUI.locale = Locale.GERMAN
-        println(GUI.locale)
-
         GUI.open("data/de_accounting.txt")
         //GUI.open(AccountingFrameTest.testReporting())
 

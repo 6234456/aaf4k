@@ -8,7 +8,13 @@
 }
 
 .root {
-    -fx-background-color: #262626;
+    -fx-font-family: "Arial Narrow";
+    -fx-font-size: 12pt;
+}
+
+.dialog-pane {
+    -fx-font-family: "Arial Narrow";
+    -fx-font-size: 12pt;
 }
 
 .table-view {

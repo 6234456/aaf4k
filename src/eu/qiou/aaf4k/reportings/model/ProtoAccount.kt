@@ -334,7 +334,8 @@ open class ProtoAccount(val id: Int, open val name: String,
                 throw Exception("method 'setValue' for atomic account can not be evoked for the aggregate account. $id $name")
 
             this.decimalPrecision = decimalPrecision
-            this.value = (v * Math.pow(10.0, decimalPrecision.toDouble())).toLong()
+            //1212.34 * Math.pow(10.0,2.0) = 121233.99
+            this.value = Math.round(v * Math.pow(10.0, decimalPrecision.toDouble()))
             this.subAccounts = null
             this.type = VALUE_SETTER_EXTERNAL
             return this

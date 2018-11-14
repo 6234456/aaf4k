@@ -21,12 +21,12 @@ import javafx.scene.layout.VBox
 import javafx.scene.text.Text
 import javafx.stage.Stage
 import javafx.util.StringConverter
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalDate
 import java.util.*
 
-// TODO: Implement Locale to the GUI
 // TODO: tempo entry
 // TODO: template entries
 class GUI : Application() {
@@ -52,14 +52,14 @@ class GUI : Application() {
         var srcJSONFile: String? = null
         var locale: Locale = GlobalConfiguration.DEFAULT_LOCALE
             set(value) {
-                if (supportedLocale.contains(value)) value else GlobalConfiguration.DEFAULT_LOCALE
+                field = if (supportedLocale.contains(value)) value else GlobalConfiguration.DEFAULT_LOCALE
             }
     }
 
     override fun start(primaryStage: Stage?) {
 
         val msg = ResourceBundle.getBundle("aaf4k", GUI.locale)
-        println(GUI.locale)
+        Locale.setDefault(GUI.locale)
 
         val reporting = GUI.reporting
         val reportingNull = reporting.nullify()
@@ -109,7 +109,7 @@ class GUI : Application() {
                             })
                         }
                     }
-                    val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx", sheetIndex = 0)
+                    val (sht, i) = ExcelUtil.getWorksheet("data/demo.xls", sheetIndex = 0)
                     right = XlTable(sht, true)
                     i.close()
                 }
@@ -188,13 +188,13 @@ class GUI : Application() {
                                                 if (it.exists())
                                                     it.delete()
                                             }
-                                            reporting.toXl("data/demo.xlsx", t = Template.Theme.BLACK_WHITE)
+                                            reporting.toXl("data/demo.xlsx", t = Template.Theme.DEFAULT, locale = GUI.locale)
 
                                             Paths.get("data/demo.xls").toFile().let {
                                                 if (it.exists())
                                                     it.delete()
                                             }
-                                            reporting.toXl("data/demo.xls", t = Template.Theme.BLACK_WHITE)
+                                            reporting.toXl("data/demo.xls", t = Template.Theme.DEFAULT, locale = GUI.locale)
                                             println("exported")
                                         }
 
@@ -212,6 +212,8 @@ class GUI : Application() {
                                                             ButtonType.OK,
                                                             ButtonType.CANCEL
                                                     )
+
+                                                    dialogPane.stylesheets.add("file:///" + File("stylesheet/main.css").absolutePath.replace("\\", "/"))
 
                                                     val rootPane = GridPane()
 
@@ -276,8 +278,8 @@ class GUI : Application() {
 
                                                     var entryDate: LocalDate = category.timeParameters.end
 
-
                                                     rootPane.apply {
+
                                                         hgap = 10.0
                                                         vgap = 10.0
 
@@ -389,9 +391,6 @@ class GUI : Application() {
                                     }
                                 }
                             }
-
-
-
                             style = "-fx-alignment:center-right"
                         }
                     } +
@@ -443,9 +442,9 @@ class GUI : Application() {
                                 tab3
                         )
                     }
-
-
-            )
+            ).apply {
+                stylesheets.add("file:///" + File("stylesheet/main.css").absolutePath.replace("\\", "/"))
+            }
 
             title = msg.getString("reporting")
             isFullScreen = true
