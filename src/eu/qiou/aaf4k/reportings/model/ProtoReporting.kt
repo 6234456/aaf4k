@@ -44,7 +44,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     val categories: MutableSet<ProtoCategory<T>> = mutableSetOf()
     val flattened: List<T> = this.flatten()
 
-    fun addCategory(category: ProtoCategory<T>) {
+    //no need to evoke add if specified in constructor
+    fun add(category: ProtoCategory<T>) {
         if (categories.any { it.id == category.id })
             throw Exception("Duplicated Category-ID ${category.id} in $categories")
 
@@ -71,11 +72,18 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     }
 
     fun shorten(): ProtoReporting<T> {
+        val whiteList = categories.fold(flatten()) { acc, protoCategory ->
+            acc + protoCategory.flatten()
+        }.filter { it.value != 0L }.toSet()
+
         return ProtoReporting(id, name, desc,
-                structure.map { it.shorten() as T }
-                , displayUnit, entity, timeParameters)
+                structure.map { it.shorten(whiteList = whiteList) as T }
+                , displayUnit, entity, timeParameters).apply {
+            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+        }
     }
 
+    // set all element to 0
     fun nullify(): ProtoReporting<T> {
         return ProtoReporting(id, name, desc,
                 structure.map { it.nullify() as T }

@@ -15,9 +15,22 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
     var nextEntryIndex = 1
 
     init {
-        reporting.addCategory(this)
+        reporting.add(this)
     }
 
+    fun flatten(): List<T> {
+        return entries.fold(listOf<T>()) { acc, protoEntry ->
+            acc + protoEntry.accounts
+        }
+    }
+
+    fun deepCopy(reporting: ProtoReporting<T>): ProtoCategory<T> {
+        return ProtoCategory(name, id, desc, reporting).apply {
+            this@ProtoCategory.entries.forEach { it.deepCopy(this) }
+        }
+    }
+
+    // no need to evoke add if in the constructor specified
     fun add(entry: ProtoEntry<T>) {
         if (entries.any { it.id == entry.id })
             throw Exception("Duplicated Entry-ID ${entry.id} in Category:'$name'")

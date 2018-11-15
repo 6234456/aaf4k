@@ -65,7 +65,7 @@ class GUI : Application() {
         val reportingNull = reporting.nullify()
 
         val accountShown: (Account) -> String = { "${it.id} ${it.name}${if (it.hasParent()) "-" + it.superAccounts!![0].name else ""}" }
-        val suggestions = reporting.flattenWithStatistical().map { accountShown(it) to it.id }.toMap()
+        val suggestions = reporting.flattenWithStatistical().toSet().map { accountShown(it) to it.id }.toMap()
 
         val categories = FXCollections.observableArrayList<Category>().apply {
             reporting.categories.map {
@@ -188,13 +188,13 @@ class GUI : Application() {
                                                 if (it.exists())
                                                     it.delete()
                                             }
-                                            reporting.toXl("data/demo.xlsx", t = Template.Theme.DEFAULT, locale = GUI.locale)
+                                            reporting.shorten().toXl("data/demo.xlsx", t = Template.Theme.DEFAULT, locale = GUI.locale)
 
                                             Paths.get("data/demo.xls").toFile().let {
                                                 if (it.exists())
                                                     it.delete()
                                             }
-                                            reporting.toXl("data/demo.xls", t = Template.Theme.DEFAULT, locale = GUI.locale)
+                                            reporting.shorten().toXl("data/demo.xls", t = Template.Theme.DEFAULT, locale = GUI.locale)
                                             println("exported")
                                         }
 

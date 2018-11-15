@@ -149,8 +149,16 @@ open class ProtoAccount(val id: Int, open val name: String,
         }
     }
 
-    fun shorten(): ProtoAccount {
-        return (this.flatten() as List<ProtoAccount>).filter { it.value == 0L }.fold(this.deepCopy { it }) { acc, e ->
+    //TODO: can be optimized
+    fun shorten(whiteList: Iterable<ProtoAccount>? = null, blackList: Iterable<ProtoAccount>? = null): ProtoAccount {
+
+        val e = if (whiteList != null) {
+            (this.flatten() as List<ProtoAccount>).filter { !whiteList.contains(it) }
+        } else {
+            blackList ?: (this.flatten() as List<ProtoAccount>).filter { it.value == 0L }
+        }
+
+        return e.fold(this.deepCopy { it }) { acc, e ->
             acc.removeRecursively(e) as ProtoAccount
         }
     }
