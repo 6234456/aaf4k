@@ -11,7 +11,14 @@ import javafx.scene.input.KeyEvent
 class AutoCompleteTextField<T>(text: String = "", val suggestions: Map<String, T>) : TextField(text) {
 
     var result: T? = null
+    private var programOverride = false
     private val dropDownList: ContextMenu = ContextMenu()
+
+    fun setTextValue(s: String) {
+        programOverride = true
+        text = s
+        programOverride = false
+    }
 
     init {
         textProperty().addListener { _, _, newValue ->
@@ -48,7 +55,7 @@ class AutoCompleteTextField<T>(text: String = "", val suggestions: Map<String, T
                             )
 
 
-                            if (!dropDownList.isShowing)
+                            if (!dropDownList.isShowing && !programOverride)
                                 dropDownList.show(this@AutoCompleteTextField, Side.BOTTOM, 0.0, 0.0)
                         } else {
                             dropDownList.hide()

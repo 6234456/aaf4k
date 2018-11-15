@@ -73,6 +73,8 @@ class GUI : Application() {
             }
         }
 
+        var toUpdateTab1 = false
+
         val formatter: (Number, Int) -> String = { n, dec ->
             if (Math.abs(n.toDouble()) < Math.pow(10.0, -1.0 * (dec + 1))) "" else String.format("%,.${dec}f", n.roundUpTo(dec))
         }
@@ -94,6 +96,207 @@ class GUI : Application() {
             isClosable = false
         }
 
+        fun evokeBookingDialog(targetEntry: Entry? = null, targetAccount: Account, category: Category, updateViewCallback: (Category) -> Unit) {
+            // booking mask
+            val dialog: Dialog<Entry> = Dialog()
+            var category1 = category
+
+            dialog.run {
+                title = msg.getString("booking")
+                dialogPane.buttonTypes.addAll(
+                        ButtonType.OK,
+                        ButtonType.CANCEL
+                )
+
+                dialogPane.stylesheets.add("file:///" + File("stylesheet/main.css").absolutePath.replace("\\", "/"))
+
+                val rootPane = GridPane()
+
+                val description = SimpleStringProperty(targetEntry?.desc)
+                val indexPos = 0
+                val valuePos = 1
+
+                val group = ControlGroup(listOf(
+                        { _: Int, g: ControlGroup ->
+                            AutoCompleteTextField<Int>("", suggestions = suggestions).apply {
+                                promptText = msg.getString("accountId")
+                            }
+                        },
+                        { _: Int, g: ControlGroup ->
+                            NumericTextField(targetAccount.decimalPrecision).apply {
+                                promptText = msg.getString("bookingPHValue")
+                            }
+                        },
+                        { i: Int, g: ControlGroup ->
+                            Button("b").apply {
+                                setOnAction {
+                                    val j = g.elements[i].indexOf(this)
+                                    val values = g.elements[valuePos] as MutableList<NumericTextField>
+                                    values[j].writeNumber(values.foldIndexed(0.0) { index, acc, e ->
+                                        acc + if (e.number == null || index == j) 0.0 else e.number!!.toDouble()
+                                    } * -1)
+                                }
+                            }
+                        },
+                        { i: Int, g: ControlGroup ->
+                            Button("+").apply {
+                                setOnAction {
+                                    g.append(g.elements[i].indexOf(this), rootPane)
+
+                                    val f = (g.elements[valuePos] as List<NumericTextField>)
+
+                                    f.forEach {
+                                        it.bindingContext = f
+                                    }
+                                }
+                            }
+                        },
+                        { i: Int, g: ControlGroup ->
+                            Button("-").apply {
+                                setOnAction { g.remove(g.elements[i].indexOf(this), rootPane) }
+                            }
+                        }
+                ), 0, 5).apply {
+                    inflate(if (targetEntry == null) 3 else targetEntry.accounts.size + 1)
+
+                    if (targetEntry == null) {
+                        (this.elements[indexPos][0] as AutoCompleteTextField<Int>).run {
+                            setTextValue(if (!targetAccount.hasChildren()) accountShown(targetAccount) else "")
+
+                            if (!targetAccount.hasChildren())
+                                result = targetAccount.id
+                        }
+                    } else {
+                        targetEntry.accounts.forEachIndexed { index, account ->
+                            (this.elements[indexPos][index] as AutoCompleteTextField<Int>).run {
+                                result = account.id
+                                setTextValue(accountShown(account))
+                            }
+                            (this.elements[valuePos][index] as NumericTextField).run {
+                                number = account.decimalValue
+                                writeNumber(account.decimalValue)
+                            }
+                        }
+                    }
+
+                    val f = (this.elements[valuePos] as List<NumericTextField>)
+
+                    f.forEach {
+                        it.bindingContext = f
+                    }
+                }
+
+                var entryDate: LocalDate = if (targetEntry == null) category.timeParameters.end else targetEntry.date
+
+                rootPane.apply {
+
+                    hgap = 10.0
+                    vgap = 10.0
+
+                    prefHeight = 600.0
+
+                    this.add(ComboBox<Category>().apply {
+                        items = categories
+
+                        this.converter = object : StringConverter<Category>() {
+                            override fun toString(`object`: Category?): String {
+                                return `object`!!.name
+                            }
+
+                            override fun fromString(string: String?): Category {
+                                return categories.find { it.name.equals(string) } as Category
+                            }
+
+                        }
+
+                        this.selectionModel.select(category)
+
+                        valueProperty().addListener { _, _, newVal ->
+                            category1 = newVal
+                        }
+
+                    }, 0, 0)
+
+                    this.add(TextField().apply {
+                        this.textProperty().bindBidirectional(description)
+
+                        promptText = msg.getString("desc")
+                    }, 0, 1)
+
+                    this.add(Button("R").apply {
+                        setOnAction {
+                            (group.elements[valuePos] as MutableList<NumericTextField>).forEach { x ->
+                                if (x.number != null) {
+                                    x.writeNumber(x.number!!.toDouble() * -1)
+                                }
+                            }
+                        }
+                    }, 4, 0)
+
+                    this.add(DatePicker(entryDate).apply {
+                        setDayCellFactory {
+                            object : DateCell() {
+                                override fun updateItem(item: LocalDate?, empty: Boolean) {
+                                    super.updateItem(item, empty)
+                                    isDisable = empty || item == null || !category.timeParameters.contains(item)
+                                }
+                            }
+                        }
+
+                        promptText = "Date of Entry"
+
+                        setOnAction {
+                            entryDate = value
+                        }
+                    }, 0, 2)
+
+                    group.attachToRoot(this)
+                }
+
+                dialogPane.content = rootPane
+
+                setResultConverter {
+                    if (it == ButtonType.OK) {
+                        val text = group.elements[0] as List<AutoCompleteTextField<Int>>
+                        val values = group.elements[valuePos] as List<NumericTextField>
+                        with(text.map { it.result }.zip(values.map { it.number })) {
+                            if (this.any { it.first != null && it.second != null }) {
+                                val e = Entry(category1.nextEntryIndex, description.value
+                                        ?: "", category1, entryDate).apply {
+                                    this@with.forEach { p ->
+                                        p.first?.let { id ->
+                                            p.second?.let {
+                                                this.add(id, it.toDouble())
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if ((!e.balanced()) || e.accounts.all { it.decimalValue == 0.0 }) {
+                                    e.unregister()
+                                    null
+                                } else {
+                                    targetEntry?.unregister()
+                                    updateViewCallback(e.category as Category)
+                                    e
+                                }
+                            } else {
+                                null
+                            }
+                        }
+                    } else {
+                        null
+                    }
+                }
+
+                showAndWait().ifPresent {
+                    srcJSONFile?.let {
+                        Files.write(Paths.get(it), reporting.toJSON().lines())
+                    }
+                }
+            }
+        }
+
         fun updateTab3() {
             with(tab3) {
                 content = BorderPane().apply {
@@ -101,10 +304,39 @@ class GUI : Application() {
                         spacing = 8.0
                         categories.forEach {
                             it as Category
+                            val c = it
                             this.children.add(VBox().apply {
                                 children.add(Text(it.name))
                                 children.add(ListView<Entry>().apply {
-                                    this.items.addAll((it.entries as List<Entry>).filter { it.isVisible })
+                                    //TODO : style of inactive entry
+
+                                    for (entry in it.entries) {
+                                        if (entry.isVisible)
+                                            items.add(entry as Entry)
+                                    }
+
+                                    setCellFactory {
+                                        object : ListCell<Entry>() {
+                                            override fun updateItem(item: Entry?, empty: Boolean) {
+                                                super.updateItem(item, empty)
+
+                                                if (item != null)
+                                                    this.text = item.toString()
+                                            }
+                                        }.apply {
+                                            this.setOnMouseClicked { e ->
+                                                if (e.button == MouseButton.PRIMARY) {
+                                                    if (e.clickCount == 2) {
+                                                        evokeBookingDialog(targetEntry = this.item, targetAccount = this.item.accounts[0], category = c) {
+                                                            it.summarizeResult()
+                                                            updateTab3()
+                                                            toUpdateTab1 = true
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 })
                             })
                         }
@@ -203,188 +435,10 @@ class GUI : Application() {
                                             if (e.clickCount == 2) {
                                                 val targetAccount = this.treeTableRow?.item!!
 
-                                                // booking mask
-                                                val dialog: Dialog<Entry> = Dialog()
-
-                                                dialog.run {
-                                                    title = msg.getString("booking")
-                                                    dialogPane.buttonTypes.addAll(
-                                                            ButtonType.OK,
-                                                            ButtonType.CANCEL
-                                                    )
-
-                                                    dialogPane.stylesheets.add("file:///" + File("stylesheet/main.css").absolutePath.replace("\\", "/"))
-
-                                                    val rootPane = GridPane()
-
-                                                    val description = SimpleStringProperty()
-
-                                                    val valuePos = 1
-
-                                                    val group = ControlGroup(listOf(
-                                                            { _: Int, g: ControlGroup ->
-                                                                AutoCompleteTextField<Int>("", suggestions = suggestions).apply {
-                                                                    promptText = msg.getString("accountId")
-                                                                }
-                                                            },
-                                                            { _: Int, g: ControlGroup ->
-                                                                NumericTextField(targetAccount.decimalPrecision).apply {
-                                                                    promptText = msg.getString("bookingPHValue")
-                                                                }
-                                                            },
-                                                            { i: Int, g: ControlGroup ->
-                                                                Button("b").apply {
-                                                                    setOnAction {
-                                                                        val j = g.elements[i].indexOf(this)
-                                                                        val values = g.elements[valuePos] as MutableList<NumericTextField>
-                                                                        values[j].writeNumber(values.foldIndexed(0.0) { index, acc, e ->
-                                                                            acc + if (e.number == null || index == j) 0.0 else e.number!!.toDouble()
-                                                                        } * -1)
-                                                                    }
-                                                                }
-                                                            },
-                                                            { i: Int, g: ControlGroup ->
-                                                                Button("+").apply {
-                                                                    setOnAction {
-                                                                        g.append(g.elements[i].indexOf(this), rootPane)
-
-                                                                        val f = (g.elements[valuePos] as List<NumericTextField>)
-
-                                                                        f.forEach {
-                                                                            it.bindingContext = f
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            { i: Int, g: ControlGroup ->
-                                                                Button("-").apply {
-                                                                    setOnAction { g.remove(g.elements[i].indexOf(this), rootPane) }
-                                                                }
-                                                            }
-                                                    ), 0, 5).apply {
-                                                        inflate(3)
-
-                                                        this.elements[0][0] = AutoCompleteTextField<Int>(if (!targetAccount.hasChildren()) accountShown(targetAccount) else "", suggestions).apply {
-                                                            if (!targetAccount.hasChildren())
-                                                                result = targetAccount.id
-                                                        }
-
-                                                        val f = (this.elements[valuePos] as List<NumericTextField>)
-
-                                                        f.forEach {
-                                                            it.bindingContext = f
-                                                        }
-                                                    }
-
-                                                    var entryDate: LocalDate = category.timeParameters.end
-
-                                                    rootPane.apply {
-
-                                                        hgap = 10.0
-                                                        vgap = 10.0
-
-                                                        prefHeight = 600.0
-
-                                                        this.add(ComboBox<Category>().apply {
-                                                            items = categories
-
-                                                            this.converter = object : StringConverter<Category>() {
-                                                                override fun toString(`object`: Category?): String {
-                                                                    return `object`!!.name
-                                                                }
-
-                                                                override fun fromString(string: String?): Category {
-                                                                    return categories.find { it.name.equals(string) } as Category
-                                                                }
-
-                                                            }
-
-                                                            this.selectionModel.select(category)
-
-                                                            valueProperty().addListener { _, _, newVal ->
-                                                                category = newVal
-                                                            }
-
-                                                        }, 0, 0)
-
-                                                        this.add(TextField().apply {
-                                                            this.textProperty().bindBidirectional(description)
-                                                            promptText = msg.getString("desc")
-                                                        }, 0, 1)
-
-                                                        this.add(Button("R").apply {
-                                                            setOnAction {
-                                                                (group.elements[valuePos] as MutableList<NumericTextField>).forEach { x ->
-                                                                    if (x.number != null) {
-                                                                        x.writeNumber(x.number!!.toDouble() * -1)
-                                                                    }
-                                                                }
-                                                            }
-                                                        }, 4, 0)
-
-                                                        this.add(DatePicker(entryDate).apply {
-                                                            setDayCellFactory {
-                                                                object : DateCell() {
-                                                                    override fun updateItem(item: LocalDate?, empty: Boolean) {
-                                                                        super.updateItem(item, empty)
-                                                                        isDisable = empty || item == null || !category.timeParameters.contains(item)
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            promptText = "Date of Entry"
-
-                                                            setOnAction {
-                                                                entryDate = value
-                                                            }
-                                                        }, 0, 2)
-
-                                                        group.attachToRoot(this)
-                                                    }
-
-
-                                                    dialogPane.content = rootPane
-
-                                                    setResultConverter {
-                                                        if (it == ButtonType.OK) {
-                                                            val text = group.elements[0] as List<AutoCompleteTextField<Int>>
-                                                            val values = group.elements[valuePos] as List<NumericTextField>
-                                                            with(text.map { it.result }.zip(values.map { it.number })) {
-                                                                if (this.any { it.first != null && it.second != null }) {
-                                                                    val e = Entry(category.nextEntryIndex, description.value
-                                                                            ?: "", category, entryDate).apply {
-                                                                        this@with.forEach { p ->
-                                                                            p.first?.let { id ->
-                                                                                p.second?.let {
-                                                                                    this.add(id, it.toDouble())
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-
-                                                                    if ((!e.balanced()) || e.accounts.all { it.decimalValue == 0.0 }) {
-                                                                        e.unregister()
-                                                                        null
-                                                                    } else {
-                                                                        (e.category as Category).summarizeResult()
-                                                                        updateTab3()
-                                                                        updateTab1(treeView.selectionModel.selectedIndex)
-                                                                        e
-                                                                    }
-                                                                } else {
-                                                                    null
-                                                                }
-                                                            }
-                                                        } else {
-                                                            null
-                                                        }
-                                                    }
-
-                                                    showAndWait().ifPresent {
-                                                        srcJSONFile?.let {
-                                                            Files.write(Paths.get(it), reporting.toJSON().lines())
-                                                        }
-                                                    }
+                                                evokeBookingDialog(targetAccount = targetAccount, category = category) {
+                                                    it.summarizeResult()
+                                                    updateTab3()
+                                                    updateTab1(treeView.selectionModel.selectedIndex)
                                                 }
                                             }
                                         }
@@ -433,7 +487,14 @@ class GUI : Application() {
                         side = Side.LEFT
 
                         tabs.add(
-                                tab1
+                                tab1.apply {
+                                    setOnSelectionChanged {
+                                        if (toUpdateTab1) {
+                                            updateTab1()
+                                            toUpdateTab1 = false
+                                        }
+                                    }
+                                }
                         )
                         tabs.add(
                                 tab2
