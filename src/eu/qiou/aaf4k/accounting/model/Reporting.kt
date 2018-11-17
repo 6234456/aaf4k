@@ -11,7 +11,8 @@ import eu.qiou.aaf4k.util.unit.ProtoUnit
 
 open class Reporting(id: Int, name: String, desc: String = "", structure: List<Account>,
                      displayUnit: ProtoUnit = CurrencyUnit(), entity: ProtoEntity = GlobalConfiguration.DEFAULT_ENTITY,
-                     timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : ProtoReporting<Account>(id, name, desc, structure, displayUnit, entity, timeParameters) {
+                     timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS)
+    : ProtoReporting<Account>(id, name, desc, structure, displayUnit, entity, timeParameters) {
 
     override fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double): Reporting {
         return Reporting(id, name, desc,
@@ -21,13 +22,13 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
 
     override fun update(entry: ProtoEntry<Account>, updateMethod: (Double, Double) -> Double): Reporting {
         return Reporting(id, name, desc,
-                structure.map { it.deepCopy<Account>(entry, updateMethod) }
+                structure.map { it.deepCopy(entry, updateMethod) }
                 , displayUnit, entity, timeParameters)
     }
 
     override fun update(category: ProtoCategory<Account>, updateMethod: (Double, Double) -> Double): Reporting {
         return Reporting(id, name, desc,
-                structure.map { it.deepCopy<Account>(category, updateMethod) }
+                structure.map { it.deepCopy(category, updateMethod) }
                 , displayUnit, entity, timeParameters)
     }
 

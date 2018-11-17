@@ -7,7 +7,7 @@ class Category(name: String, id: Int, desc: String, reporting: Reporting) : Prot
 
     private val msg = ResourceBundle.getBundle("aaf4k")
     // balance via result and oci to the balance stmt
-    val transferEntry = Entry(0, msg.getString("transferResult"), this).apply {
+    private val transferEntry = Entry(0, msg.getString("transferResult"), this).apply {
         isVisible = false
     }
 

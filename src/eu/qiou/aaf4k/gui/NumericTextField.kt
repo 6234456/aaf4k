@@ -11,7 +11,6 @@ import java.text.NumberFormat
 import javax.script.ScriptEngineManager
 
 // bindingContext specifies a range of components to be chosen from
-// TODO: JS parse 1 -- 1
 class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindingContext: List<NumericTextField>? = null) : TextField(text) {
     companion object {
         private val parser = (NumberFormat.getNumberInstance() as DecimalFormat).decimalFormatSymbols

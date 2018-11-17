@@ -123,12 +123,12 @@ class GUI : Application() {
                 val valuePos = 1
 
                 val group = ControlGroup(listOf(
-                        { _: Int, g: ControlGroup ->
-                            AutoCompleteTextField<Int>("", suggestions = suggestions).apply {
+                        { _: Int, _: ControlGroup ->
+                            AutoCompleteTextField("", suggestions = suggestions).apply {
                                 promptText = msg.getString("accountId")
                             }
                         },
-                        { _: Int, g: ControlGroup ->
+                        { _: Int, _: ControlGroup ->
                             NumericTextField(targetAccount.decimalPrecision).apply {
                                 promptText = msg.getString("bookingPHValue")
                             }

@@ -15,8 +15,8 @@ class ExcelReportingTemplate(val tpl: String,
 
         wb.sheetIterator().forEach { sht ->
             if (filter(sht)) {
-                sht.rowIterator().forEach {
-                    it.cellIterator().forEach {
+                sht.rowIterator().forEach { x ->
+                    x.cellIterator().forEach {
                         if (it.cellTypeEnum == CellType.STRING) {
                             if (engine.containsTemplate(it.stringCellValue)) {
                                 val v = engine.compile(it.stringCellValue)(d)
