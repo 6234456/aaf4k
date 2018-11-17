@@ -32,6 +32,9 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
             this@ProtoEntry.accounts.forEach {
                 this.add(it.deepCopy { it })
             }
+            this.isActive = this@ProtoEntry.isActive
+            this.isVisible = this@ProtoEntry.isVisible
+            this.isWritable = this@ProtoEntry.isWritable
         }
     }
 
@@ -105,7 +108,7 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
     }
 
     override fun toJSON(): String {
-        return """{ "id": $id, "desc": "$desc", "accounts": ${CollectionToString.mkJSON(accounts)}, "date": "$date" }"""
+        return """{ "id": $id, "desc": "$desc", "accounts": ${CollectionToString.mkJSON(accounts)}, "date": "$date", "isActive": $isActive, "isVisible": $isVisible, "isWritable": $isWritable}"""
     }
 
 }

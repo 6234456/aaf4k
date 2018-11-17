@@ -46,6 +46,10 @@
     -fx-text-fill: white;
 }
 
+.list-cell.inactive {
+    -fx-background-color: grey;
+}
+
 .table-view {
     -fx-font-family: Bahnschrift, Arial, sans-serif;
     -fx-font-size:1.13em;

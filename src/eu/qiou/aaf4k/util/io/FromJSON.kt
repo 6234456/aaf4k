@@ -71,6 +71,10 @@ object FromJSON {
             (json.get("accounts") as JSONArray).forEach {
                 add(account(it as JSONObject))
             }
+
+            this.isActive = (json.get("isActive") as Boolean?) ?: true
+            this.isWritable = (json.get("isWritable") as Boolean?) ?: true
+            this.isVisible = (json.get("isVisible") as Boolean?) ?: true
         }
     }
 
@@ -87,6 +91,9 @@ object FromJSON {
                 if ((it.get("id") as Long).toInt() != 0)
                     entry(it, this)
             }
+
+            this.isWritable = (json.get("isWritable") as Boolean?) ?: true
+            this.nextEntryIndex = (json.get("nextEntryIndex") as Long?)?.toInt() ?: 1
         }
     }
 

@@ -73,7 +73,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
     fun shorten(): ProtoReporting<T> {
         val whiteList = categories.fold(flatten()) { acc, protoCategory ->
-            acc + protoCategory.flatten()
+            acc + protoCategory.flatten(true)
         }.filter { it.value != 0L }.toSet()
 
         return ProtoReporting(id, name, desc,
@@ -339,7 +339,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
                 bookings = this.categories.fold(listOf<Map<Int, String>>()) { acc, e ->
                     val data = mutableMapOf<Int, String>()
-                    e.entries.forEach {
+                    e.entries.filter { it.isActive }.forEach {
                         it.accounts.forEach { acc ->
                             shtCat.createRow(cnt++).apply {
                                 this.createCell(0).setCellValue(it.category.id.toString())

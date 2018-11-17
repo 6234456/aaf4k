@@ -75,6 +75,12 @@ class GUI : Application() {
 
         var toUpdateTab1 = false
 
+        fun saveToJSON() {
+            srcJSONFile?.let {
+                Files.write(Paths.get(it), reporting.toJSON().lines())
+            }
+        }
+
         val formatter: (Number, Int) -> String = { n, dec ->
             if (Math.abs(n.toDouble()) < Math.pow(10.0, -1.0 * (dec + 1))) "" else String.format("%,.${dec}f", n.roundUpTo(dec))
         }
@@ -289,10 +295,8 @@ class GUI : Application() {
                     }
                 }
 
-                showAndWait().ifPresent {
-                    srcJSONFile?.let {
-                        Files.write(Paths.get(it), reporting.toJSON().lines())
-                    }
+                showAndWait().ifPresent { _ ->
+                    saveToJSON()
                 }
             }
         }
@@ -324,16 +328,70 @@ class GUI : Application() {
                                                     this.text = item.toString()
                                             }
                                         }.apply {
+                                            if (this.item != null && !this.item.isActive) {
+                                                this.styleClass.add("inactive")
+                                            }
+
                                             this.setOnMouseClicked { e ->
+                                                val entry = this.item
+                                                val acc = this.item.accounts[0]
                                                 if (e.button == MouseButton.PRIMARY) {
                                                     if (e.clickCount == 2) {
-                                                        evokeBookingDialog(targetEntry = this.item, targetAccount = this.item.accounts[0], category = c) {
+                                                        evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = c) {
                                                             it.summarizeResult()
                                                             updateTab3()
                                                             toUpdateTab1 = true
                                                         }
                                                     }
                                                 }
+                                                if (e.button == MouseButton.SECONDARY) {
+                                                    val contextMenu =
+                                                            ContextMenu().apply {
+                                                                this.items.addAll(
+                                                                        MenuItem(msg.getString("editBooking")).apply {
+                                                                            setOnAction {
+                                                                                evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = c) {
+                                                                                    it.summarizeResult()
+                                                                                    updateTab3()
+                                                                                    toUpdateTab1 = true
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        MenuItem(
+                                                                                if (entry.isActive) msg.getString("deactivateBooking") else msg.getString("activateBooking")
+                                                                        ).apply {
+                                                                            setOnAction {
+                                                                                entry.isActive = !entry.isActive
+                                                                                (entry.category as Category).summarizeResult()
+                                                                                updateTab3()
+                                                                                toUpdateTab1 = true
+                                                                                saveToJSON()
+                                                                            }
+                                                                        },
+                                                                        SeparatorMenuItem(),
+                                                                        MenuItem(msg.getString("deleteBooking")).apply {
+                                                                            setOnAction {
+                                                                                with(Alert(Alert.AlertType.CONFIRMATION).apply {
+                                                                                    contentText = msg.getString("warningUnreversable")
+                                                                                    headerText = msg.getString("deleteBooking")
+                                                                                    title = msg.getString("deleteBooking")
+                                                                                }.showAndWait()) {
+                                                                                    if (this.get() == ButtonType.OK) {
+                                                                                        entry.unregister()
+                                                                                        (entry.category as Category).summarizeResult()
+                                                                                        updateTab3()
+                                                                                        toUpdateTab1 = true
+                                                                                        saveToJSON()
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                )
+                                                            }
+
+                                                    contextMenu.show(this, e.screenX, e.sceneY)
+                                                }
+
                                             }
                                         }
                                     }
@@ -351,6 +409,7 @@ class GUI : Application() {
         updateTab3()
 
         fun updateTab1(selectedRow: Int? = null) {
+
             val root = TreeItem(
                     Account.from(ProtoAccount(0, reporting.entity.name, 0L), ReportingType.AUTO)
             ).apply {
@@ -400,7 +459,7 @@ class GUI : Application() {
             ) +
                     reporting.categories.map {
 
-                        var category = it as Category
+                        val category = it as Category
                         TreeTableColumn<Account, String>(it.name).apply {
                             val data = reportingNull.update(it.toDataMap()).flattenWithAllAccounts().map { it.id to it.displayValue }.toMap()
 
@@ -415,25 +474,59 @@ class GUI : Application() {
                                     }
                                 }.apply {
                                     this.setOnMouseClicked { e ->
+                                        val targetAccount = this.treeTableRow?.item!!
                                         if (e.button == MouseButton.SECONDARY) {
-                                            Paths.get("data/demo.xlsx").toFile().let {
-                                                if (it.exists())
-                                                    it.delete()
-                                            }
-                                            reporting.shorten().toXl("data/demo.xlsx", t = Template.Theme.DEFAULT, locale = GUI.locale)
+                                            val contextMenu =
+                                                    ContextMenu().apply {
+                                                        this.items.addAll(
+                                                                MenuItem(msg.getString("booking")).apply {
+                                                                    setOnAction {
+                                                                        evokeBookingDialog(targetAccount = targetAccount, category = category) {
+                                                                            it.summarizeResult()
+                                                                            updateTab3()
+                                                                            updateTab1(treeView.selectionModel.selectedIndex)
+                                                                        }
+                                                                    }
+                                                                },
+                                                                MenuItem(msg.getString("viewBookings")).apply {
+                                                                    setOnAction {
 
-                                            Paths.get("data/demo.xls").toFile().let {
-                                                if (it.exists())
-                                                    it.delete()
-                                            }
-                                            reporting.shorten().toXl("data/demo.xls", t = Template.Theme.DEFAULT, locale = GUI.locale)
-                                            println("exported")
+                                                                    }
+                                                                },
+                                                                SeparatorMenuItem(),
+                                                                Menu("${msg.getString("exportAs")}...").apply {
+                                                                    items.addAll(
+                                                                            MenuItem(".xls").apply {
+                                                                                setOnAction {
+                                                                                    Paths.get("data/demo.xls").toFile().let {
+                                                                                        if (it.exists())
+                                                                                            it.delete()
+                                                                                    }
+                                                                                    reporting.shorten().toXl("data/demo.xls", t = Template.Theme.DEFAULT, locale = GUI.locale)
+                                                                                    println("exported")
+                                                                                }
+                                                                            },
+                                                                            MenuItem(".xlsx").apply {
+                                                                                setOnAction {
+                                                                                    Paths.get("data/demo.xlsx").toFile().let {
+                                                                                        if (it.exists())
+                                                                                            it.delete()
+                                                                                    }
+                                                                                    reporting.shorten().toXl("data/demo.xlsx", t = Template.Theme.DEFAULT, locale = GUI.locale)
+                                                                                    println("exported")
+                                                                                }
+                                                                            }
+                                                                    )
+                                                                }
+                                                        )
+                                                    }
+
+                                            contextMenu.show(this, e.screenX, e.screenY)
                                         }
 
 
                                         if (e.button == MouseButton.PRIMARY) {
                                             if (e.clickCount == 2) {
-                                                val targetAccount = this.treeTableRow?.item!!
 
                                                 evokeBookingDialog(targetAccount = targetAccount, category = category) {
                                                     it.summarizeResult()

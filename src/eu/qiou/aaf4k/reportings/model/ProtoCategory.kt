@@ -18,15 +18,19 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
         reporting.add(this)
     }
 
-    fun flatten(): List<T> {
+    fun flatten(excludingInactive: Boolean = false): List<T> {
         return entries.fold(listOf<T>()) { acc, protoEntry ->
-            acc + protoEntry.accounts
+            if (excludingInactive && !protoEntry.isActive) acc else acc + protoEntry.accounts
         }
     }
 
     fun deepCopy(reporting: ProtoReporting<T>): ProtoCategory<T> {
         return ProtoCategory(name, id, desc, reporting).apply {
-            this@ProtoCategory.entries.forEach { it.deepCopy(this) }
+            this@ProtoCategory.entries.forEach {
+                it.deepCopy(this)
+            }
+            this.isWritable = this@ProtoCategory.isWritable
+            this.nextEntryIndex = this@ProtoCategory.nextEntryIndex
         }
     }
 
@@ -71,7 +75,7 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
     }
 
     override fun toJSON(): String {
-        return """{ "id": $id, "desc": "$desc", "name": "$name", "entries": ${CollectionToString.mkJSON(entries)} }"""
+        return """{ "id": $id, "desc": "$desc", "nextEntryIndex": $nextEntryIndex, "isWritable": $isWritable, "name": "$name", "entries": ${CollectionToString.mkJSON(entries)} }"""
     }
 
     override fun toString(): String {

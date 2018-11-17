@@ -30,7 +30,7 @@ class GUITest {
 
     @Test
     fun open2() {
-        GUI.locale = Locale.GERMAN
+        GUI.locale = Locale.CHINESE
         GUI.open("data/de_accounting.txt")
         //GUI.open(AccountingFrameTest.testReporting())
 
