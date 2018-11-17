@@ -334,64 +334,65 @@ class GUI : Application() {
 
                                             this.setOnMouseClicked { e ->
                                                 val entry = this.item
-                                                val acc = this.item.accounts[0]
-                                                if (e.button == MouseButton.PRIMARY) {
-                                                    if (e.clickCount == 2) {
-                                                        evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = c) {
-                                                            it.summarizeResult()
-                                                            updateTab3()
-                                                            toUpdateTab1 = true
+
+                                                entry?.accounts?.get(0)?.let { acc ->
+                                                    if (e.button == MouseButton.PRIMARY) {
+                                                        if (e.clickCount == 2) {
+                                                            evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = c) {
+                                                                it.summarizeResult()
+                                                                updateTab3()
+                                                                toUpdateTab1 = true
+                                                            }
                                                         }
                                                     }
-                                                }
-                                                if (e.button == MouseButton.SECONDARY) {
-                                                    val contextMenu =
-                                                            ContextMenu().apply {
-                                                                this.items.addAll(
-                                                                        MenuItem(msg.getString("editBooking")).apply {
-                                                                            setOnAction {
-                                                                                evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = c) {
-                                                                                    it.summarizeResult()
-                                                                                    updateTab3()
-                                                                                    toUpdateTab1 = true
-                                                                                }
-                                                                            }
-                                                                        },
-                                                                        MenuItem(
-                                                                                if (entry.isActive) msg.getString("deactivateBooking") else msg.getString("activateBooking")
-                                                                        ).apply {
-                                                                            setOnAction {
-                                                                                entry.isActive = !entry.isActive
-                                                                                (entry.category as Category).summarizeResult()
-                                                                                updateTab3()
-                                                                                toUpdateTab1 = true
-                                                                                saveToJSON()
-                                                                            }
-                                                                        },
-                                                                        SeparatorMenuItem(),
-                                                                        MenuItem(msg.getString("deleteBooking")).apply {
-                                                                            setOnAction {
-                                                                                with(Alert(Alert.AlertType.CONFIRMATION).apply {
-                                                                                    contentText = msg.getString("warningUnreversable")
-                                                                                    headerText = msg.getString("deleteBooking")
-                                                                                    title = msg.getString("deleteBooking")
-                                                                                }.showAndWait()) {
-                                                                                    if (this.get() == ButtonType.OK) {
-                                                                                        entry.unregister()
-                                                                                        (entry.category as Category).summarizeResult()
+                                                    if (e.button == MouseButton.SECONDARY) {
+                                                        val contextMenu =
+                                                                ContextMenu().apply {
+                                                                    this.items.addAll(
+                                                                            MenuItem(msg.getString("editBooking")).apply {
+                                                                                setOnAction {
+                                                                                    evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = c) {
+                                                                                        it.summarizeResult()
                                                                                         updateTab3()
                                                                                         toUpdateTab1 = true
-                                                                                        saveToJSON()
+                                                                                    }
+                                                                                }
+                                                                            },
+                                                                            MenuItem(
+                                                                                    if (entry.isActive) msg.getString("deactivateBooking") else msg.getString("activateBooking")
+                                                                            ).apply {
+                                                                                setOnAction {
+                                                                                    entry.isActive = !entry.isActive
+                                                                                    (entry.category as Category).summarizeResult()
+                                                                                    updateTab3()
+                                                                                    toUpdateTab1 = true
+                                                                                    saveToJSON()
+                                                                                }
+                                                                            },
+                                                                            SeparatorMenuItem(),
+                                                                            MenuItem(msg.getString("deleteBooking")).apply {
+                                                                                setOnAction {
+                                                                                    with(Alert(Alert.AlertType.CONFIRMATION).apply {
+                                                                                        contentText = msg.getString("warningUnreversable")
+                                                                                        headerText = msg.getString("deleteBooking")
+                                                                                        title = msg.getString("deleteBooking")
+                                                                                    }.showAndWait()) {
+                                                                                        if (this.get() == ButtonType.OK) {
+                                                                                            entry.unregister()
+                                                                                            (entry.category as Category).summarizeResult()
+                                                                                            updateTab3()
+                                                                                            toUpdateTab1 = true
+                                                                                            saveToJSON()
+                                                                                        }
                                                                                     }
                                                                                 }
                                                                             }
-                                                                        }
-                                                                )
-                                                            }
+                                                                    )
+                                                                }
 
-                                                    contextMenu.show(this, e.screenX, e.sceneY)
+                                                        contextMenu.show(this, e.screenX, e.sceneY)
+                                                    }
                                                 }
-
                                             }
                                         }
                                     }
