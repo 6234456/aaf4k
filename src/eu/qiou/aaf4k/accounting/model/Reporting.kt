@@ -17,6 +17,10 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
 
     private var consCategoriesAdded = false
 
+    override fun copyCategoriesFrom(reporting: ProtoReporting<Account>) {
+        (reporting.categories as Collection<Category>).forEach { it.deepCopy(this) }
+    }
+
     override fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double): Reporting {
         return Reporting(id, name, desc,
                 structure.map { it.deepCopy<Account>(data, updateMethod) }
@@ -45,7 +49,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
         return Reporting(id, name, desc,
                 method(structure)
                 , displayUnit, entity, timeParameters).apply {
-            (this@Reporting.categories as Collection<Category>).forEach { it.deepCopy(this) }
+            copyCategoriesFrom(this@Reporting)
         }
     }
 
@@ -63,7 +67,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
             if (p.isAggregate)
                 p.add(newAccount, index)
 
-            (this@Reporting.categories as Collection<Category>).forEach { it.deepCopy(this) }
+            copyCategoriesFrom(this@Reporting)
         }
     }
 
@@ -80,10 +84,22 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
                     it.remove(p)
                 }
 
-                (this@Reporting.categories as Collection<Category>).forEach { it.deepCopy(this) }
+                copyCategoriesFrom(this@Reporting)
             }
         } else {
             return updateStructure { structure.toMutableList().apply { remove(p) } }
+        }
+    }
+
+    override fun shorten(): Reporting {
+        val whiteList = categories.fold(flattened) { acc, protoCategory ->
+            acc + protoCategory.flatten(true)
+        }.filter { it.value != 0L }.toSet()
+
+        return Reporting(id, name, desc,
+                structure.map { it.shorten(whiteList = whiteList) as Account }
+                , displayUnit, entity, timeParameters).apply {
+            copyCategoriesFrom(this@Reporting)
         }
     }
 

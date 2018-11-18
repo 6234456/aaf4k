@@ -58,6 +58,18 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         }
     }
 
+    open fun copyCategoriesFrom(reporting: ProtoReporting<T>) {
+        reporting.categories.forEach { it.deepCopy(this) }
+    }
+
+    open fun cloneWith(struct: List<T>): ProtoReporting<T> {
+        return ProtoReporting(id, name, desc,
+                struct
+                , displayUnit, entity, timeParameters).apply {
+            copyCategoriesFrom(this@ProtoReporting)
+        }
+    }
+
     fun lastCategoryIndex(): Int {
         if (categories.isEmpty())
             return 1
@@ -87,7 +99,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                 }.filterValues { it > 1 }
     }
 
-    fun shorten(): ProtoReporting<T> {
+    open fun shorten(): ProtoReporting<T> {
         val whiteList = categories.fold(flattened) { acc, protoCategory ->
             acc + protoCategory.flatten(true)
         }.filter { it.value != 0L }.toSet()
@@ -95,7 +107,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return ProtoReporting(id, name, desc,
                 structure.map { it.shorten(whiteList = whiteList) as T }
                 , displayUnit, entity, timeParameters).apply {
-            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+            copyCategoriesFrom(this@ProtoReporting)
         }
     }
 
@@ -147,11 +159,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     }
 
     open fun updateStructure(method: (List<T>) -> List<T>): ProtoReporting<T> {
-        return ProtoReporting(id, name, desc,
-                method(structure)
-                , displayUnit, entity, timeParameters).apply {
-            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
-        }
+        return cloneWith(method(structure))
     }
 
     open fun removeAccount(accountId: Int): ProtoReporting<T> {
@@ -163,11 +171,9 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     structure.map { it.deepCopy { x: T -> x } }
                     , displayUnit, entity, timeParameters).apply {
 
-                p.superAccounts!!.forEach {
-                    it.remove(p)
-                }
+                p.superAccounts!!.forEach { it.remove(p) }
 
-                this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+                copyCategoriesFrom(this@ProtoReporting)
             }
         } else {
             return updateStructure { structure.toMutableList().apply { remove(p) } }
@@ -188,7 +194,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             if (p.isAggregate)
                 p.add(newAccount, index)
 
-            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+            copyCategoriesFrom(this@ProtoReporting)
         }
     }
 
@@ -197,7 +203,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return ProtoReporting(id, name, desc,
                 structure.map { it.deepCopy(entry, updateMethod) }
                 , displayUnit, entity, timeParameters).apply {
-            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+            copyCategoriesFrom(this@ProtoReporting)
         }
     }
 
@@ -205,7 +211,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return ProtoReporting<T>(id, name, desc,
                 structure.map { it.deepCopy(category, updateMethod) }
                 , displayUnit, entity, timeParameters).apply {
-            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+            copyCategoriesFrom(this@ProtoReporting)
         }
     }
 
@@ -213,7 +219,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return ProtoReporting<T>(id, name, desc,
                 structure.map { it.deepCopy<T>(data, updateMethod) }
                 , displayUnit, entity, timeParameters).apply {
-            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+            copyCategoriesFrom(this@ProtoReporting)
         }
     }
 
