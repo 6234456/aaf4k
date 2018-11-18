@@ -104,11 +104,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             acc + protoCategory.flatten(true)
         }.filter { it.value != 0L }.toSet()
 
-        return ProtoReporting(id, name, desc,
-                structure.map { it.shorten(whiteList = whiteList) as T }
-                , displayUnit, entity, timeParameters).apply {
-            copyCategoriesFrom(this@ProtoReporting)
-        }
+        return cloneWith(structure.map { it.shorten(whiteList = whiteList) as T })
     }
 
     // set all element to 0
@@ -167,16 +163,11 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         p ?: throw java.lang.Exception("No account found for the id: $accountId.")
 
         if (p.hasParent()) {
-            return ProtoReporting(id, name, desc,
-                    structure.map { it.deepCopy { x: T -> x } }
-                    , displayUnit, entity, timeParameters).apply {
-
+            return cloneWith(structure.map { it.deepCopy { x: T -> x } }).apply {
                 p.superAccounts!!.forEach { it.remove(p) }
-
-                copyCategoriesFrom(this@ProtoReporting)
             }
         } else {
-            return updateStructure { structure.toMutableList().apply { remove(p) } }
+            return cloneWith(structure.toMutableList().apply { remove(p) })
         }
     }
 
@@ -184,43 +175,24 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         if (parentId == null)
             return updateStructure { structure.toMutableList().apply { add(index, newAccount) } }
 
-        return ProtoReporting(id, name, desc,
-                structure.map { it.deepCopy { x: T -> x } }
-                , displayUnit, entity, timeParameters).apply {
+        return cloneWith(structure.map { it.deepCopy { x: T -> x } }).apply {
             val p = findAccountByID(parentId)
-
             p ?: throw java.lang.Exception("No account found for the id: $parentId.")
-
-            if (p.isAggregate)
-                p.add(newAccount, index)
-
-            copyCategoriesFrom(this@ProtoReporting)
+            if (p.isAggregate) p.add(newAccount, index)
         }
     }
 
-
     open fun update(entry: ProtoEntry<T>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
-        return ProtoReporting(id, name, desc,
-                structure.map { it.deepCopy(entry, updateMethod) }
-                , displayUnit, entity, timeParameters).apply {
-            copyCategoriesFrom(this@ProtoReporting)
-        }
+        return cloneWith(structure.map { it.deepCopy(entry, updateMethod) })
     }
 
     open fun update(category: ProtoCategory<T>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
-        return ProtoReporting<T>(id, name, desc,
-                structure.map { it.deepCopy(category, updateMethod) }
-                , displayUnit, entity, timeParameters).apply {
-            copyCategoriesFrom(this@ProtoReporting)
-        }
+        return cloneWith(structure.map { it.deepCopy(category, updateMethod) })
+
     }
 
     open fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
-        return ProtoReporting<T>(id, name, desc,
-                structure.map { it.deepCopy<T>(data, updateMethod) }
-                , displayUnit, entity, timeParameters).apply {
-            copyCategoriesFrom(this@ProtoReporting)
-        }
+        return cloneWith(structure.map { it.deepCopy<T>(data, updateMethod) })
     }
 
     override fun toJSON():String{

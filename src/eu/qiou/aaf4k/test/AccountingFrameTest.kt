@@ -192,6 +192,6 @@ class AccountingFrameTest {
         /*GUI.open((r.addAccountTo(Account.from(ProtoAccount(0, "hi", 123L,2), ReportingType.ASSET_SHORT_TERM), 0, 10000)
                 .addAccountTo(Account.from(ProtoAccount(-2, "hi", 123L,2), ReportingType.ASSET_SHORT_TERM),0, 110000) as Reporting)
         )*/
-        GUI.open(r.removeAccount(10000))
+        GUI.open(r.removeAccount(10000).apply { addConsolidationCategories(Locale.CHINESE) })
     }
 }

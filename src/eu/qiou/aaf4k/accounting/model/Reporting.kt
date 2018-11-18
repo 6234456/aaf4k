@@ -21,6 +21,10 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
         (reporting.categories as Collection<Category>).forEach { it.deepCopy(this) }
     }
 
+    override fun cloneWith(struct: List<Account>): Reporting {
+        return super.cloneWith(struct) as Reporting
+    }
+
     override fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double): Reporting {
         return Reporting(id, name, desc,
                 structure.map { it.deepCopy<Account>(data, updateMethod) }
@@ -61,11 +65,8 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
                 structure.map { it.deepCopy { x: Account -> x } }
                 , displayUnit, entity, timeParameters).apply {
             val p = findAccountByID(parentId)
-
             p ?: throw java.lang.Exception("No account found for the id: $parentId.")
-
-            if (p.isAggregate)
-                p.add(newAccount, index)
+            if (p.isAggregate) p.add(newAccount, index)
 
             copyCategoriesFrom(this@Reporting)
         }
@@ -76,15 +77,10 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
         p ?: throw java.lang.Exception("No account found for the id: $accountId.")
 
         if (p.hasParent()) {
-            return Reporting(id, name, desc,
-                    structure.map { it.deepCopy { x: Account -> x } }
-                    , displayUnit, entity, timeParameters).apply {
-
+            return cloneWith(structure.map { it.deepCopy { x: Account -> x } }).apply {
                 p.superAccounts!!.forEach {
                     it.remove(p)
                 }
-
-                copyCategoriesFrom(this@Reporting)
             }
         } else {
             return updateStructure { structure.toMutableList().apply { remove(p) } }
