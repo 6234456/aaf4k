@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.accounting.model
 
 import eu.qiou.aaf4k.reportings.model.ProtoCategory
+import eu.qiou.aaf4k.reportings.model.ProtoReporting
 import java.util.*
 
 class Category(name: String, id: Int, desc: String, reporting: Reporting) : ProtoCategory<Account>(name, id, desc, reporting) {
@@ -9,6 +10,17 @@ class Category(name: String, id: Int, desc: String, reporting: Reporting) : Prot
     // balance via result and oci to the balance stmt
     private val transferEntry = Entry(0, msg.getString("transferResult"), this).apply {
         isVisible = false
+    }
+
+    override fun deepCopy(reporting: ProtoReporting<Account>): ProtoCategory<Account> {
+        return Category(name, id, desc, reporting as Reporting).apply {
+            (this@Category.entries as Collection<Entry>).forEach {
+                if (it.id != 0)
+                    it.deepCopy(this)
+            }
+            this.isWritable = this@Category.isWritable
+            this.nextEntryIndex = this@Category.nextEntryIndex
+        }
     }
 
     fun summarizeResult() {

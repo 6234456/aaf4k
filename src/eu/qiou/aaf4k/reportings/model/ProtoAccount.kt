@@ -64,11 +64,16 @@ open class ProtoAccount(val id: Int, open val name: String,
         }
     }
 
-    override fun add(child: Drilldownable): Drilldownable {
+    override fun add(child: Drilldownable, index: Int?): Drilldownable {
         if (isAggregate) {
             if(child is ProtoAccount){
                 child.register(this)
-                (subAccounts!! as MutableList<ProtoAccount>).add(child)
+                with(subAccounts!! as MutableList<ProtoAccount>) {
+                    if (index == null)
+                        add(child)
+                    else
+                        add(index, child)
+                }
             }
         }
         return this

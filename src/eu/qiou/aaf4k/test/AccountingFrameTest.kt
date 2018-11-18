@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.accounting.model.*
+import eu.qiou.aaf4k.gui.GUI
 import eu.qiou.aaf4k.reportings.etl.AccountingFrame
 import eu.qiou.aaf4k.reportings.model.Address
 import eu.qiou.aaf4k.reportings.model.Person
@@ -182,5 +183,15 @@ class AccountingFrameTest {
         val re = AccountingFrameTest.testReporting()
         println(re.toJSON().toReporting().entity.toJSON())
 
+    }
+
+    @Test
+    fun trailAddAccount() {
+        val r = Files.readAllLines(Paths.get("data/de_accounting.txt")).joinToString("\n").toReporting()
+        //println(r.addAccountTo(Account.from(ProtoAccount(0, "hi", 123L,2), ReportingType.ASSET_SHORT_TERM), 0))
+        /*GUI.open((r.addAccountTo(Account.from(ProtoAccount(0, "hi", 123L,2), ReportingType.ASSET_SHORT_TERM), 0, 10000)
+                .addAccountTo(Account.from(ProtoAccount(-2, "hi", 123L,2), ReportingType.ASSET_SHORT_TERM),0, 110000) as Reporting)
+        )*/
+        GUI.open(r.removeAccount(10000))
     }
 }

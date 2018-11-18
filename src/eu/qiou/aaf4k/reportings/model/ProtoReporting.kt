@@ -41,7 +41,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                                             val displayUnit: ProtoUnit = CurrencyUnit(), val entity: ProtoEntity = GlobalConfiguration.DEFAULT_ENTITY,
                                             val timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : JSONable {
 
-    val categories: MutableSet<ProtoCategory<T>> = mutableSetOf()
+    open val categories: MutableSet<ProtoCategory<T>> = mutableSetOf()
     val flattened: List<T> = this.flatten()
 
     //no need to evoke add if specified in constructor
@@ -58,6 +58,22 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         }
     }
 
+    fun lastCategoryIndex(): Int {
+        if (categories.isEmpty())
+            return 1
+
+        return categories.maxBy { it.id }!!.id + 1
+    }
+
+    // entry-Id to entry
+    fun toUncompressedDataMap(): Map<Int, Map<Int, Map<Int, Double>>> {
+        return categories.map { it.id to it.toUncompressedDataMap() }.toMap()
+    }
+
+    fun toDataMap(): Map<Int, Double> {
+        return generate().flattenWithStatistical().map { it.id to it.decimalValue }.toMap()
+    }
+
     fun checkDuplicate(): Map<Int, Int> {
         return structure
                 .fold(listOf<ProtoAccount>()) { acc, t -> acc + t.notStatistical() }
@@ -72,7 +88,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     }
 
     fun shorten(): ProtoReporting<T> {
-        val whiteList = categories.fold(flatten()) { acc, protoCategory ->
+        val whiteList = categories.fold(flattened) { acc, protoCategory ->
             acc + protoCategory.flatten(true)
         }.filter { it.value != 0L }.toSet()
 
@@ -119,6 +135,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return update(mergeCategories())
     }
 
+    // including self
     open fun findAccountByID(id: Int): T? {
         structure.forEach {
             it.findChildByID(id)?.let {
@@ -129,22 +146,75 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return null
     }
 
+    open fun updateStructure(method: (List<T>) -> List<T>): ProtoReporting<T> {
+        return ProtoReporting(id, name, desc,
+                method(structure)
+                , displayUnit, entity, timeParameters).apply {
+            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+        }
+    }
+
+    open fun removeAccount(accountId: Int): ProtoReporting<T> {
+        val p = findAccountByID(accountId)
+        p ?: throw java.lang.Exception("No account found for the id: $accountId.")
+
+        if (p.hasParent()) {
+            return ProtoReporting(id, name, desc,
+                    structure.map { it.deepCopy { x: T -> x } }
+                    , displayUnit, entity, timeParameters).apply {
+
+                p.superAccounts!!.forEach {
+                    it.remove(p)
+                }
+
+                this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+            }
+        } else {
+            return updateStructure { structure.toMutableList().apply { remove(p) } }
+        }
+    }
+
+    open fun addAccountTo(newAccount: T, index: Int, parentId: Int? = null): ProtoReporting<T> {
+        if (parentId == null)
+            return updateStructure { structure.toMutableList().apply { add(index, newAccount) } }
+
+        return ProtoReporting(id, name, desc,
+                structure.map { it.deepCopy { x: T -> x } }
+                , displayUnit, entity, timeParameters).apply {
+            val p = findAccountByID(parentId)
+
+            p ?: throw java.lang.Exception("No account found for the id: $parentId.")
+
+            if (p.isAggregate)
+                p.add(newAccount, index)
+
+            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+        }
+    }
+
+
     open fun update(entry: ProtoEntry<T>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
         return ProtoReporting(id, name, desc,
                 structure.map { it.deepCopy(entry, updateMethod) }
-                , displayUnit, entity, timeParameters)
+                , displayUnit, entity, timeParameters).apply {
+            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+        }
     }
 
     open fun update(category: ProtoCategory<T>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
         return ProtoReporting<T>(id, name, desc,
                 structure.map { it.deepCopy(category, updateMethod) }
-                , displayUnit, entity, timeParameters)
+                , displayUnit, entity, timeParameters).apply {
+            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+        }
     }
 
     open fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
         return ProtoReporting<T>(id, name, desc,
                 structure.map { it.deepCopy<T>(data, updateMethod) }
-                , displayUnit, entity, timeParameters)
+                , displayUnit, entity, timeParameters).apply {
+            this@ProtoReporting.categories.forEach { it.deepCopy(this) }
+        }
     }
 
     override fun toJSON():String{

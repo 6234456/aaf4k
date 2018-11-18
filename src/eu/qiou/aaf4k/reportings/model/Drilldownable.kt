@@ -6,9 +6,17 @@ interface Drilldownable{
 
     fun getParents():Collection<Drilldownable>?
 
-    fun add(child: Drilldownable): Drilldownable
+    fun add(child: Drilldownable, index: Int? = null): Drilldownable
 
     fun remove(child: Drilldownable): Drilldownable
+
+    fun addAll(children: Collection<Drilldownable>, index: Int? = null): Drilldownable {
+        children.forEach {
+            add(it, index)
+        }
+
+        return this
+    }
 
     fun findParentRecursively(child: Drilldownable, res: MutableSet<Drilldownable> = mutableSetOf()): MutableSet<Drilldownable> {
         this.getChildren()?.let {

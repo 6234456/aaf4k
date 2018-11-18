@@ -27,7 +27,7 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
     var isEmpty = true
         get() = accounts.count() == 0
 
-    fun deepCopy(category: ProtoCategory<T>): ProtoEntry<T> {
+    open fun deepCopy(category: ProtoCategory<T>): ProtoEntry<T> {
         return ProtoEntry(id, desc, category, date).apply {
             this@ProtoEntry.accounts.forEach {
                 this.add(it.deepCopy { it })

@@ -28,12 +28,15 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
         return parentEntitis
     }
 
-    override fun add(child: Drilldownable): ProtoEntity {
+    override fun add(child: Drilldownable, index: Int?): ProtoEntity {
         if(child is ProtoEntity){
             if (childEntitis == null){
                 childEntitis = mutableListOf()
             }
-            childEntitis!!.add(child)
+            if (index == null)
+                childEntitis!!.add(child)
+            else
+                childEntitis!!.add(index, child)
 
             if(child.parentEntitis == null){
                 child.parentEntitis = mutableListOf()

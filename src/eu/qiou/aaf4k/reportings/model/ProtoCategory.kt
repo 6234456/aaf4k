@@ -24,7 +24,7 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
         }
     }
 
-    fun deepCopy(reporting: ProtoReporting<T>): ProtoCategory<T> {
+    open fun deepCopy(reporting: ProtoReporting<T>): ProtoCategory<T> {
         return ProtoCategory(name, id, desc, reporting).apply {
             this@ProtoCategory.entries.forEach {
                 it.deepCopy(this)
@@ -50,6 +50,11 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
                 .fold(mapOf()) { acc, map ->
                     acc.mergeReduce(map) { a, b -> a + b }
                 }
+    }
+
+    // entry-Id to entry
+    fun toUncompressedDataMap(): Map<Int, Map<Int, Double>> {
+        return entries.map { it.id to it.toDataMap() }.toMap()
     }
 
     fun searchForEntriesWith(id: Int): List<ProtoEntry<T>> {

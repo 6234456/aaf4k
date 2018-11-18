@@ -1,9 +1,21 @@
 package eu.qiou.aaf4k.accounting.model
 
+import eu.qiou.aaf4k.reportings.model.ProtoCategory
 import eu.qiou.aaf4k.reportings.model.ProtoEntry
 import java.time.LocalDate
 
 class Entry(id: Int, desc: String = "", category: Category, date: LocalDate = category.timeParameters.end) : ProtoEntry<Account>(id, desc, category, date) {
+
+    override fun deepCopy(category: ProtoCategory<Account>): ProtoEntry<Account> {
+        return Entry(id, desc, category as Category, date).apply {
+            this@Entry.accounts.forEach {
+                this.add(it.deepCopy { it })
+            }
+            this.isActive = this@Entry.isActive
+            this.isVisible = this@Entry.isVisible
+            this.isWritable = this@Entry.isWritable
+        }
+    }
 
     override fun add(id: Int, value: Double): Entry {
 

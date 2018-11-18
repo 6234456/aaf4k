@@ -20,7 +20,7 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate):Drilldownable {
 
     private constructor():this(LocalDate.now(), LocalDate.now())
 
-    override fun add(child: Drilldownable): Drilldownable {
+    override fun add(child: Drilldownable, index: Int?): Drilldownable {
         throw Exception("TimeSpan immutable!")
     }
 
