@@ -93,7 +93,7 @@ object FromJSON {
             }
 
             this.isWritable = (json.get("isWritable") as Boolean?) ?: true
-            this.nextEntryIndex = (json.get("nextEntryIndex") as Long?)?.toInt() ?: 1
+            //this.nextEntryIndex = (json.get("nextEntryIndex") as Long?)?.toInt() ?: 1
         }
     }
 
@@ -166,7 +166,8 @@ object FromJSON {
                 contactPerson = ps,
                 address = ads
         ).apply {
-            parentEntitis = parent?.toMutableList()
+            parentEntities = parent?.toMutableList()
+            childEntities = child?.toMutableList()
         }
     }
 
@@ -199,7 +200,7 @@ object FromJSON {
 fun String.toAccount(): Account = FromJSON.account(FromJSON.read(this))
 fun String.toEntry(category: Category): Entry = FromJSON.entry(FromJSON.read(this), category)
 fun String.toCategory(reporting: Reporting): Category = FromJSON.category(FromJSON.read(this), reporting)
-fun String.toTimeParamters(): TimeParameters = FromJSON.timeParameters(FromJSON.read(this))
+fun String.toTimeParameters(): TimeParameters = FromJSON.timeParameters(FromJSON.read(this))
 fun String.toPerson(): Person = FromJSON.person(FromJSON.read(this))
 fun String.toAddress(): Address = FromJSON.address(FromJSON.read(this))
 fun String.toEntity(): ProtoEntity = FromJSON.entity(FromJSON.read(this))

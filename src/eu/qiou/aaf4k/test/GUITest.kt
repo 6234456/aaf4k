@@ -34,8 +34,8 @@ class GUITest {
         GUI.open("data/de_accounting.txt")
         //GUI.open(AccountingFrameTest.testReporting())
 
-        //val e = Files.readAllLines(Paths.get("data/accounting.txt")).joinToString("\n").toReporting()
-        //println(e)
+        //val e = Files.readAllLines(Paths.get("data/de_accounting.txt")).joinToString("\n").toReporting()
+        //println(e.categories.find { it.name == "SchKons" }!!.nextEntryIndex)
         //println(e.checkDuplicate())
     }
 

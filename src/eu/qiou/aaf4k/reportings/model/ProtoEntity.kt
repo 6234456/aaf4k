@@ -13,35 +13,35 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
                        var contactPerson: Person? = null, var address: Address? = null) : Drilldownable, JSONable {
     override fun toJSON(): String {
         return """{"id":$id, "name":"$name", "abbreviation":"$abbreviation", "desc":"$desc", "contactPerson":${contactPerson?.toJSON()
-                ?: "null"}, "address":${address?.toJSON() ?: "null"}, "child":${childEntitis?.mkJSON()
-                ?: "null"}, "parent": ${parentEntitis?.mkJSON() ?: "null"}}"""
+                ?: "null"}, "address":${address?.toJSON() ?: "null"}, "child":${childEntities?.mkJSON()
+                ?: "null"}, "parent": ${parentEntities?.mkJSON() ?: "null"}}"""
     }
 
-    var childEntitis: MutableList<ProtoEntity>? = null
-    var parentEntitis: MutableList<ProtoEntity>? = null
+    var childEntities: MutableList<ProtoEntity>? = null
+    var parentEntities: MutableList<ProtoEntity>? = null
 
     override fun getChildren(): Collection<ProtoEntity>? {
-        return childEntitis
+        return childEntities
     }
 
     override fun getParents(): Collection<ProtoEntity>? {
-        return parentEntitis
+        return parentEntities
     }
 
     override fun add(child: Drilldownable, index: Int?): ProtoEntity {
         if(child is ProtoEntity){
-            if (childEntitis == null){
-                childEntitis = mutableListOf()
+            if (childEntities == null) {
+                childEntities = mutableListOf()
             }
             if (index == null)
-                childEntitis!!.add(child)
+                childEntities!!.add(child)
             else
-                childEntitis!!.add(index, child)
+                childEntities!!.add(index, child)
 
-            if(child.parentEntitis == null){
-                child.parentEntitis = mutableListOf()
+            if (child.parentEntities == null) {
+                child.parentEntities = mutableListOf()
             }
-            child.parentEntitis!!.add(this)
+            child.parentEntities!!.add(this)
         }
 
         return this
@@ -49,10 +49,10 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
 
     override fun remove(child: Drilldownable): ProtoEntity {
         if(child is ProtoEntity){
-            if(childEntitis != null){
-                if(childEntitis!!.contains(child)){
-                    child.parentEntitis!!.remove(this)
-                    childEntitis!!.remove(child)
+            if (childEntities != null) {
+                if (childEntities!!.contains(child)) {
+                    child.parentEntities!!.remove(this)
+                    childEntities!!.remove(child)
                 }
             }
         }
