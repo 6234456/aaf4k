@@ -312,6 +312,8 @@ class GUI : Application() {
                             this.children.add(VBox().apply {
                                 children.add(Text(it.name))
                                 children.add(ListView<Entry>().apply {
+                                    selectionModel.selectionMode = SelectionMode.MULTIPLE
+
                                     //TODO : style of inactive entry
 
                                     for (entry in it.entries) {
@@ -334,6 +336,7 @@ class GUI : Application() {
 
                                             this.setOnMouseClicked { e ->
                                                 val entry = this.item
+                                                val entries = this.listView.selectionModel.selectedItems
 
                                                 entry?.accounts?.get(0)?.let { acc ->
                                                     if (e.button == MouseButton.PRIMARY) {
@@ -362,7 +365,8 @@ class GUI : Application() {
                                                                                     if (entry.isActive) msg.getString("deactivateBooking") else msg.getString("activateBooking")
                                                                             ).apply {
                                                                                 setOnAction {
-                                                                                    entry.isActive = !entry.isActive
+                                                                                    val res = !entry.isActive
+                                                                                    entries.forEach { it.isActive = res }
                                                                                     (entry.category as Category).summarizeResult()
                                                                                     updateTab3()
                                                                                     toUpdateTab1 = true
@@ -378,7 +382,7 @@ class GUI : Application() {
                                                                                         title = msg.getString("deleteBooking")
                                                                                     }.showAndWait()) {
                                                                                         if (this.get() == ButtonType.OK) {
-                                                                                            entry.unregister()
+                                                                                            entries.forEach { it.unregister() }
                                                                                             (entry.category as Category).summarizeResult()
                                                                                             updateTab3()
                                                                                             toUpdateTab1 = true

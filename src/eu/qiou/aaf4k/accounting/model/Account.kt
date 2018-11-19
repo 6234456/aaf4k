@@ -72,6 +72,7 @@ class Account(id: Int, name: String,
                 ReportingType.PROFIT_LOSS_NEUTRAL.code -> ReportingType.PROFIT_LOSS_NEUTRAL
                 ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE.code -> ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE
                 ReportingType.RESULT_BALANCE.code -> ReportingType.RESULT_BALANCE
+                ReportingType.RETAINED_EARNINGS_BEGINNING.code -> ReportingType.RETAINED_EARNINGS_BEGINNING
                 ReportingType.AUTO.code -> ReportingType.AUTO
                 else -> throw java.lang.Exception("ParameterError: unknown ReportingType:$it")
             }
@@ -134,6 +135,7 @@ enum class ReportingType(val sign: Int, val code: String) {
     PROFIT_LOSS_NEUTRAL(-1, "NT"),
     PROFIT_LOSS_NEUTRAL_BALANCE(-1, "OC"),
     RESULT_BALANCE(-1, "RE"),
+    RETAINED_EARNINGS_BEGINNING(-1, "RT"),
     AUTO(0, "NN")
 }
 
