@@ -40,27 +40,34 @@ class XlTable(xlSht: Sheet, hasHeading: Boolean = true) : TableView<Map<String, 
                 object : TableCell<Map<String, Cell>, String>() {
                     override fun updateItem(item: String?, empty: Boolean) {
                         super.updateItem(item, empty)
-                        text = if (empty) "" else item ?: ""
-                        val i = this.index
-                        if (i >= 0 && i < data.size) {
-                            data[i][k]?.let {
-                                when (it.cellTypeEnum) {
-                                    CellType.NUMERIC, CellType.FORMULA -> this.alignment = Pos.CENTER_RIGHT
-                                    else -> this.alignment = Pos.CENTER_LEFT
-                                }
 
-                                when (it.cellStyle.alignmentEnum) {
-                                    HorizontalAlignment.RIGHT -> this.alignment = Pos.CENTER_RIGHT
-                                    HorizontalAlignment.LEFT -> this.alignment = Pos.CENTER_LEFT
-                                    HorizontalAlignment.CENTER -> this.alignment = Pos.CENTER
-                                }
+                        if (item == null || empty) {
+                            text = null
+                            graphic = null
+                        } else {
+                            text = item
+                            val i = this.index
+                            if (i >= 0 && i < data.size) {
+                                data[i][k]?.let {
+                                    when (it.cellTypeEnum) {
+                                        CellType.NUMERIC, CellType.FORMULA -> this.alignment = Pos.CENTER_RIGHT
+                                        else -> this.alignment = Pos.CENTER_LEFT
+                                    }
+
+                                    when (it.cellStyle.alignmentEnum) {
+                                        HorizontalAlignment.RIGHT -> this.alignment = Pos.CENTER_RIGHT
+                                        HorizontalAlignment.LEFT -> this.alignment = Pos.CENTER_LEFT
+                                        HorizontalAlignment.CENTER -> this.alignment = Pos.CENTER
+                                    }
 
 
-                                if (it.cellStyle.borderBottomEnum != BorderStyle.NONE) {
-                                    styleClass.add("btm-border")
+                                    if (it.cellStyle.borderBottomEnum != BorderStyle.NONE) {
+                                        styleClass.add("btm-border")
+                                    }
                                 }
                             }
                         }
+
                     }
                 }
             }
