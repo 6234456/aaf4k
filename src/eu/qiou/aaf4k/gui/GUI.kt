@@ -251,7 +251,7 @@ class GUI : Application() {
                             }
                         }
 
-                        promptText = "Date of Entry"
+                        promptText = msg.getString("documentDate")
 
                         setOnAction {
                             entryDate = value
@@ -310,6 +310,58 @@ class GUI : Application() {
         }
 
         fun updateTab3() {
+            val contextMenu = ContextMenu()
+            fun modifyMask(entry: Entry, acc: Account) {
+                evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = entry.category as Category) {
+                    it.summarizeResult()
+                    updateTab3()
+                    toUpdateTab1 = true
+                }
+            }
+
+            fun ctxMenu(entries: Iterable<Entry>, entry: Entry, acc: Account): ContextMenu {
+                return contextMenu.apply {
+                    items.removeAll(items)
+                    items.addAll(
+                            MenuItem(msg.getString("editBooking")).apply {
+                                setOnAction {
+                                    modifyMask(entry, acc)
+                                }
+                            },
+                            MenuItem(
+                                    if (entry.isActive) msg.getString("deactivateBooking") else msg.getString("activateBooking")
+                            ).apply {
+                                setOnAction {
+                                    val res = !entry.isActive
+                                    entries.forEach { it.isActive = res }
+                                    (entry.category as Category).summarizeResult()
+                                    updateTab3()
+                                    toUpdateTab1 = true
+                                    saveToJSON()
+                                }
+                            },
+                            SeparatorMenuItem(),
+                            MenuItem(msg.getString("deleteBooking")).apply {
+                                setOnAction {
+                                    with(Alert(Alert.AlertType.CONFIRMATION).apply {
+                                        contentText = msg.getString("warningUnreversable")
+                                        headerText = msg.getString("deleteBooking")
+                                        title = msg.getString("deleteBooking")
+                                    }.showAndWait()) {
+                                        if (this.get() == ButtonType.OK) {
+                                            entries.forEach { it.unregister() }
+                                            (entry.category as Category).summarizeResult()
+                                            updateTab3()
+                                            toUpdateTab1 = true
+                                            saveToJSON()
+                                        }
+                                    }
+                                }
+                            }
+                    )
+                }
+            }
+
             val contentTable = ListView<Entry>().apply {
                 selectionModel.selectionMode = SelectionMode.MULTIPLE
 
@@ -337,60 +389,11 @@ class GUI : Application() {
                             entry?.accounts?.get(0)?.let { acc ->
                                 if (e.button == MouseButton.PRIMARY) {
                                     if (e.clickCount == 2) {
-                                        evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = entry.category as Category) {
-                                            it.summarizeResult()
-                                            updateTab3()
-                                            toUpdateTab1 = true
-                                        }
+                                        modifyMask(entry, acc)
                                     }
                                 }
                                 if (e.button == MouseButton.SECONDARY) {
-                                    val contextMenu =
-                                            ContextMenu().apply {
-                                                this.items.addAll(
-                                                        MenuItem(msg.getString("editBooking")).apply {
-                                                            setOnAction {
-                                                                evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = entry.category as Category) {
-                                                                    it.summarizeResult()
-                                                                    updateTab3()
-                                                                    toUpdateTab1 = true
-                                                                }
-                                                            }
-                                                        },
-                                                        MenuItem(
-                                                                if (entry.isActive) msg.getString("deactivateBooking") else msg.getString("activateBooking")
-                                                        ).apply {
-                                                            setOnAction {
-                                                                val res = !entry.isActive
-                                                                entries.forEach { it.isActive = res }
-                                                                (entry.category as Category).summarizeResult()
-                                                                updateTab3()
-                                                                toUpdateTab1 = true
-                                                                saveToJSON()
-                                                            }
-                                                        },
-                                                        SeparatorMenuItem(),
-                                                        MenuItem(msg.getString("deleteBooking")).apply {
-                                                            setOnAction {
-                                                                with(Alert(Alert.AlertType.CONFIRMATION).apply {
-                                                                    contentText = msg.getString("warningUnreversable")
-                                                                    headerText = msg.getString("deleteBooking")
-                                                                    title = msg.getString("deleteBooking")
-                                                                }.showAndWait()) {
-                                                                    if (this.get() == ButtonType.OK) {
-                                                                        entries.forEach { it.unregister() }
-                                                                        (entry.category as Category).summarizeResult()
-                                                                        updateTab3()
-                                                                        toUpdateTab1 = true
-                                                                        saveToJSON()
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                )
-                                            }
-
-                                    contextMenu.show(this, e.screenX, e.sceneY)
+                                    ctxMenu(entries, entry, acc).show(this, e.screenX, e.sceneY)
                                 }
                             }
                         }
@@ -443,14 +446,36 @@ class GUI : Application() {
 
             val treeView = TreeView<String>(root).apply {
 
+                selectionModel.selectionMode = SelectionMode.MULTIPLE
+
                 selectionModel.selectedItemProperty().addListener { _, _, newValue ->
                     //based on the text value to get the Entry
+                    if (contextMenu.isShowing) {
+                        contextMenu.hide()
+                    }
+
                     parseToEntry(newValue.value)?.let {
                         val (e, c) = it
                         if (e == null) {
                             updateContent(c.entries as List<Entry>)
                         } else {
                             updateContent(listOf(e))
+                        }
+                    }
+                }
+
+                setOnMouseClicked { e ->
+                    parseToEntry(selectionModel.selectedItem.value)?.let {
+                        val entry = it.first
+                        if (entry != null) {
+                            if (e.button == MouseButton.PRIMARY) {
+                                if (e.clickCount == 2) {
+                                    modifyMask(entry, entry.accounts[0])
+                                }
+                            }
+                            if (e.button == MouseButton.SECONDARY) {
+                                ctxMenu(selectionModel.selectedItems.map { parseToEntry(it.value)?.first }.filter { it != null } as Iterable<Entry>, entry, entry.accounts[0]).show(this, e.screenX, e.sceneY)
+                            }
                         }
                     }
                 }
@@ -673,7 +698,7 @@ class GUI : Application() {
             }
 
             title = msg.getString("reporting")
-            isFullScreen = true
+            isMaximized = true
             show()
         }
 
