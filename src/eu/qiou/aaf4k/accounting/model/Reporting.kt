@@ -22,53 +22,38 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
     }
 
     override fun cloneWith(struct: List<Account>): Reporting {
-        return super.cloneWith(struct) as Reporting
+        return Reporting(id, name, desc,
+                struct, displayUnit, entity, timeParameters).apply {
+            this.consCategoriesAdded = this@Reporting.consCategoriesAdded
+            copyCategoriesFrom(this@Reporting)
+        }
     }
 
     override fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double): Reporting {
-        return Reporting(id, name, desc,
-                structure.map { it.deepCopy<Account>(data, updateMethod) }
-                , displayUnit, entity, timeParameters).apply {
-            this@Reporting.categories.forEach { it.deepCopy(this) }
-        }
+        return cloneWith(structure.map { it.deepCopy<Account>(data, updateMethod) })
     }
 
     override fun update(entry: ProtoEntry<Account>, updateMethod: (Double, Double) -> Double): Reporting {
-        return Reporting(id, name, desc,
-                structure.map { it.deepCopy(entry, updateMethod) }
-                , displayUnit, entity, timeParameters).apply {
-            this@Reporting.categories.forEach { it.deepCopy(this) }
-        }
+        return cloneWith(structure.map { it.deepCopy(entry, updateMethod) })
     }
 
     override fun update(category: ProtoCategory<Account>, updateMethod: (Double, Double) -> Double): Reporting {
-        return Reporting(id, name, desc,
-                structure.map { it.deepCopy(category, updateMethod) }
-                , displayUnit, entity, timeParameters).apply {
-            this@Reporting.categories.forEach { it.deepCopy(this) }
-        }
+        return cloneWith(structure.map { it.deepCopy(category, updateMethod) })
     }
 
     override fun updateStructure(method: (List<Account>) -> List<Account>): Reporting {
-        return Reporting(id, name, desc,
-                method(structure)
-                , displayUnit, entity, timeParameters).apply {
-            copyCategoriesFrom(this@Reporting)
-        }
+        return cloneWith(method(structure))
     }
 
     override fun addAccountTo(newAccount: Account, index: Int, parentId: Int?): Reporting {
         if (parentId == null)
             return updateStructure { structure.toMutableList().apply { add(index, newAccount) } }
 
-        return Reporting(id, name, desc,
-                structure.map { it.deepCopy { x: Account -> x } }
-                , displayUnit, entity, timeParameters).apply {
+        return cloneWith(structure.map { it.deepCopy { x: Account -> x } }).apply {
             val p = findAccountByID(parentId)
             p ?: throw java.lang.Exception("No account found for the id: $parentId.")
-            if (p.isAggregate) p.add(newAccount, index)
 
-            copyCategoriesFrom(this@Reporting)
+            if (p.isAggregate) p.add(newAccount, index)
         }
     }
 
@@ -92,11 +77,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
             acc + protoCategory.flatten(true)
         }.filter { it.value != 0L }.toSet()
 
-        return Reporting(id, name, desc,
-                structure.map { it.shorten(whiteList = whiteList) as Account }
-                , displayUnit, entity, timeParameters).apply {
-            copyCategoriesFrom(this@Reporting)
-        }
+        return cloneWith(structure.map { it.shorten(whiteList = whiteList) as Account })
     }
 
     val retainedEarning = flattened.find { it.reportingType == ReportingType.RESULT_BALANCE }

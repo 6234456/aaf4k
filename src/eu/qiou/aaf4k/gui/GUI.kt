@@ -284,7 +284,13 @@ class GUI : Application() {
                                 } else {
                                     targetEntry?.unregister()
                                     updateViewCallback(e.category as Category)
-                                    e
+                                    e.apply {
+                                        targetEntry?.let {
+                                            this.isActive = it.isActive
+                                            this.isWritable = it.isWritable
+                                            this.isVisible = it.isVisible
+                                        }
+                                    }
                                 }
                             } else {
                                 null
