@@ -11,14 +11,12 @@ import javafx.application.Application
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
+import javafx.geometry.Orientation
 import javafx.geometry.Side
 import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.input.MouseButton
-import javafx.scene.layout.BorderPane
 import javafx.scene.layout.GridPane
-import javafx.scene.layout.VBox
-import javafx.scene.text.Text
 import javafx.stage.Stage
 import javafx.util.StringConverter
 import java.io.File
@@ -63,6 +61,10 @@ class GUI : Application() {
 
         val reporting = GUI.reporting
         val reportingNull = reporting.nullify()
+
+        // for the root node of the booking panel
+        // val dummyReporting = Reporting(0,"Dummy","Dummy", listOf())
+        //val dummyCategory = Category(msg.getString("adjustments"), 0, "Dummy", dummyReporting)
 
         val accountShown: (Account) -> String = { "${it.id} ${it.name}${if (it.hasParent()) "-" + it.superAccounts!![0].name else ""}" }
         val suggestions = reporting.flattenWithStatistical().toSet().map { accountShown(it) to it.id }.toMap()
@@ -308,116 +310,175 @@ class GUI : Application() {
         }
 
         fun updateTab3() {
-            with(tab3) {
-                content = BorderPane().apply {
-                    left = VBox().apply {
-                        spacing = 8.0
-                        categories.forEach {
-                            it as Category
-                            val c = it
-                            this.children.add(VBox().apply {
-                                children.add(Text(it.name))
-                                children.add(ListView<Entry>().apply {
-                                    selectionModel.selectionMode = SelectionMode.MULTIPLE
+            val contentTable = ListView<Entry>().apply {
+                selectionModel.selectionMode = SelectionMode.MULTIPLE
 
-                                    //TODO : style of inactive entry
+                setCellFactory {
+                    object : ListCell<Entry>() {
+                        override fun updateItem(item: Entry?, empty: Boolean) {
+                            super.updateItem(item, empty)
 
-                                    for (entry in it.entries) {
-                                        if (entry.isVisible)
-                                            items.add(entry as Entry)
-                                    }
+                            if (item != null && !empty)
+                                this.text = item.toString()
+                            else {
+                                text = null
+                                graphic = null
+                            }
+                        }
+                    }.apply {
+                        if (this.item != null && !this.item.isActive) {
+                            this.styleClass.add("inactive")
+                        }
 
-                                    setCellFactory {
-                                        object : ListCell<Entry>() {
-                                            override fun updateItem(item: Entry?, empty: Boolean) {
-                                                super.updateItem(item, empty)
+                        this.setOnMouseClicked { e ->
+                            val entry = this.item
+                            val entries = this.listView.selectionModel.selectedItems
 
-                                                if (item != null)
-                                                    this.text = item.toString()
-                                            }
-                                        }.apply {
-                                            if (this.item != null && !this.item.isActive) {
-                                                this.styleClass.add("inactive")
-                                            }
-
-                                            this.setOnMouseClicked { e ->
-                                                val entry = this.item
-                                                val entries = this.listView.selectionModel.selectedItems
-
-                                                entry?.accounts?.get(0)?.let { acc ->
-                                                    if (e.button == MouseButton.PRIMARY) {
-                                                        if (e.clickCount == 2) {
-                                                            evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = c) {
-                                                                it.summarizeResult()
-                                                                updateTab3()
-                                                                toUpdateTab1 = true
-                                                            }
-                                                        }
-                                                    }
-                                                    if (e.button == MouseButton.SECONDARY) {
-                                                        val contextMenu =
-                                                                ContextMenu().apply {
-                                                                    this.items.addAll(
-                                                                            MenuItem(msg.getString("editBooking")).apply {
-                                                                                setOnAction {
-                                                                                    evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = c) {
-                                                                                        it.summarizeResult()
-                                                                                        updateTab3()
-                                                                                        toUpdateTab1 = true
-                                                                                    }
-                                                                                }
-                                                                            },
-                                                                            MenuItem(
-                                                                                    if (entry.isActive) msg.getString("deactivateBooking") else msg.getString("activateBooking")
-                                                                            ).apply {
-                                                                                setOnAction {
-                                                                                    val res = !entry.isActive
-                                                                                    entries.forEach { it.isActive = res }
-                                                                                    (entry.category as Category).summarizeResult()
-                                                                                    updateTab3()
-                                                                                    toUpdateTab1 = true
-                                                                                    saveToJSON()
-                                                                                }
-                                                                            },
-                                                                            SeparatorMenuItem(),
-                                                                            MenuItem(msg.getString("deleteBooking")).apply {
-                                                                                setOnAction {
-                                                                                    with(Alert(Alert.AlertType.CONFIRMATION).apply {
-                                                                                        contentText = msg.getString("warningUnreversable")
-                                                                                        headerText = msg.getString("deleteBooking")
-                                                                                        title = msg.getString("deleteBooking")
-                                                                                    }.showAndWait()) {
-                                                                                        if (this.get() == ButtonType.OK) {
-                                                                                            entries.forEach { it.unregister() }
-                                                                                            (entry.category as Category).summarizeResult()
-                                                                                            updateTab3()
-                                                                                            toUpdateTab1 = true
-                                                                                            saveToJSON()
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                    )
-                                                                }
-
-                                                        contextMenu.show(this, e.screenX, e.sceneY)
-                                                    }
-                                                }
-                                            }
+                            entry?.accounts?.get(0)?.let { acc ->
+                                if (e.button == MouseButton.PRIMARY) {
+                                    if (e.clickCount == 2) {
+                                        evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = entry.category as Category) {
+                                            it.summarizeResult()
+                                            updateTab3()
+                                            toUpdateTab1 = true
                                         }
                                     }
-                                })
-                            })
+                                }
+                                if (e.button == MouseButton.SECONDARY) {
+                                    val contextMenu =
+                                            ContextMenu().apply {
+                                                this.items.addAll(
+                                                        MenuItem(msg.getString("editBooking")).apply {
+                                                            setOnAction {
+                                                                evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = entry.category as Category) {
+                                                                    it.summarizeResult()
+                                                                    updateTab3()
+                                                                    toUpdateTab1 = true
+                                                                }
+                                                            }
+                                                        },
+                                                        MenuItem(
+                                                                if (entry.isActive) msg.getString("deactivateBooking") else msg.getString("activateBooking")
+                                                        ).apply {
+                                                            setOnAction {
+                                                                val res = !entry.isActive
+                                                                entries.forEach { it.isActive = res }
+                                                                (entry.category as Category).summarizeResult()
+                                                                updateTab3()
+                                                                toUpdateTab1 = true
+                                                                saveToJSON()
+                                                            }
+                                                        },
+                                                        SeparatorMenuItem(),
+                                                        MenuItem(msg.getString("deleteBooking")).apply {
+                                                            setOnAction {
+                                                                with(Alert(Alert.AlertType.CONFIRMATION).apply {
+                                                                    contentText = msg.getString("warningUnreversable")
+                                                                    headerText = msg.getString("deleteBooking")
+                                                                    title = msg.getString("deleteBooking")
+                                                                }.showAndWait()) {
+                                                                    if (this.get() == ButtonType.OK) {
+                                                                        entries.forEach { it.unregister() }
+                                                                        (entry.category as Category).summarizeResult()
+                                                                        updateTab3()
+                                                                        toUpdateTab1 = true
+                                                                        saveToJSON()
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                )
+                                            }
+
+                                    contextMenu.show(this, e.screenX, e.sceneY)
+                                }
+                            }
                         }
                     }
-                    val (sht, i) = ExcelUtil.getWorksheet("data/demo.xlsx", sheetIndex = 0)
-                    right = XlTable(sht, true)
-                    i.close()
+                }
+            }
+
+            fun updateContent(entries: List<Entry>) {
+                if (entries.isNotEmpty()) {
+                    contentTable.apply {
+                        items.removeAll(contentTable.items)
+                        for (entry in entries) {
+                            if (entry.isVisible)
+                                items.add(entry)
+                        }
+                        refresh()
+                    }
+                }
+            }
+
+            val root = TreeItem(msg.getString("adjustments")).apply {
+                isExpanded = true
+            }
+            categories.forEach {
+                val c = it
+                root.children.add(TreeItem("${it.id} ${it.name}").apply {
+                    isExpanded = true
+                    if (it.entries.isNotEmpty())
+                        children.addAll(
+                                it.entries.filter { it.isVisible }.map { TreeItem("${c.id}.${it.id} ${it.desc}") }
+                        )
+                })
+            }
+
+            fun parseToEntry(s: String): Pair<Entry?, Category>? {
+                val reg = """^(\d+)(\.(\d+))?\s(.*)$""".toRegex()
+
+                if (reg.matches(s)) {
+                    val g = reg.find(s)!!.groups
+                    val c = categories.find { it.id == g[1]!!.value.toInt() }!!
+
+                    if (g[3] == null)
+                        return null to c
+
+                    return c.entries.find { it.id == g[3]!!.value.toInt() } as Entry to c
+                }
+
+                return null
+            }
+
+            val treeView = TreeView<String>(root).apply {
+
+                selectionModel.selectedItemProperty().addListener { _, _, newValue ->
+                    //based on the text value to get the Entry
+                    parseToEntry(newValue.value)?.let {
+                        val (e, c) = it
+                        if (e == null) {
+                            updateContent(c.entries as List<Entry>)
+                        } else {
+                            updateContent(listOf(e))
+                        }
+                    }
+                }
+            }
+
+            with(tab3) {
+                content = SplitPane().apply {
+                    orientation = Orientation.HORIZONTAL
+                    setDividerPositions(0.25)
+                    items.addAll(
+                            treeView,
+                            contentTable
+                    )
                 }
             }
         }
 
         updateTab3()
+
+        fun updateTab2() {
+            with(tab2) {
+                val (sht, i) = ExcelUtil.getWorksheet("data/demo.xls", sheetIndex = 0)
+                content = XlTable(sht, true)
+                i.close()
+            }
+        }
+
+        updateTab2()
 
         fun updateTab1(selectedRow: Int? = null) {
 
