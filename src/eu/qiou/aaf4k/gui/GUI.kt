@@ -62,10 +62,6 @@ class GUI : Application() {
         val reporting = GUI.reporting
         val reportingNull = reporting.nullify()
 
-        // for the root node of the booking panel
-        // val dummyReporting = Reporting(0,"Dummy","Dummy", listOf())
-        //val dummyCategory = Category(msg.getString("adjustments"), 0, "Dummy", dummyReporting)
-
         val accountShown: (Account) -> String = { "${it.id} ${it.name}${if (it.hasParent()) "-" + it.superAccounts!![0].name else ""}" }
         val suggestions = reporting.flattenWithStatistical().toSet().map { accountShown(it) to it.id }.toMap()
 
@@ -285,13 +281,14 @@ class GUI : Application() {
                                     null
                                 } else {
                                     targetEntry?.unregister()
-                                    updateViewCallback(e.category as Category)
                                     e.apply {
                                         targetEntry?.let {
                                             this.isActive = it.isActive
                                             this.isWritable = it.isWritable
                                             this.isVisible = it.isVisible
                                         }
+                                        (this.category as Category).summarizeResult()
+                                        updateViewCallback(e.category as Category)
                                     }
                                 }
                             } else {
@@ -313,7 +310,6 @@ class GUI : Application() {
             val contextMenu = ContextMenu()
             fun modifyMask(entry: Entry, acc: Account) {
                 evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = entry.category as Category) {
-                    it.summarizeResult()
                     updateTab3()
                     toUpdateTab1 = true
                 }
@@ -579,8 +575,6 @@ class GUI : Application() {
                                                                 MenuItem(msg.getString("booking")).apply {
                                                                     setOnAction {
                                                                         evokeBookingDialog(targetAccount = targetAccount, category = category) {
-                                                                            it.summarizeResult()
-                                                                            println(it)
                                                                             updateTab3()
                                                                             updateTab1(treeView.selectionModel.selectedIndex)
                                                                         }
@@ -621,13 +615,9 @@ class GUI : Application() {
 
                                             contextMenu.show(this, e.screenX, e.screenY)
                                         }
-
-
                                         if (e.button == MouseButton.PRIMARY) {
                                             if (e.clickCount == 2) {
-
                                                 evokeBookingDialog(targetAccount = targetAccount, category = category) {
-                                                    it.summarizeResult()
                                                     updateTab3()
                                                     updateTab1(treeView.selectionModel.selectedIndex)
                                                 }

@@ -26,6 +26,11 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
                 struct, displayUnit, entity, timeParameters).apply {
             this.consCategoriesAdded = this@Reporting.consCategoriesAdded
             copyCategoriesFrom(this@Reporting)
+
+            categories.forEach {
+                it as Category
+                it.summarizeResult()
+            }
         }
     }
 

@@ -407,7 +407,6 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     val data = mutableMapOf<Int, String>()
                     e.entries.filter { it.isActive }.forEach {
                         it.accounts.forEach { acc ->
-                            println(acc.id)
                             shtCat.createRow(cnt++).apply {
                                 this.createCell(0).setCellValue(it.category.id.toString())
                                 this.createCell(1).setCellValue(acc.id.toString())
