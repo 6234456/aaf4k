@@ -43,6 +43,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
     open val categories: MutableSet<ProtoCategory<T>> = mutableSetOf()
     val flattened: List<T> = this.flatten()
+    private val sortedFlattened: List<T> = flattened.sortedBy { it.id }
+    private val sortedFlattenedAll: List<T> = flattenWithAllAccounts().sortedBy { it.id }
 
     //no need to evoke add if specified in constructor
     fun add(category: ProtoCategory<T>) {
@@ -68,6 +70,22 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                 , displayUnit, entity, timeParameters).apply {
             copyCategoriesFrom(this@ProtoReporting)
         }
+    }
+
+    fun guessSuperAccount(id: Int): T {
+        tailrec fun search(low: Int, high: Int): Int {
+            val mid = (low + high) / 2
+            val midVal = sortedFlattenedAll[mid].id
+
+            if (high - low == 1) {
+                return low
+            } else if (id > midVal) {
+                return search(mid, high)
+            } else {
+                return search(low, mid)
+            }
+        }
+        return findAccountByID(id) ?: sortedFlattenedAll[search(0, sortedFlattenedAll.size)]
     }
 
     fun lastCategoryIndex(): Int {
@@ -145,10 +163,10 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
     // including self
     open fun findAccountByID(id: Int): T? {
-        structure.forEach {
-            it.findChildByID(id)?.let {
-                return it as T
-            }
+        val i = sortedFlattenedAll.binarySearch(comparison = { it.id - id })
+
+        if (i >= 0) {
+            return sortedFlattenedAll[i]
         }
 
         return null

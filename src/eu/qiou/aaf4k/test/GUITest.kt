@@ -4,7 +4,10 @@ import eu.qiou.aaf4k.accounting.model.Category
 import eu.qiou.aaf4k.gui.GUI
 import eu.qiou.aaf4k.gui.StringParser
 import eu.qiou.aaf4k.reportings.etl.AccountingFrame
+import eu.qiou.aaf4k.util.io.toReporting
 import org.junit.Test
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
 
 class GUITest {
@@ -37,6 +40,13 @@ class GUITest {
         //val e = Files.readAllLines(Paths.get("data/de_accounting.txt")).joinToString("\n").toReporting()
         //println(e.categories.find { it.name == "SchKons" }!!.nextEntryIndex)
         //println(e.checkDuplicate())
+    }
+
+    @Test
+    fun guess() {
+        val e = Files.readAllLines(Paths.get("data/de_accounting.txt")).joinToString("\n").toReporting()
+        //println(e.categories.find { it.name == "SchKons" }!!.nextEntryIndex)
+        println(e.guessSuperAccount(4641))
     }
 
     @Test
