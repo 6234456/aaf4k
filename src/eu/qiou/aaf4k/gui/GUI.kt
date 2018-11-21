@@ -580,6 +580,7 @@ class GUI : Application() {
                                                                     setOnAction {
                                                                         evokeBookingDialog(targetAccount = targetAccount, category = category) {
                                                                             it.summarizeResult()
+                                                                            println(it)
                                                                             updateTab3()
                                                                             updateTab1(treeView.selectionModel.selectedIndex)
                                                                         }

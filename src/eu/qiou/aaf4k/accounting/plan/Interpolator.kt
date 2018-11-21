@@ -39,6 +39,7 @@ class Interpolator(val interpolationBase: InterpolationBase = InterpolationBase.
             }
         }
     }
+
 }
 
 enum class InterpolationBase {

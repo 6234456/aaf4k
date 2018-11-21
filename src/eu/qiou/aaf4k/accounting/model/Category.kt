@@ -37,12 +37,12 @@ class Category(name: String, id: Int, desc: String, reporting: Reporting) : Prot
         }.fold(0.0) { acc, d -> acc + d }
 
         if (Math.abs(re) != 0.0) {
-            (this.reporting as Reporting).retainedEarning?.let {
+            (this.reporting as Reporting).periodResultInBalance?.let {
                 transferEntry.add(Account.from(it.toBuilder().setValue(re, it.decimalPrecision).build(), it.reportingType))
             }
         }
 
-        if (Math.abs(re) != 0.0) {
+        if (Math.abs(oci) != 0.0) {
             (this.reporting as Reporting).oci?.let {
                 transferEntry.add(Account.from(it.toBuilder().setValue(oci, it.decimalPrecision).build(), it.reportingType))
             }

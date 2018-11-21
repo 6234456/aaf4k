@@ -33,4 +33,13 @@ class TimeSpanTest {
     fun getContainingQuarter() {
         println(timeSpan.getContainingQuarter())
     }
+
+    @Test
+    fun get() {
+        println(LocalDate.of(2018, 12, 31).minusMonths(12))
+        println(LocalDate.of(2018, 12, 31))
+        println(TimeSpan.forMonth(2018, 2).rollForward())
+        println(TimeSpan.forYear(2018).rollForward())
+        println(TimeSpan.forHalfYear(2018).drillDown(3, ChronoUnit.MONTHS))
+    }
 }

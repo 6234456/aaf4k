@@ -80,7 +80,8 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
         return cloneWith(structure.map { it.shorten(whiteList = whiteList) as Account })
     }
 
-    val retainedEarning = flattened.find { it.reportingType == ReportingType.RESULT_BALANCE }
+    val periodResultInBalance = flattened.find { it.reportingType == ReportingType.RESULT_BALANCE }
+    val retainedEarning = flattened.find { it.reportingType == ReportingType.RETAINED_EARNINGS_BEGINNING }
     val oci = flattened.find { it.reportingType == ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE }
 
     fun addConsolidationCategories(locale: Locale? = null) {
@@ -100,7 +101,31 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
 
             consCategoriesAdded = true
         }
-
     }
 
+    fun carryForward(): Reporting {
+        return Reporting(id, name, desc, this.generate().apply {
+            this as Reporting
+            val re = this.retainedEarning!!
+            val res = this.periodResultInBalance!!
+            val pl = this.flattened.filter {
+                it.reportingType == ReportingType.REVENUE_GAIN
+                        || it.reportingType == ReportingType.EXPENSE_LOSS
+                        || it.reportingType == ReportingType.PROFIT_LOSS_NEUTRAL
+                        || it.reportingType == ReportingType.AUTO
+            }.filter { it.decimalValue != 0.0 }
+
+            Category("", -1, "", this).apply {
+                Entry(-10, "", this).apply {
+                    add(re.id, res.decimalValue)
+                    balanceWith(res.id)
+                }
+                Entry(-11, "", this).apply {
+                    pl.forEach {
+                        add(it.id, it.decimalValue * -1)
+                    }
+                }
+            }
+        }.generate().structure, timeParameters = timeParameters.rollForward())
+    }
 }

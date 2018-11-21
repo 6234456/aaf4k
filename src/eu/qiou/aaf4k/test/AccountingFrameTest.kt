@@ -194,4 +194,24 @@ class AccountingFrameTest {
         )*/
         GUI.open(r.removeAccount(10000).apply { addConsolidationCategories(Locale.CHINESE) })
     }
+
+    @Test
+    fun carryForward() {
+        val r = AccountingFrame.inflate(123, "hgb", "data/de/credentials.de_hgb_2018.txt").toReporting(123, "Demo", entity = ProtoEntity(123, "Qiou GmbH", "Qiou"))
+        r.addConsolidationCategories(Locale.ENGLISH)
+        Files.write(Paths.get("data/de_accounting.txt"), r.toJSON().split("\n"))
+
+    }
+
+    @Test
+    fun carryForward2() {
+        GUI.locale = Locale.ENGLISH
+        GUI.open("data/de_accounting.txt")
+    }
+
+    @Test
+    fun carryForward3() {
+        val r = Files.readAllLines(Paths.get("data/de_accounting.txt")).joinToString { it }.toReporting()
+        println(r.categories.elementAt(0).entries.elementAt(0))
+    }
 }

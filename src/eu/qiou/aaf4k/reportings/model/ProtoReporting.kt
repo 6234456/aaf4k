@@ -43,8 +43,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
     open val categories: MutableSet<ProtoCategory<T>> = mutableSetOf()
     val flattened: List<T> = this.flatten()
-    private val sortedFlattened: List<T> = flattened.sortedBy { it.id }
-    private val sortedFlattenedAll: List<T> = flattenWithAllAccounts().sortedBy { it.id }
+    protected val sortedFlattened: List<T> = flattened.sortedBy { it.id }
+    protected val sortedFlattenedAll: List<T> = flattenWithAllAccounts().sortedBy { it.id }
 
     //no need to evoke add if specified in constructor
     fun add(category: ProtoCategory<T>) {
@@ -407,6 +407,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     val data = mutableMapOf<Int, String>()
                     e.entries.filter { it.isActive }.forEach {
                         it.accounts.forEach { acc ->
+                            println(acc.id)
                             shtCat.createRow(cnt++).apply {
                                 this.createCell(0).setCellValue(it.category.id.toString())
                                 this.createCell(1).setCellValue(acc.id.toString())
@@ -421,7 +422,6 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                                             this.getCell(i)
                                         }
                                 )
-
 
                                 if (data.containsKey(acc.id)) {
                                     data[acc.id] = "${data[acc.id]}+'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"

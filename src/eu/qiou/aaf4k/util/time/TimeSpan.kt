@@ -57,8 +57,24 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate):Drilldownable {
         return TimeSpan(start.plus(period), end.plus(period))
     }
 
+    fun plus(amount: Long, unit: ChronoUnit): TimeSpan {
+        var s = start.plus(amount, unit)
+        var e = end.plus(amount, unit)
+
+        if (unit == ChronoUnit.MONTHS) {
+            if (start.isEndOfMonth()) s = s.toEndOfMonth()
+            if (end.isEndOfMonth()) e = e.toEndOfMonth()
+        }
+
+        return TimeSpan(s, e)
+    }
+
     operator fun minus(period: Period):TimeSpan {
         return TimeSpan(start.minus(period), end.minus(period))
+    }
+
+    fun rollForward(unit: ChronoUnit = drillDownTo.second): TimeSpan {
+        return this.plus(drillDown(1, unit).size.toLong(), unit)
     }
 
     fun drillDown(interval: Long, unit: ChronoUnit): ArrayList<TimeSpan> {
@@ -178,8 +194,11 @@ operator fun ChronoUnit.times(n: Int):Period = when{
     else -> throw Exception("unimplemented method")
 }
 
-operator fun LocalDate.plus(period: Period) = this.plus(period)
+operator fun LocalDate.plus(period: Period): LocalDate = this.plus(period)
 operator fun LocalDate.minus(period: Period) = this.minus(period)
+
+fun LocalDate.isEndOfMonth() = this.plusDays(1).month != this.month
+fun LocalDate.toEndOfMonth() = this.plusMonths(1).withDayOfMonth(1).minusDays(1)
 
 fun LocalDate.to(ends: LocalDate, withIntervalUnit: ChronoUnit = ChronoUnit.YEARS, withIntervalAmount: Int = 1): List<LocalDate> {
     val res = mutableListOf<LocalDate>()

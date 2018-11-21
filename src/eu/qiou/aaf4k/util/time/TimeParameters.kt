@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.util.time
 
 import eu.qiou.aaf4k.util.io.JSONable
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 data class TimeParameters(val timeSpan: TimeSpan? = null, val timePoint: LocalDate? = null) : JSONable {
 
@@ -38,6 +39,14 @@ data class TimeParameters(val timeSpan: TimeSpan? = null, val timePoint: LocalDa
         timePoint   != null && timeSpan     == null     -> TimeAttribute.TIME_POINT
         timePoint   == null && timeSpan     == null     -> TimeAttribute.CONSTANT
         else -> throw Exception("Specification Error: One and only one of the attribute timeSpan/timePoint should be specified!")
+    }
+
+    fun rollForward(unit: ChronoUnit = ChronoUnit.MONTHS): TimeParameters {
+        return when (timeAttribute) {
+            TimeAttribute.CONSTANT -> this
+            TimeAttribute.TIME_SPAN -> TimeParameters(timeSpan!!.rollForward(unit))
+            TimeAttribute.TIME_POINT -> TimeParameters(timePoint!!.plus(1L, unit))
+        }
     }
 
     operator fun contains(timeParameters: TimeParameters):Boolean{
