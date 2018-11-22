@@ -109,10 +109,9 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
     }
 
     fun carryForward(): Reporting {
-        return Reporting(id, name, desc, this.generate().apply {
+        return Reporting(id, name, desc, this.generate(true).apply {
             this as Reporting
             val re = this.retainedEarning!!
-            val res = this.periodResultInBalance!!
             val pl = this.flattened.filter {
                 it.reportingType == ReportingType.REVENUE_GAIN
                         || it.reportingType == ReportingType.EXPENSE_LOSS
@@ -121,16 +120,14 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
             }.filter { it.decimalValue != 0.0 }
 
             Category("", -1, "", this).apply {
-                Entry(-10, "", this).apply {
-                    add(re.id, res.decimalValue)
-                    balanceWith(res.id)
-                }
                 Entry(-11, "", this).apply {
                     pl.forEach {
                         add(it.id, it.decimalValue * -1)
                     }
+                    balanceWith(re.id)
                 }
+                summarizeResult()
             }
-        }.generate().structure, timeParameters = timeParameters.rollForward())
+        }.generate(true).structure, timeParameters = timeParameters.rollForward())
     }
 }

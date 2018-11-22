@@ -47,6 +47,8 @@ class GUITest {
         val e = Files.readAllLines(Paths.get("data/de_accounting.txt")).joinToString("\n").toReporting()
         //println(e.categories.find { it.name == "SchKons" }!!.nextEntryIndex)
         println(e.guessSuperAccount(4641))
+        val f = e.carryForward().shorten()
+        f.toXl("data/exp.xls")
     }
 
     @Test

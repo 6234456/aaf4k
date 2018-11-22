@@ -157,8 +157,11 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
      * after update through the categories
      * get the reporting
      */
-    fun generate(): ProtoReporting<T> {
-        return update(mergeCategories())
+    fun generate(clearCategories: Boolean = false): ProtoReporting<T> {
+        return update(mergeCategories()).apply {
+            if (clearCategories)
+                this.categories.clear()
+        }
     }
 
     // including self
