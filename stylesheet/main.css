@@ -8,13 +8,11 @@
 }
 
 .root {
-    -fx-font-family: "Arial Narrow";
-    -fx-font-size: 12pt;
+    -fx-font-size: 10pt;
 }
 
 .dialog-pane {
-    -fx-font-family: "Arial Narrow";
-    -fx-font-size: 12pt;
+    -fx-font-size: 10pt;
 }
 
 .table-view {
@@ -51,7 +49,6 @@
 }
 
 .table-view {
-    -fx-font-family: Bahnschrift, Arial, sans-serif;
     -fx-font-size:1.13em;
 }
 

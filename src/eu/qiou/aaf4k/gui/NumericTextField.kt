@@ -5,6 +5,7 @@ import eu.qiou.aaf4k.gui.StringParser.regBindingElement
 import eu.qiou.aaf4k.util.roundUpTo
 import eu.qiou.aaf4k.util.strings.times
 import javafx.application.Platform
+import javafx.geometry.Pos
 import javafx.scene.control.TextField
 import java.text.DecimalFormat
 import java.text.NumberFormat
@@ -162,5 +163,7 @@ class NumericTextField(val decimalPrecision: Int, text: String? = "", var bindin
                     this.text = if (number == null || number == 0.0) "" else formatterWithoutSep(number!!, decimalPrecision)
             }
         }
+
+        this.alignment = Pos.CENTER_RIGHT
     }
 }
