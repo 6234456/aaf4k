@@ -34,7 +34,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
         }
     }
 
-    override fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double): Reporting {
+    override fun update(data: Map<Long, Double>, updateMethod: (Double, Double) -> Double): Reporting {
         return cloneWith(structure.map { it.deepCopy<Account>(data, updateMethod) })
     }
 
@@ -50,7 +50,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
         return cloneWith(method(structure))
     }
 
-    override fun addAccountTo(newAccount: Account, index: Int, parentId: Int?): Reporting {
+    override fun addAccountTo(newAccount: Account, index: Int, parentId: Long?): Reporting {
         if (parentId == null)
             return updateStructure { structure.toMutableList().apply { add(index, newAccount) } }
 
@@ -62,7 +62,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
         }
     }
 
-    override fun removeAccount(accountId: Int): Reporting {
+    override fun removeAccount(accountId: Long): Reporting {
         val p = findAccountByID(accountId)
         p ?: throw java.lang.Exception("No account found for the id: $accountId.")
 

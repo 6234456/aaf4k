@@ -33,7 +33,7 @@ object FromJSON {
         return if (hasSubAccounts) {
             Account.from(
                     ProtoAccount(
-                            id = (json.get("id") as Long).toInt(),
+                            id = json.get("id") as Long,
                             name = json.get("name") as String,
                             subAccounts =
                             (json.get("subAccounts") as JSONArray).map {
@@ -49,7 +49,7 @@ object FromJSON {
         } else {
             Account.from(
                     ProtoAccount.Builder(
-                            id = (json.get("id") as Long).toInt(),
+                            id = json.get("id") as Long,
                             name = json.get("name") as String,
                             desc = json.get("desc") as String,
                             isStatistical = json.get("isStatistical") as Boolean,

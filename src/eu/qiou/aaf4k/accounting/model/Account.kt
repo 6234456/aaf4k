@@ -10,7 +10,7 @@ import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import java.time.LocalDate
 
-class Account(id: Int, name: String,
+class Account(id: Long, name: String,
               subAccounts: MutableList<Account>? = null,
               decimalPrecision: Int = 2,
               value: Long? = null,
@@ -23,7 +23,7 @@ class Account(id: Int, name: String,
               validateUntil: LocalDate? = null
 ) : ProtoAccount(id, name, subAccounts, decimalPrecision, value, unit, desc, timeParameters, entity, isStatistical, validateUntil) {
 
-    constructor(id: Int, name: String, decimalPrecision: Int, formula: String, accounts: Map<Int, Account>, unit: CurrencyUnit = CurrencyUnit(),
+    constructor(id: Long, name: String, decimalPrecision: Int, formula: String, accounts: Map<Int, Account>, unit: CurrencyUnit = CurrencyUnit(),
                 reportingType: ReportingType, desc: String = "", timeParameters: TimeParameters? = null,
                 entity: ProtoEntity? = null,
                 isStatistical: Boolean = false, validateUntil: LocalDate? = null) : this(id, name, null, decimalPrecision, parse(formula, accounts).roundUpTo(decimalPrecision).toLong(), unit, reportingType, desc, timeParameters, entity, isStatistical, validateUntil)
@@ -41,7 +41,7 @@ class Account(id: Int, name: String,
         return Account.from(super.deepCopy(callbackAtomicAccount), this.reportingType) as T
     }
 
-    override fun <T : ProtoAccount> deepCopy(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double): T {
+    override fun <T : ProtoAccount> deepCopy(data: Map<Long, Double>, updateMethod: (Double, Double) -> Double): T {
         return Account.from(super.deepCopy(data, updateMethod), this.reportingType) as T
     }
 

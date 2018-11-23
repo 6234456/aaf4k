@@ -38,7 +38,7 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
         }
     }
 
-    fun toDataMap(): Map<Int, Double> {
+    fun toDataMap(): Map<Long, Double> {
         if (!isActive || isEmpty)
             return mapOf()
 
@@ -53,7 +53,7 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
         this.category.entries.remove(this)
     }
 
-    open fun add(id: Int, value: Double): ProtoEntry<T> {
+    open fun add(id: Long, value: Double): ProtoEntry<T> {
         this.category.reporting.findAccountByID(id)?.let {
             return add(it.toBuilder().setValue(v = value, decimalPrecision = it.decimalPrecision).build() as T)
         }
@@ -79,7 +79,7 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
         return this
     }
 
-    fun remove(id: Int): ProtoEntry<T> {
+    fun remove(id: Long): ProtoEntry<T> {
         return remove(findById(id))
     }
 
@@ -87,11 +87,11 @@ open class ProtoEntry<T : ProtoAccount>(val id: Int, val desc: String = "", val 
         accounts.clear()
     }
 
-    fun findById(id: Int): List<T> {
+    fun findById(id: Long): List<T> {
         return accounts.filter { it.id == id }
     }
 
-    fun existsId(id: Int): Boolean {
+    fun existsId(id: Long): Boolean {
         return findById(id).count() > 0
     }
 

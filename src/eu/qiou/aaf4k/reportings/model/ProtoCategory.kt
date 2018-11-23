@@ -44,7 +44,7 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
         nextEntryIndex = Math.max(entry.id, nextEntryIndex) + 1
     }
 
-    fun toDataMap(): Map<Int, Double> {
+    fun toDataMap(): Map<Long, Double> {
         return entries
                 .map { it.toDataMap() }
                 .fold(mapOf()) { acc, map ->
@@ -53,11 +53,11 @@ open class ProtoCategory<T : ProtoAccount>(val name: String, val id: Int, val de
     }
 
     // entry-Id to entry
-    fun toUncompressedDataMap(): Map<Int, Map<Int, Double>> {
+    fun toUncompressedDataMap(): Map<Int, Map<Long, Double>> {
         return entries.map { it.id to it.toDataMap() }.toMap()
     }
 
-    fun searchForEntriesWith(id: Int): List<ProtoEntry<T>> {
+    fun searchForEntriesWith(id: Long): List<ProtoEntry<T>> {
         return entries.filter { it.existsId(id) }
     }
 

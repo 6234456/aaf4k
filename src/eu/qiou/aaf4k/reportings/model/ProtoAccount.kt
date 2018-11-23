@@ -24,7 +24,7 @@ import java.time.LocalDate
  */
 
 //TODO simplify the base class only the necessary attributes   the foreign exchange into separate adaptor   ProtoAccount as Interface
-open class ProtoAccount(val id: Int, open val name: String,
+open class ProtoAccount(val id: Long, open val name: String,
                         val subAccounts: MutableList<out ProtoAccount>? = null,
                         val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION,
                         val value: Long? = null,
@@ -39,17 +39,17 @@ open class ProtoAccount(val id: Int, open val name: String,
     /**
      *  for the atomic account, specify the value
      */
-    constructor(id: Int, name: String, value: Long, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
+    constructor(id: Long, name: String, value: Long, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
             this(id, name, null, decimalPrecision = decimalPrecision, value = value, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical, validateUntil = validateUntil)
 
     /**
      *  for the aggregate account, specify subAccounts
      *  if ignore the parameter subAccounts, empty set by default
      */
-    constructor(id: Int, name: String, subAccounts: MutableList<ProtoAccount>, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
+    constructor(id: Long, name: String, subAccounts: MutableList<ProtoAccount>, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
             this(id, name, subAccounts = subAccounts, decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical, validateUntil = validateUntil)
 
-    constructor(id: Int, name: String, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
+    constructor(id: Long, name: String, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
             this(id, name, subAccounts = mutableListOf(), decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical, validateUntil = validateUntil)
 
     init {
@@ -107,7 +107,7 @@ open class ProtoAccount(val id: Int, open val name: String,
     private set
 
     // can be re-implemented based on Locale
-    var localAccountID: Int = id
+    var localAccountID: Long = id
     var localAccountName: String = id.toString()
 
     val isAggregate:Boolean = subAccounts != null
@@ -186,7 +186,7 @@ open class ProtoAccount(val id: Int, open val name: String,
         return this.deepCopy { it.toBuilder().setValue(0).build() }
     }
 
-    open fun findChildByID(id: Int): ProtoAccount? {
+    open fun findChildByID(id: Long): ProtoAccount? {
         if (this.id == id) {
             return this
         }
@@ -216,7 +216,7 @@ open class ProtoAccount(val id: Int, open val name: String,
         }
     }
 
-    open fun <T : ProtoAccount> deepCopy(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, _ -> valueNew }): T {
+    open fun <T : ProtoAccount> deepCopy(data: Map<Long, Double>, updateMethod: (Double, Double) -> Double = { valueNew, _ -> valueNew }): T {
         val callback: (ProtoAccount) -> ProtoAccount = {
             it.update(data, updateMethod)
         }
@@ -231,7 +231,7 @@ open class ProtoAccount(val id: Int, open val name: String,
         return deepCopy(category.toDataMap(), updateMethod)
     }
 
-    fun update(map: Map<Int, Double>, callback: (Double, Double) -> Double = { valueNew, _ -> valueNew }): ProtoAccount {
+    fun update(map: Map<Long, Double>, callback: (Double, Double) -> Double = { valueNew, _ -> valueNew }): ProtoAccount {
         if (map.containsKey(id))
             return toBuilder().setValue(callback(map.getValue(id), this.decimalValue)).build()
         else
@@ -281,7 +281,7 @@ open class ProtoAccount(val id: Int, open val name: String,
         return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": $hasSubAccounts, "hasSuperAccounts": $hasSuperAccounts, "localAccountID":$localAccountID, "isStatistical": $isStatistical, "validateUntil":${if (validateUntil == null) "null" else "'$validateUntil'"}, "scalar": ${unit.scalar}, "isCurrency": ${unit is CurrencyUnit}, "isPercentage": ${unit is PercentageUnit}}"""
     }
 
-    class Builder(var id: Int? = null,
+    class Builder(var id: Long? = null,
                   var name: String? = null,
                   var subAccounts: MutableList<ProtoAccount>? = null,
                   var decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION,
@@ -295,24 +295,24 @@ open class ProtoAccount(val id: Int, open val name: String,
     ) {
         var type: Int = 0
         var displayUnit: ProtoUnit = CurrencyUnit()
-        var localAccountID: Int? = id
+        var localAccountID: Long? = id
         var localAccountName: String? = name
 
 
         /**
          *  for the atomic account, specify the value
          */
-        constructor(id: Int, name: String, value: Long, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
+        constructor(id: Long, name: String, value: Long, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
                 this(id, name, null, decimalPrecision = decimalPrecision, value = value, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical, validateUntil = validateUntil)
 
         /**
          *  for the aggregate account, specify subAccounts
          *  if ignore the parameter subAccounts, empty set by default
          */
-        constructor(id: Int, name: String, subAccounts: MutableList<out ProtoAccount>, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
+        constructor(id: Long, name: String, subAccounts: MutableList<out ProtoAccount>, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
                 this(id, name, subAccounts = subAccounts as MutableList<ProtoAccount>, decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical, validateUntil = validateUntil)
 
-        constructor(id: Int, name: String, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
+        constructor(id: Long, name: String, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION, unit: ProtoUnit = CurrencyUnit(), desc: String = "", timeParameters: TimeParameters? = null, entity: ProtoEntity? = null, isStatistical: Boolean = false, validateUntil: LocalDate? = null) :
                 this(id, name, subAccounts = mutableListOf(), decimalPrecision = decimalPrecision, value = null, unit = unit, desc = desc, timeParameters = timeParameters, entity = entity, isStatistical = isStatistical, validateUntil = validateUntil)
 
         fun setDisplayUnit(unit: ProtoUnit): Builder {
@@ -364,7 +364,7 @@ open class ProtoAccount(val id: Int, open val name: String,
             return this
         }
 
-        fun setBasicInfo(id: Int, name: String):Builder{
+        fun setBasicInfo(id: Long, name: String): Builder {
             this.id = id
             this.name = name
 
@@ -407,7 +407,7 @@ open class ProtoAccount(val id: Int, open val name: String,
             return this
         }
 
-        fun setLocalAccountID(id: Int): Builder {
+        fun setLocalAccountID(id: Long): Builder {
             this.localAccountID = id
 
             return this

@@ -41,7 +41,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                                             val displayUnit: ProtoUnit = CurrencyUnit(), val entity: ProtoEntity = GlobalConfiguration.DEFAULT_ENTITY,
                                             val timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS) : JSONable {
 
-    open val categories: MutableSet<ProtoCategory<T>> = mutableSetOf()
+    open val categories: MutableList<ProtoCategory<T>> = mutableListOf()
     val flattened: List<T> = this.flatten()
     protected val sortedFlattened: List<T> = flattened.sortedBy { it.id }
     protected val sortedFlattenedAll: List<T> = flattenWithAllAccounts().sortedBy { it.id }
@@ -54,7 +54,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         categories.add(category)
     }
 
-    fun mergeCategories(): Map<Int, Double> {
+    fun mergeCategories(): Map<Long, Double> {
         return if (categories.isEmpty()) mapOf() else categories.map { it.toDataMap() }.reduce { acc, map ->
             acc.mergeReduce(map) { a, b -> a + b }
         }
@@ -72,7 +72,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         }
     }
 
-    fun guessSuperAccount(id: Int): T {
+    fun guessSuperAccount(id: Long): T {
         tailrec fun search(low: Int, high: Int): Int {
             val mid = (low + high) / 2
             val midVal = sortedFlattenedAll[mid].id
@@ -96,18 +96,18 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     }
 
     // entry-Id to entry
-    fun toUncompressedDataMap(): Map<Int, Map<Int, Map<Int, Double>>> {
+    fun toUncompressedDataMap(): Map<Int, Map<Int, Map<Long, Double>>> {
         return categories.map { it.id to it.toUncompressedDataMap() }.toMap()
     }
 
-    fun toDataMap(): Map<Int, Double> {
+    fun toDataMap(): Map<Long, Double> {
         return generate().flattenWithStatistical().map { it.id to it.decimalValue }.toMap()
     }
 
-    fun checkDuplicate(): Map<Int, Int> {
+    fun checkDuplicate(): Map<Long, Int> {
         return structure
                 .fold(listOf<ProtoAccount>()) { acc, t -> acc + t.notStatistical() }
-                .fold(mutableMapOf<Int, Int>()) { acc, protoAccount ->
+                .fold(mutableMapOf<Long, Int>()) { acc, protoAccount ->
                     if (acc.containsKey(protoAccount.id)) {
                         acc[protoAccount.id] = acc[protoAccount.id]!! + 1
                     } else {
@@ -165,8 +165,14 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
     }
 
     // including self
-    open fun findAccountByID(id: Int): T? {
-        val i = sortedFlattenedAll.binarySearch(comparison = { it.id - id })
+    open fun findAccountByID(id: Long): T? {
+        val i = sortedFlattenedAll.binarySearch(comparison = {
+            when {
+                it.id == id -> 0
+                it.id < id -> -1
+                else -> 1
+            }
+        })
 
         if (i >= 0) {
             return sortedFlattenedAll[i]
@@ -179,7 +185,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return cloneWith(method(structure))
     }
 
-    open fun removeAccount(accountId: Int): ProtoReporting<T> {
+    open fun removeAccount(accountId: Long): ProtoReporting<T> {
         val p = findAccountByID(accountId)
         p ?: throw java.lang.Exception("No account found for the id: $accountId.")
 
@@ -192,7 +198,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         }
     }
 
-    open fun addAccountTo(newAccount: T, index: Int, parentId: Int? = null): ProtoReporting<T> {
+    open fun addAccountTo(newAccount: T, index: Int, parentId: Long? = null): ProtoReporting<T> {
         if (parentId == null)
             return updateStructure { structure.toMutableList().apply { add(index, newAccount) } }
 
@@ -212,7 +218,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
     }
 
-    open fun update(data: Map<Int, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
+    open fun update(data: Map<Long, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
         return cloneWith(structure.map { it.deepCopy<T>(data, updateMethod) })
     }
 
@@ -380,7 +386,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             //booking
             cnt = startRow
 
-            var bookings = listOf<Map<Int, String>>()
+            var bookings = listOf<Map<Long, String>>()
             val colVal = 3
 
             val bookingCallback: (Sheet) -> Unit = { shtCat ->
@@ -406,8 +412,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                 val bookingFormat = ExcelUtil.StyleBuilder(w).fromStyle(dark!!, false)
                         .dataFormat(ExcelUtil.DataFormat.NUMBER.format)
 
-                bookings = this.categories.fold(listOf<Map<Int, String>>()) { acc, e ->
-                    val data = mutableMapOf<Int, String>()
+                bookings = this.categories.fold(listOf<Map<Long, String>>()) { acc, e ->
+                    val data = mutableMapOf<Long, String>()
                     e.entries.filter { it.isActive }.forEach {
                         it.accounts.forEach { acc ->
                             shtCat.createRow(cnt++).apply {
@@ -443,7 +449,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
             col = colOriginal + 1
             bookings.forEach {
-                ExcelUtil.unload(it, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toInt() else -1 }, 0, col++, { false }, { c, v ->
+                ExcelUtil.unload(it, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toLong() else -1 }, 0, col++, { false }, { c, v ->
                     c.cellFormula = v
                 }, sht)
             }

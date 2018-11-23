@@ -17,7 +17,7 @@ class Entry(id: Int, desc: String = "", category: Category, date: LocalDate = ca
         }
     }
 
-    override fun add(id: Int, value: Double): Entry {
+    override fun add(id: Long, value: Double): Entry {
 
         // TODO conversion of different unit
         this.category.reporting.findAccountByID(id)?.let {
@@ -53,7 +53,7 @@ class Entry(id: Int, desc: String = "", category: Category, date: LocalDate = ca
         )
     }
 
-    fun balanceWith(account: Int): Entry {
+    fun balanceWith(account: Long): Entry {
         return balanceWith(
                 this.category.reporting.findAccountByID(account)!!)
     }

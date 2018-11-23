@@ -5,6 +5,7 @@ import eu.qiou.aaf4k.gui.GUI
 import eu.qiou.aaf4k.gui.StringParser
 import eu.qiou.aaf4k.reportings.etl.AccountingFrame
 import eu.qiou.aaf4k.util.io.toReporting
+import eu.qiou.aaf4k.util.time.TimeParameters
 import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -60,5 +61,14 @@ class GUITest {
         l.add(1.0)
         l.add(1.0)
         println(v())
+    }
+
+    @Test
+    fun open3() {
+        val f = AccountingFrame.inflate(123, "cn_cas1_2018")
+        GUI.locale = Locale.CHINESE
+        GUI.open(f.toReporting(123, "Demo2", TimeParameters.forYear(2018)).apply {
+            addConsolidationCategories(Locale.CHINESE)
+        })
     }
 }

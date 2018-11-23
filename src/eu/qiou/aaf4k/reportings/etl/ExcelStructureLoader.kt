@@ -42,7 +42,7 @@ class ExcelStructureLoader(val path: String, val sheetIndex: Int = 0, val sheetN
     /**
      * @param content the String represents the account like the form "1200 Account Receivables"
      */
-    private fun parseAccount(content:String):Pair<Int, String>{
+    private fun parseAccount(content: String): Pair<Long, String> {
         val reg1 = Regex("""^\d+\s+""")
         val reg2 = Regex("""\s+""")
 
@@ -51,6 +51,6 @@ class ExcelStructureLoader(val path: String, val sheetIndex: Int = 0, val sheetN
         }
 
         val (a, b) = reg2.split(content,2)
-        return Pair(a.toInt(), b)
+        return Pair(a.toLong(), b)
     }
 }

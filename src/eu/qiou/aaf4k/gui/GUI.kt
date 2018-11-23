@@ -164,7 +164,7 @@ class GUI : Application() {
                     inflate(if (targetEntry == null) 3 else targetEntry.accounts.size + 1)
 
                     if (targetEntry == null) {
-                        (this.elements[indexPos][0] as AutoCompleteTextField<Int>).run {
+                        (this.elements[indexPos][0] as AutoCompleteTextField<Long>).run {
                             setTextValue(if (!targetAccount.hasChildren()) accountShown(targetAccount) else "")
 
                             if (!targetAccount.hasChildren())
@@ -172,7 +172,7 @@ class GUI : Application() {
                         }
                     } else {
                         targetEntry.accounts.forEachIndexed { index, account ->
-                            (this.elements[indexPos][index] as AutoCompleteTextField<Int>).run {
+                            (this.elements[indexPos][index] as AutoCompleteTextField<Long>).run {
                                 result = account.id
                                 setTextValue(accountShown(account))
                             }
@@ -261,7 +261,7 @@ class GUI : Application() {
 
                 setResultConverter {
                     if (it == ButtonType.OK) {
-                        val text = group.elements[0] as List<AutoCompleteTextField<Int>>
+                        val text = group.elements[0] as List<AutoCompleteTextField<Long>>
                         val values = group.elements[valuePos] as List<NumericTextField>
                         with(text.map { it.result }.zip(values.map { it.number })) {
                             if (this.any { it.first != null && it.second != null }) {
