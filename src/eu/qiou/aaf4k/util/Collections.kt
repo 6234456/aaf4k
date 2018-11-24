@@ -15,6 +15,8 @@ fun Iterable<Any>.mkString(separator: String = ", ", prefix: String = "[", affix
 
 
 fun Iterable<JSONable>.mkJSON() = CollectionToString.mkJSON(this)
+
+fun Map<JSONable, Number>.mkJSON() = CollectionToString.mkString(this.map { """{"key":${it.key.toJSON()}, "value": ${it.value} }""" })
 /**
  * @sample   to [1,2,3,4]  -> [k, 1, 2, 3, 4]
  */

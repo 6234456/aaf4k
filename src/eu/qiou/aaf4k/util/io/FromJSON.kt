@@ -18,6 +18,7 @@ import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
 import java.time.LocalDate
 import java.util.*
+import kotlin.math.roundToInt
 
 
 object FromJSON {
@@ -152,11 +153,8 @@ object FromJSON {
         val ads = if (a == null) null else address(a as JSONObject)
 
         val c = json.get("child")
-        val child = if (c == null) null else (c as JSONArray).map { entity(it as JSONObject) }
-
-        val pr = json.get("parent")
-        val parent = if (pr == null) null else (pr as JSONArray).map { entity(it as JSONObject) }
-
+        val child = if (c == null) null else (c as JSONArray)
+                .map { entity((it as JSONObject).get("key") as JSONObject) to it.get("value") as Double }.toMap()
 
         return ProtoEntity(
                 id = (json.get("id") as Long).toInt(),
@@ -166,8 +164,9 @@ object FromJSON {
                 contactPerson = ps,
                 address = ads
         ).apply {
-            parentEntities = parent?.toMutableList()
-            childEntities = child?.toMutableList()
+            child?.forEach { t, u ->
+                add(t, (u * 10000).roundToInt())
+            }
         }
     }
 

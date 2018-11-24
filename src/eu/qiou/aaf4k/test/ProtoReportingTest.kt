@@ -48,7 +48,7 @@ class ProtoReportingTest {
         GUI.locale = l
         GUI.open(AccountingFrame.inflate(2018, "hgb", "data/de/credentials.de_hgb_2018.txt").apply {
             Category("123", 4, "123", this)
-            addConsolidationCategories(l)
+            prepareConsolidation(l)
         })
     }
 }

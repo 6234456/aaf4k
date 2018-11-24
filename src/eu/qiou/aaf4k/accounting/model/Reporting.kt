@@ -89,7 +89,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
     val retainedEarning = flattened.find { it.reportingType == ReportingType.RETAINED_EARNINGS_BEGINNING }
     val oci = flattened.find { it.reportingType == ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE }
 
-    fun addConsolidationCategories(locale: Locale? = null) {
+    fun prepareConsolidation(locale: Locale? = null) {
         if (!consCategoriesAdded) {
             val nid = lastCategoryIndex()
 

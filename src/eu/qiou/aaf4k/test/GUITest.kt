@@ -68,7 +68,7 @@ class GUITest {
         val f = AccountingFrame.inflate(123, "cn_cas1_2018")
         GUI.locale = Locale.CHINESE
         GUI.open(f.toReporting(123, "Demo2", TimeParameters.forYear(2018)).apply {
-            addConsolidationCategories(Locale.CHINESE)
+            prepareConsolidation(Locale.CHINESE)
         })
     }
 }

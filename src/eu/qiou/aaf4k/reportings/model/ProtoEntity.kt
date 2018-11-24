@@ -13,35 +13,36 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
                        var contactPerson: Person? = null, var address: Address? = null) : Drilldownable, JSONable {
     override fun toJSON(): String {
         return """{"id":$id, "name":"$name", "abbreviation":"$abbreviation", "desc":"$desc", "contactPerson":${contactPerson?.toJSON()
-                ?: "null"}, "address":${address?.toJSON() ?: "null"}, "child":${childEntities?.mkJSON()
-                ?: "null"}, "parent": ${parentEntities?.mkJSON() ?: "null"}}"""
+                ?: "null"}, "address":${address?.toJSON()
+                ?: "null"}, "child":${(childEntities as Map<JSONable, Double>?)?.mkJSON()
+                ?: "null"}}"""
     }
 
-    var childEntities: MutableList<ProtoEntity>? = null
-    var parentEntities: MutableList<ProtoEntity>? = null
+    var childEntities: MutableMap<ProtoEntity, Double>? = null
+    var parentEntities: MutableMap<ProtoEntity, Double>? = null
 
     override fun getChildren(): Collection<ProtoEntity>? {
-        return childEntities
+        return childEntities?.keys
     }
 
     override fun getParents(): Collection<ProtoEntity>? {
-        return parentEntities
+        return parentEntities?.keys
     }
 
+    // 100% to 10000   18.23% to 1823
     override fun add(child: Drilldownable, index: Int?): ProtoEntity {
         if(child is ProtoEntity){
             if (childEntities == null) {
-                childEntities = mutableListOf()
+                childEntities = mutableMapOf()
             }
-            if (index == null)
-                childEntities!!.add(child)
-            else
-                childEntities!!.add(index, child)
+
+            childEntities!!.put(child, if (index == null) 1.0 else index / 10000.0)
 
             if (child.parentEntities == null) {
-                child.parentEntities = mutableListOf()
+                child.parentEntities = mutableMapOf()
             }
-            child.parentEntities!!.add(this)
+
+            child.parentEntities!!.put(this, if (index == null) 1.0 else index / 10000.0)
         }
 
         return this
@@ -80,6 +81,12 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
     }
 
     override fun toString(): String {
-        return CollectionToString.structuredToStr(this, 0, ProtoEntity::lower as Drilldownable.() -> String , ProtoEntity::upper as Drilldownable.() -> String )
+        return CollectionToString.structuredToStr(this, 0, ProtoEntity::lower as Drilldownable.() -> String, ProtoEntity::upper as Drilldownable.() -> String,
+                trappings = { parent, child ->
+                    println((parent as ProtoEntity).name)
+                    println((child as ProtoEntity).name)
+                    parent.childEntities?.get(child)?.toString() + " "
+                }
+        )
     }
 }
