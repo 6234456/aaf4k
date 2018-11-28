@@ -1,0 +1,12 @@
+1600#Kasse
+    1001#库存现金
+1800#Bank
+    100201#结算户
+    100202#按揭保证金户
+    100203#税款专户
+    100204#票据保证金户
+    100299#其他专户
+1520#Finanzwechsel
+    101203#银行汇票
+1525#Andere Wertpapiere mit unwesentlichen Wertschwankungen
+    101202#银行本票

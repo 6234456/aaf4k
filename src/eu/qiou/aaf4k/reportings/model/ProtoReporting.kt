@@ -230,7 +230,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         return CollectionToString.mkString(structure)
     }
 
-    fun toXl(path: String, t: Template.Theme = Template.Theme.DEFAULT, locale: Locale = GlobalConfiguration.DEFAULT_LOCALE
+    fun toXl(path: String,
+             t: Template.Theme = Template.Theme.DEFAULT,
+             locale: Locale = GlobalConfiguration.DEFAULT_LOCALE,
+             shtNameOverview: String = "src",
+             shtNameAdjustment: String = "adj",
+             components: Map<ProtoEntity, ProtoReporting<T>>? = null
     ) {
 
         val msg = ResourceBundle.getBundle("aaf4k", locale)
@@ -252,8 +257,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         val colId = 0
         val colName = colId + 1
         val colOriginal = colName + 1
-        val colLast = colOriginal + categories.size + 1
-        var col = colOriginal + 1
+        val colLast = colOriginal + categories.size + 1 + (components?.size ?: 0)
+        var colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
         var light: CellStyle? = null
         var dark: CellStyle? = null
         var fontBold: Font? = null
@@ -265,7 +270,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             val l = account.countRecursively(true)
             val lvl = account.levels()
 
-            col = colOriginal + 1
+            colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
 
             sht.createRow(cnt++).apply {
                 createCell(colId, CellType.STRING).setCellValue(account.id.toString())
@@ -279,12 +284,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                                 ")"
 
                         this@ProtoReporting.categories.forEach {
-                            createCell(col).cellFormula = "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), col).address}:" +
-                                    "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), col).address}" +
+                            createCell(colCategoryBegin).cellFormula = "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), colCategoryBegin).address}:" +
+                                    "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), colCategoryBegin).address}" +
                                     ")"
-                            col++
+                            colCategoryBegin++
                         }
-                        col = colOriginal + 1
+                        colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
                     } else {
                         //a sum account can not only contain the statistical children
                         val tmp = account.subAccounts!!.foldTrackListInit(0) { a, protoAccount, _ ->
@@ -296,12 +301,12 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                         }.mkString("+", prefix = "", affix = "")
 
                         this@ProtoReporting.categories.forEach { _ ->
-                            createCell(col).cellFormula = tmp.filter { it.second }.map {
-                                CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), col).address
+                            createCell(colCategoryBegin).cellFormula = tmp.filter { it.second }.map {
+                                CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), colCategoryBegin).address
                             }.mkString("+", prefix = "", affix = "")
-                            col++
+                            colCategoryBegin++
                         }
-                        col = colOriginal + 1
+                        colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
 
                     }
                 } else
@@ -330,7 +335,6 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     if (c.columnIndex == colName) {
                         ExcelUtil.Update(c).prepare().indent(indent).restore()
                     }
-
                 }
             }
 
@@ -345,7 +349,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             }
         }
 
-        ExcelUtil.createWorksheetIfNotExists(path, callback = { sht ->
+        ExcelUtil.createWorksheetIfNotExists(path, sheetName = shtNameOverview, callback = { sht ->
             val w = sht.workbook
             val heading = Template.heading(w, t)
             light = Template.rowLight(w, t)
@@ -358,11 +362,20 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
             sht.createRow(0).apply {
                 createCell(colId).setCellValue(titleID)
                 createCell(colName).setCellValue(titleName)
-                createCell(colOriginal).setCellValue(titleOriginal)
-                this@ProtoReporting.categories.forEach {
-                    createCell(col++).setCellValue(it.name)
+
+                if (components == null) {
+                    createCell(colOriginal).setCellValue(titleOriginal)
+
+                    this@ProtoReporting.categories.forEach {
+                        createCell(colCategoryBegin++).setCellValue(it.name)
+                    }
+                } else {
+                    var cnti = colName + 1
+                    components.forEach { k, _ ->
+                        createCell(cnti++).setCellValue(k.name)
+                    }
                 }
-                createCell(col).setCellValue(titleFinal)
+                createCell(colCategoryBegin).setCellValue(titleFinal)
             }
 
             this.structure.forEach {
@@ -445,11 +458,11 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                 }
             }
 
-            bookingCallback(w.createSheet("adj"))
+            bookingCallback(w.createSheet(shtNameAdjustment))
 
-            col = colOriginal + 1
+            colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
             bookings.forEach {
-                ExcelUtil.unload(it, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toLong() else -1 }, 0, col++, { false }, { c, v ->
+                ExcelUtil.unload(it, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toLong() else -1 }, 0, colCategoryBegin++, { false }, { c, v ->
                     c.cellFormula = v
                 }, sht)
             }

@@ -143,7 +143,7 @@ class AccountingFrame(id: Int, name: String, val accounts: List<Account>) :
 
                 val parentTypes = this.mapIndexed { i, e ->
                     if (i == 0) {
-                        lastType = types(e.last().split("#"))!!
+                        lastType = types(e.last().split("#")) ?: ReportingType.ASSET // default for Translator
                         lastType
                     } else {
                         tmpType = getParentTypeRecursively(i)

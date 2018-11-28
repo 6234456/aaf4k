@@ -16,6 +16,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
     : ProtoReporting<Account>(id, name, desc, structure, displayUnit, entity, timeParameters) {
 
     private var consCategoriesAdded = false
+    private var reclAdjCategoriesAdded = false
 
     override fun copyCategoriesFrom(reporting: ProtoReporting<Account>) {
         (reporting.categories as Collection<Category>).forEach { it.deepCopy(this) }
@@ -25,6 +26,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
         return Reporting(id, name, desc,
                 struct, displayUnit, entity, timeParameters).apply {
             this.consCategoriesAdded = this@Reporting.consCategoriesAdded
+            this.reclAdjCategoriesAdded = this@Reporting.reclAdjCategoriesAdded
             copyCategoriesFrom(this@Reporting)
 
             categories.forEach {
@@ -90,7 +92,7 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
     val oci = flattened.find { it.reportingType == ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE }
 
     fun prepareConsolidation(locale: Locale? = null) {
-        if (!consCategoriesAdded) {
+        if (!consCategoriesAdded && !reclAdjCategoriesAdded) {
             val nid = lastCategoryIndex()
 
             val msg = if (locale == null)
@@ -106,6 +108,35 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
 
             consCategoriesAdded = true
         }
+    }
+
+    fun prepareReclAdj(locale: Locale? = null) {
+        if (!consCategoriesAdded && !reclAdjCategoriesAdded) {
+
+            val nid = lastCategoryIndex()
+
+            val msg = if (locale == null)
+                ResourceBundle.getBundle("aaf4k")
+            else
+                ResourceBundle.getBundle("aaf4k", locale)
+
+            Category(msg.getString("adjustment"), nid, msg.getString("adjustment"), this)
+            Category(msg.getString("reclassification"), nid + 1, msg.getString("reclassification"), this)
+
+            reclAdjCategoriesAdded = true
+        }
+    }
+
+    fun fx(targetCurrency: CurrencyUnit) {
+        if (reclAdjCategoriesAdded && this.displayUnit != targetCurrency) {
+            //TODO
+        }
+    }
+
+    fun clearCategories() {
+        categories.clear()
+        consCategoriesAdded = false
+        reclAdjCategoriesAdded = false
     }
 
     fun carryForward(): Reporting {

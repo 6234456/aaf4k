@@ -101,6 +101,13 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
         return res
     }
 
+    fun findChildById(id: Int, subEntity: Map<ProtoEntity, Double>? = null): ProtoEntity? {
+        if (this.id == id)
+            return this
+
+        return (subEntity ?: subEntities()).keys.find { it.id == id }
+    }
+
     fun shareOf(entity: ProtoEntity): Double {
         return subEntities().getOrDefault(entity, 0.0)
     }
@@ -122,4 +129,12 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
                 }
         )
     }
+}
+
+enum class EntityType {
+    LIMITED_LIABILITY,
+    LIMITED_LIABILITY_SHARE_BASED,
+    PARTNERSHIP_SHARE_BASED,
+    PARTNERSHIP_NORMAL,
+    PARTNERSHIP_LIMITED
 }
