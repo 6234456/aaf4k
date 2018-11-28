@@ -23,18 +23,11 @@ object CollectionToString {
                         parent: Drilldownable? = null): String {
         val s = (if (parent != null) trappings(parent, drilldownable) else "")
 
-        if (!drilldownable.hasChildren())
-            return s + drilldownable.asSingleToStr()
+        return "\t" * level + s + if (!drilldownable.hasChildren())
+            drilldownable.asSingleToStr()
         else {
-            return "\t" * level + s + drilldownable.asParentToStr() + ":{\n" + drilldownable.getChildren()!!.fold("") { acc: String, childType ->
-                val s1 = (if (parent != null) trappings(drilldownable, childType) else "")
-                acc +
-                        (
-                                if (childType.hasChildren())
-                                    s1 + structuredToStr(childType, level + 1, asSingleToStr, asParentToStr, trappings, drilldownable)
-                                else
-                                    "\t" * (level + 1) + s1 + childType.toString()
-                                ) + "\n"
+            drilldownable.asParentToStr() + ":{\n" + drilldownable.getChildren()!!.fold("") { acc: String, childType ->
+                acc + structuredToStr(childType, level + 1, asSingleToStr, asParentToStr, trappings, drilldownable) + "\n"
             } + "\t" * level + "}"
         }
     }

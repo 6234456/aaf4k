@@ -72,6 +72,39 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
         return id.hashCode()
     }
 
+    fun subEntities(): Map<ProtoEntity, Double> {
+        val res: MutableMap<ProtoEntity, Double> = mutableMapOf()
+
+        if (this.hasChildren()) {
+            val e = this.childEntities!!
+            return e.keys.fold(res) { acc, protoEntity ->
+                val r = this.childEntities!![protoEntity]!!
+                val f = protoEntity.subEntities().map { it.key to it.value * r }.toMap()
+
+                if (acc.containsKey(protoEntity))
+                    acc[protoEntity] = acc[protoEntity]!! + r
+                else
+                    acc.put(protoEntity, r)
+
+                f.forEach { k, v ->
+                    if (acc.containsKey(k)) {
+                        acc[k] = acc[k]!! + v
+                    } else {
+                        acc.put(k, v)
+                    }
+                }
+
+                acc
+            }
+        }
+
+        return res
+    }
+
+    fun shareOf(entity: ProtoEntity): Double {
+        return subEntities().getOrDefault(entity, 0.0)
+    }
+
     private fun upper():String{
         return "[ $name ]"
     }
@@ -83,9 +116,9 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
     override fun toString(): String {
         return CollectionToString.structuredToStr(this, 0, ProtoEntity::lower as Drilldownable.() -> String, ProtoEntity::upper as Drilldownable.() -> String,
                 trappings = { parent, child ->
-                    println((parent as ProtoEntity).name)
-                    println((child as ProtoEntity).name)
-                    parent.childEntities?.get(child)?.toString() + " "
+                    (parent as ProtoEntity)
+                    (child as ProtoEntity)
+                    String.format("%3.2f", parent.childEntities?.get(child)!! * 100) + "% "
                 }
         )
     }

@@ -18,13 +18,14 @@ interface Drilldownable{
         return this
     }
 
-    fun findParentRecursively(child: Drilldownable, res: MutableSet<Drilldownable> = mutableSetOf()): MutableSet<Drilldownable> {
+    // find the direct parents
+    fun findParentsRecursively(child: Drilldownable, res: MutableSet<Drilldownable> = mutableSetOf()): MutableSet<Drilldownable> {
         this.getChildren()?.let {
             it.fold(res) { b, a ->
                 if (child.equals(a)) {
                     b.add(this)
                 } else {
-                    a.findParentRecursively(child, b)
+                    a.findParentsRecursively(child, b)
                 }
                 b
             }
@@ -33,7 +34,7 @@ interface Drilldownable{
     }
 
     fun removeRecursively(child: Drilldownable):Drilldownable{
-        this.findParentRecursively(child).forEach {
+        this.findParentsRecursively(child).forEach {
             it.remove(child)
         }
 
@@ -108,7 +109,7 @@ interface Drilldownable{
         if(!hasChildren()){
             return false
         }
-        return findParentRecursively(child).count() > 0
+        return findParentsRecursively(child).count() > 0
     }
 
     operator fun plusAssign(child: Drilldownable){
