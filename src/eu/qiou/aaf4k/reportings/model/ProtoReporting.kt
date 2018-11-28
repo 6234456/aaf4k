@@ -258,6 +258,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         val colName = colId + 1
         val colOriginal = colName + 1
         val colLast = colOriginal + categories.size + 1 + (components?.size ?: 0)
+
+        val colSumOriginal = if (components == null) null else colName + 1 + components.size
         var colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
         var light: CellStyle? = null
         var dark: CellStyle? = null
@@ -278,39 +280,27 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
                 if (l > 1) {
                     if (lvl == 2) {
-                        createCell(colOriginal).cellFormula =
-                                "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), colOriginal).address}:" +
-                                "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), colOriginal).address}" +
-                                ")"
-
-                        this@ProtoReporting.categories.forEach {
-                            createCell(colCategoryBegin).cellFormula = "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), colCategoryBegin).address}:" +
-                                    "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), colCategoryBegin).address}" +
+                        colOriginal.until(colLast).forEach {
+                            createCell(it).cellFormula =
+                                    "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), it).address}:" +
+                                    "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), it).address}" +
                                     ")"
-                            colCategoryBegin++
                         }
-                        colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
                     } else {
                         //a sum account can not only contain the statistical children
                         val tmp = account.subAccounts!!.foldTrackListInit(0) { a, protoAccount, _ ->
                             a + protoAccount.countRecursively(true)
                         }.dropLast(1).zip(account.subAccounts.map { !it.isStatistical })
 
-                        createCell(colOriginal).cellFormula = tmp.filter { it.second }.map {
-                            CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), colOriginal).address
-                        }.mkString("+", prefix = "", affix = "")
-
-                        this@ProtoReporting.categories.forEach { _ ->
-                            createCell(colCategoryBegin).cellFormula = tmp.filter { it.second }.map {
-                                CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), colCategoryBegin).address
+                        colOriginal.until(colLast).forEach { x ->
+                            createCell(x).cellFormula = tmp.filter { it.second }.map {
+                                CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), x).address
                             }.mkString("+", prefix = "", affix = "")
-                            colCategoryBegin++
                         }
-                        colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
-
                     }
-                } else
+                } else {
                     createCell(colOriginal).setCellValue(account.displayValue)
+                }
 
                 createCell(colLast).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(colLast - 1)
                         ?: createCell(colLast - 1)).address})"
