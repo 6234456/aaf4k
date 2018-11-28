@@ -16,7 +16,7 @@ class ProtoEntityTest {
         e1.add(e2, 8000)
         e1.add(e3, 1800)
 
-        e2.add(e4)
+        e2.add(e4, 9500)
 
         println(e1)
         println(e1.childEntities!![e3])

@@ -17,21 +17,25 @@ object CollectionToString {
     }
 
     // trapping see Entity toString  the percentage
-    fun structuredToStr(drilldownable: Drilldownable, level: Int = 0, asSingleToStr: Drilldownable.() -> String, asParentToStr: Drilldownable.() -> String, trappings: (Drilldownable, Drilldownable) -> String = { _, _ -> "" }, parent: Drilldownable? = null): String {
+    fun structuredToStr(drilldownable: Drilldownable, level: Int = 0, asSingleToStr: Drilldownable.() -> String,
+                        asParentToStr: Drilldownable.() -> String,
+                        trappings: (Drilldownable, Drilldownable) -> String = { _, _ -> "" },
+                        parent: Drilldownable? = null): String {
         val s = (if (parent != null) trappings(parent, drilldownable) else "")
 
         if (!drilldownable.hasChildren())
             return s + drilldownable.asSingleToStr()
-           else{
-            return "\t" * level + s + drilldownable.asParentToStr() + ":{\n" + drilldownable.getChildren()!!.fold("") {
-                   acc: String, childType -> acc +
+        else {
+            return "\t" * level + s + drilldownable.asParentToStr() + ":{\n" + drilldownable.getChildren()!!.fold("") { acc: String, childType ->
+                val s1 = (if (parent != null) trappings(drilldownable, childType) else "")
+                acc +
                         (
-                            if(childType.hasChildren())
-                                s + structuredToStr(childType, level + 1, asSingleToStr, asParentToStr, trappings, drilldownable)
-                            else
-                                "\t" * (level + 1) + s + childType.toString()
-                        )+ "\n"
-               } + "\t"* level + "}"
-           }
+                                if (childType.hasChildren())
+                                    s1 + structuredToStr(childType, level + 1, asSingleToStr, asParentToStr, trappings, drilldownable)
+                                else
+                                    "\t" * (level + 1) + s1 + childType.toString()
+                                ) + "\n"
+            } + "\t" * level + "}"
+        }
     }
 }
