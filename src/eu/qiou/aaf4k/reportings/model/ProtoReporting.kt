@@ -281,10 +281,15 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                 if (l > 1) {
                     if (lvl == 2) {
                         colOriginal.until(colLast).forEach {
-                            createCell(it).cellFormula =
-                                    "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), it).address}:" +
-                                    "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), it).address}" +
-                                    ")"
+                            if (colSumOriginal == null || colSumOriginal != it) {
+                                createCell(it).cellFormula =
+                                        "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), it).address}:" +
+                                        "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), it).address}" +
+                                        ")"
+                            } else {
+                                createCell(it).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(it - 1)
+                                        ?: createCell(it - 1)).address})"
+                            }
                         }
                     } else {
                         //a sum account can not only contain the statistical children
@@ -293,9 +298,14 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                         }.dropLast(1).zip(account.subAccounts.map { !it.isStatistical })
 
                         colOriginal.until(colLast).forEach { x ->
-                            createCell(x).cellFormula = tmp.filter { it.second }.map {
-                                CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), x).address
-                            }.mkString("+", prefix = "", affix = "")
+                            if (colSumOriginal == null || colSumOriginal != x) {
+                                createCell(x).cellFormula = tmp.filter { it.second }.map {
+                                    CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), x).address
+                                }.mkString("+", prefix = "", affix = "")
+                            } else {
+                                createCell(x).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(x - 1)
+                                        ?: createCell(x - 1)).address})"
+                            }
                         }
                     }
                 } else {
@@ -355,17 +365,17 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
                 if (components == null) {
                     createCell(colOriginal).setCellValue(titleOriginal)
-
-                    this@ProtoReporting.categories.forEach {
-                        createCell(colCategoryBegin++).setCellValue(it.name)
-                    }
                 } else {
                     var cnti = colName + 1
                     components.forEach { k, _ ->
                         createCell(cnti++).setCellValue(k.name)
                     }
+                    createCell(cnti++).setCellValue(titleOriginal)
                 }
-                createCell(colCategoryBegin).setCellValue(titleFinal)
+                this@ProtoReporting.categories.forEach {
+                    createCell(colCategoryBegin++).setCellValue(it.name)
+                }
+                createCell(colLast).setCellValue(titleFinal)
             }
 
             this.structure.forEach {

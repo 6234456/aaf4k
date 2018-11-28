@@ -41,15 +41,15 @@ class ReportingPackage(private val targetReporting: Reporting) {
             locale: Locale = GlobalConfiguration.DEFAULT_LOCALE
     ) {
         val shtNameOverview = "Overview"
-        val shtNameAdjusments = "Adjustments"
+        val shtNameAdjustments = "Adjustments"
 
         targetReporting.prepareConsolidation(locale)
-        targetReporting.toXl(path, t, locale, shtNameOverview, shtNameAdjusments)
+        targetReporting.toXl(path, t, locale, shtNameOverview, shtNameAdjustments, components)
 
         components.forEach { k, v ->
             v.toXl(path, t, locale,
                     "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameOverview",
-                    "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameAdjusments")
+                    "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameAdjustments")
         }
     }
 }
