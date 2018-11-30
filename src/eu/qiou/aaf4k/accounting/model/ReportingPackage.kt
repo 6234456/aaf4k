@@ -13,10 +13,13 @@ import java.util.*
  *       accounts. In the case of transfer between GKV an UKV, the payroll-cost of each category ( operational, financial, distribution )
  *       should be available as separate account.
  */
-class ReportingPackage(private val targetReporting: Reporting) {
+class ReportingPackage(targetReportingTmpl: Reporting,
+                       intercompanyAccountPolicy: ((Account) -> InterCompanyPolicy?)? = null
+) {
 
     private val components: MutableMap<ProtoEntity, Reporting> = mutableMapOf()
 
+    private val targetReporting = targetReportingTmpl.clone().apply { clearCategories() }
     val id: Int = targetReporting.id
     val name: String = targetReporting.name
     val desc: String = targetReporting.desc
@@ -25,14 +28,20 @@ class ReportingPackage(private val targetReporting: Reporting) {
     val timeParameters: TimeParameters = targetReporting.timeParameters
     val currencyUnit: CurrencyUnit = targetReporting.displayUnit as CurrencyUnit
 
-    fun localReportingOf(localReporting: Reporting, translator: ReportingTranslator? = null, locale: Locale = Locale.getDefault()) {
+    fun localReportingOf(localReporting: Reporting, translator: ReportingTranslator? = null, locale: Locale = Locale.getDefault()): Reporting {
         with(
-                if (translator == null) localReporting
+                if (translator == null) localReporting.clone()
                 else translator.translate(localReporting, targetReporting)
         ) {
+            clearCategories()
             prepareReclAdj(locale)
-            components.put(this.entity, this)
+            components[this.entity] = this
+            return this
         }
+    }
+
+    fun eliminateIntercompanyTransactions() {
+
     }
 
     fun toXl(

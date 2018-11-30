@@ -48,6 +48,10 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
         return cloneWith(structure.map { it.deepCopy(category, updateMethod) })
     }
 
+    override fun clone(): Reporting {
+        return cloneWith(structure.map { it.deepCopy<Account> { x -> x } })
+    }
+
     override fun updateStructure(method: (List<Account>) -> List<Account>): Reporting {
         return cloneWith(method(structure))
     }

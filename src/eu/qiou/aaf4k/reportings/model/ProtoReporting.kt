@@ -136,12 +136,18 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
      * return one dimensional array of atomic accounts
      */
     fun flatten(): List<T> {
+        if (structure.isEmpty())
+            return listOf()
+
         return structure.filter { !it.isStatistical }.map { if (it.hasChildren()) it.flatten() else mutableListOf(it as Drilldownable) }.reduce { acc, mutableList ->
             acc.apply { addAll(mutableList) }
         } as List<T>
     }
 
     fun flattenWithStatistical(): List<T> {
+        if (structure.isEmpty())
+            return listOf()
+
         return structure.map { if (it.hasChildren()) it.flatten() else mutableListOf(it as Drilldownable) }.reduce { acc, mutableList ->
             acc.apply { addAll(mutableList) }
         } as List<T>
@@ -220,6 +226,10 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
 
     open fun update(data: Map<Long, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }): ProtoReporting<T> {
         return cloneWith(structure.map { it.deepCopy<T>(data, updateMethod) })
+    }
+
+    open fun clone(): ProtoReporting<T> {
+        return cloneWith(structure.map { it.deepCopy<T> { x -> x } })
     }
 
     override fun toJSON():String{
@@ -312,7 +322,9 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     createCell(colOriginal).setCellValue(account.displayValue)
                 }
 
-                createCell(colLast).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(colLast - 1)
+                createCell(colLast).cellFormula = "SUM(${
+                (getCell(colSumOriginal ?: colOriginal) ?: createCell(colSumOriginal
+                        ?: colOriginal)).address}:${(getCell(colLast - 1)
                         ?: createCell(colLast - 1)).address})"
 
                 colId.until(colLast + 1).forEach { i ->
@@ -336,6 +348,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                         ExcelUtil.Update(c).prepare().indent(indent).restore()
                     }
                 }
+
+                heightInPoints = 20f
             }
 
             account.subAccounts?.let {
@@ -372,6 +386,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     }
                     createCell(cnti++).setCellValue(titleOriginal)
                 }
+
                 this@ProtoReporting.categories.forEach {
                     createCell(colCategoryBegin++).setCellValue(it.name)
                 }
@@ -436,6 +451,8 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                                 this.createCell(colVal).setCellValue(acc.displayValue)
                                 this.createCell(4).setCellValue(it.desc)
                                 this.createCell(5).setCellValue(e.name)
+
+                                heightInPoints = 20f
 
                                 bookingFormat.applyTo(
                                         0.until(6).map { i ->

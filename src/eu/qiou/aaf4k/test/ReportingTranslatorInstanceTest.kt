@@ -1,9 +1,9 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.accounting.model.ReportingPackage
-import eu.qiou.aaf4k.accounting.model.ReportingTranslator
-import eu.qiou.aaf4k.accounting.model.ReportingTranslatorInstance
+import eu.qiou.aaf4k.accounting.model.*
+import eu.qiou.aaf4k.reportings.model.ProtoEntity
 import eu.qiou.aaf4k.util.io.toReporting
+import eu.qiou.aaf4k.util.template.Template
 import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -25,12 +25,23 @@ class ReportingTranslatorInstanceTest {
     @Test
     fun packageToXl() {
         val e = Files.readAllLines(Paths.get("data/de_accounting.txt")).joinToString("\n").toReporting()
-        e.clearCategories()
+                .apply {
+                    generate(true)
+                }
+
+        val f = Reporting(234, "Demo2", "hgb", listOf(), entity = ProtoEntity(2, "Holding AG", "AG"))
+                .cloneWith(e.structure)
 
         val p = ReportingPackage(e)
         p.localReportingOf(e)
+        p.localReportingOf(f).apply {
+            val c = this.categories[1] as Category
+            Entry(c.nextEntryIndex, "trail", c).apply {
+                this.add(1800, 23.4)
+            }
+        }
 
-        p.toXl("data/packages.xls")
+        p.toXl("data/packages.xls", t = Template.Theme.LAVENA)
 
     }
 }
