@@ -14,12 +14,12 @@ import java.util.*
  *       should be available as separate account.
  */
 class ReportingPackage(targetReportingTmpl: Reporting,
-                       intercompanyAccountPolicy: ((Account) -> InterCompanyPolicy?)? = null
+                       val intercompanyAccountPolicy: ((Account) -> InterCompanyPolicy?)? = null
 ) {
 
     private val components: MutableMap<ProtoEntity, Reporting> = mutableMapOf()
 
-    private val targetReporting = targetReportingTmpl.clone().apply { clearCategories() }
+    private val targetReporting = targetReportingTmpl.clone().apply { clearCategories(); prepareConsolidation() }
     val id: Int = targetReporting.id
     val name: String = targetReporting.name
     val desc: String = targetReporting.desc
@@ -41,7 +41,22 @@ class ReportingPackage(targetReportingTmpl: Reporting,
     }
 
     fun eliminateIntercompanyTransactions() {
+        if (intercompanyAccountPolicy == null) {
+            throw Exception("IC-AccountPolicy should be specified first.")
+        }
 
+        // srcEntity, targEntity, type
+        val tmp = components.map {
+            it.key to it.value.flattened.map { x ->
+                intercompanyAccountPolicy.invoke(x)
+            }.filter { x ->
+                x != null
+            }.groupBy { x ->
+                x!!.targetEntity
+            }.map { y ->
+                y.key to y.value.groupBy { x -> x!!.type }
+            }.toMap()
+        }.toMap()
     }
 
     fun toXl(
@@ -61,4 +76,12 @@ class ReportingPackage(targetReportingTmpl: Reporting,
                     "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameAdjustments")
         }
     }
+}
+
+enum class ConsolidationCategory {
+    INIT_EQUITY,
+    SUBSEQUENT_EQUITY,
+    PAYABLES_RECEIVABLES,
+    UNREALIZED_PROFIT_AND_LOSS,
+    REVENUE_EXPENSE
 }

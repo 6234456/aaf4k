@@ -74,6 +74,8 @@ class Account(id: Long, name: String,
                 ReportingType.RESULT_BALANCE.code -> ReportingType.RESULT_BALANCE
                 ReportingType.RETAINED_EARNINGS_BEGINNING.code -> ReportingType.RETAINED_EARNINGS_BEGINNING
                 ReportingType.AUTO.code -> ReportingType.AUTO
+                ReportingType.DIFF_CONS_RECEIVABLE_PAYABLE.code -> ReportingType.DIFF_CONS_RECEIVABLE_PAYABLE
+                ReportingType.DIFF_CONS_REVENUE_EXPENSE.code -> ReportingType.DIFF_CONS_REVENUE_EXPENSE
                 else -> throw java.lang.Exception("ParameterError: unknown ReportingType:$it")
             }
         }
@@ -136,6 +138,8 @@ enum class ReportingType(val sign: Int, val code: String) {
     PROFIT_LOSS_NEUTRAL_BALANCE(-1, "OC"),
     RESULT_BALANCE(-1, "RE"),
     RETAINED_EARNINGS_BEGINNING(-1, "RT"),
+    DIFF_CONS_RECEIVABLE_PAYABLE(1, "KP"),
+    DIFF_CONS_REVENUE_EXPENSE(-1, "KR"),
     AUTO(0, "NN")
 }
 

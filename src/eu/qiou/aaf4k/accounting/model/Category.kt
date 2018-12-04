@@ -4,7 +4,7 @@ import eu.qiou.aaf4k.reportings.model.ProtoCategory
 import eu.qiou.aaf4k.reportings.model.ProtoReporting
 import java.util.*
 
-class Category(name: String, id: Int, desc: String, reporting: Reporting) : ProtoCategory<Account>(name, id, desc, reporting) {
+class Category(name: String, id: Int, desc: String, reporting: Reporting, val consolidationCategory: ConsolidationCategory? = null) : ProtoCategory<Account>(name, id, desc, reporting) {
 
     private val msg = ResourceBundle.getBundle("aaf4k")
     // balance via result and oci to the balance stmt

@@ -15,7 +15,8 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
                      timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS)
     : ProtoReporting<Account>(id, name, desc, structure, displayUnit, entity, timeParameters) {
 
-    private var consCategoriesAdded = false
+    var consCategoriesAdded = false
+        private set
     private var reclAdjCategoriesAdded = false
 
     override fun copyCategoriesFrom(reporting: ProtoReporting<Account>) {
@@ -94,6 +95,8 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
     val periodResultInBalance = flattened.find { it.reportingType == ReportingType.RESULT_BALANCE }
     val retainedEarning = flattened.find { it.reportingType == ReportingType.RETAINED_EARNINGS_BEGINNING }
     val oci = flattened.find { it.reportingType == ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE }
+    val diffSchuKons = flattened.find { it.reportingType == ReportingType.DIFF_CONS_RECEIVABLE_PAYABLE }
+    val diffAEKons = flattened.find { it.reportingType == ReportingType.DIFF_CONS_REVENUE_EXPENSE }
 
     fun prepareConsolidation(locale: Locale? = null) {
         if (!consCategoriesAdded && !reclAdjCategoriesAdded) {
@@ -104,11 +107,11 @@ open class Reporting(id: Int, name: String, desc: String = "", structure: List<A
             else
                 ResourceBundle.getBundle("aaf4k", locale)
 
-            Category(msg.getString("erstKons"), nid, msg.getString("erstKons"), this)
-            Category(msg.getString("folgKons"), nid + 1, msg.getString("folgKons"), this)
-            Category(msg.getString("schuKons"), nid + 2, msg.getString("schuKons"), this)
-            Category(msg.getString("aeKons"), nid + 3, msg.getString("aeKons"), this)
-            Category(msg.getString("zwischenGewinnE"), nid + 4, msg.getString("zwischenGewinnE"), this)
+            Category(msg.getString("erstKons"), nid, msg.getString("erstKons"), this, ConsolidationCategory.INIT_EQUITY)
+            Category(msg.getString("folgKons"), nid + 1, msg.getString("folgKons"), this, ConsolidationCategory.SUBSEQUENT_EQUITY)
+            Category(msg.getString("schuKons"), nid + 2, msg.getString("schuKons"), this, ConsolidationCategory.PAYABLES_RECEIVABLES)
+            Category(msg.getString("aeKons"), nid + 3, msg.getString("aeKons"), this, ConsolidationCategory.REVENUE_EXPENSE)
+            Category(msg.getString("zwischenGewinnE"), nid + 4, msg.getString("zwischenGewinnE"), this, ConsolidationCategory.UNREALIZED_PROFIT_AND_LOSS)
 
             consCategoriesAdded = true
         }
