@@ -101,11 +101,11 @@ data class ProtoEntity(val id: Int, var name: String, var abbreviation: String =
         return res
     }
 
-    fun findChildById(id: Int, subEntity: Map<ProtoEntity, Double>? = null): ProtoEntity? {
-        if (this.id == id)
+    fun findChildBy(judgement: (ProtoEntity) -> Boolean, subEntity: Map<ProtoEntity, Double>? = null): ProtoEntity? {
+        if (judgement(this))
             return this
 
-        return (subEntity ?: subEntities()).keys.find { it.id == id }
+        return (subEntity ?: subEntities()).keys.find { judgement(it) }
     }
 
     fun shareOf(entity: ProtoEntity): Double {

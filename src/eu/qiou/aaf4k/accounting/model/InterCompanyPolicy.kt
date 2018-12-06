@@ -40,26 +40,30 @@ data class InterCompanyPolicy(
             context.forEach { k, v ->
                 v.forEach { k1, v1 ->
                     v1.forEach { k2, v2 ->
-                        if (visited[k]?.contains(k1) != true) {
-                            val c = when (k2) {
-                                InterCompanyPolicyType.RECEIVABLES_PAYABLES -> schuKonsCategory
-                                InterCompanyPolicyType.REVENUE_EXPENSE -> AEKonsCategory
+                        if (context[k1]?.get(k)?.get(k2) != null) {
+                            if (visited[k]?.contains(k1) != true && k1 != k) {
+                                val c = when (k2) {
+                                    InterCompanyPolicyType.RECEIVABLES_PAYABLES -> schuKonsCategory
+                                    InterCompanyPolicyType.REVENUE_EXPENSE -> AEKonsCategory
+                                }
+
+                                val e = Entry(c.nextEntryIndex, "Auto-gen", c)
+
+                                (v2 + context[k1]!![k]!![k2]!!).forEach {
+
+                                    if (it.account.decimalValue != 0.0)
+                                        e.add(it.account.id, it.account.decimalValue * -1)
+                                }
+                                e.balanceWith(when (k2) {
+                                    InterCompanyPolicyType.RECEIVABLES_PAYABLES -> diffSchuKons.id
+                                    InterCompanyPolicyType.REVENUE_EXPENSE -> diffAEKons.id
+                                })
+
+                                visited.putIfAbsent(k, mutableListOf())
+                                visited[k]!!.add(k1)
+                                visited.putIfAbsent(k1, mutableListOf())
+                                visited[k1]!!.add(k)
                             }
-
-                            val e = Entry(c.nextEntryIndex, "Auto-gen", c)
-
-                            (v2 + context[k1]!![k]!![k2]!!).forEach {
-                                e.add(it.account.id, it.account.decimalValue * -1)
-                            }
-                            e.balanceWith(when (k2) {
-                                InterCompanyPolicyType.RECEIVABLES_PAYABLES -> diffSchuKons.id
-                                InterCompanyPolicyType.REVENUE_EXPENSE -> diffAEKons.id
-                            })
-
-                            visited.putIfAbsent(k, mutableListOf())
-                            visited[k]!!.add(k1)
-                            visited.putIfAbsent(k1, mutableListOf())
-                            visited[k1]!!.add(k)
                         }
                     }
                 }

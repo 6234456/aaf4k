@@ -44,17 +44,22 @@ class Entry(id: Int, desc: String = "", category: Category, date: LocalDate = ca
         }
     }
 
-    private fun balanceWith(account: Account): Entry {
+    private fun balanceWith(account: Account, ignoreZero: Boolean = true): Entry {
+        val r = residual()
+
+        if (ignoreZero && r == 0.0)
+            return this
+
         return this.add(
                 Account.from(
-                        account.toBuilder().setValue(residual() * -1, account.decimalPrecision).build(),
+                        account.toBuilder().setValue(r * -1, account.decimalPrecision).build(),
                         account.reportingType
                 )
         )
     }
 
-    fun balanceWith(account: Long): Entry {
+    fun balanceWith(account: Long, ignoreZero: Boolean = true): Entry {
         return balanceWith(
-                this.category.reporting.findAccountByID(account)!!)
+                this.category.reporting.findAccountByID(account)!!, ignoreZero)
     }
 }

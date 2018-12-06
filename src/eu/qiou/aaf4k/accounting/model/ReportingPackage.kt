@@ -14,7 +14,7 @@ import java.util.*
  *       should be available as separate account.
  */
 class ReportingPackage(targetReportingTmpl: Reporting,
-                       val intercompanyAccountPolicy: ((Account) -> InterCompanyPolicy?)? = null
+                       val intercompanyAccountPolicy: ((ProtoEntity, Account) -> InterCompanyPolicy?)? = null
 ) {
 
     private val components: MutableMap<ProtoEntity, Reporting> = mutableMapOf()
@@ -48,15 +48,17 @@ class ReportingPackage(targetReportingTmpl: Reporting,
         // srcEntity, targEntity, type
         val tmp = components.map {
             it.key to it.value.flattened.map { x ->
-                intercompanyAccountPolicy.invoke(x)
+                intercompanyAccountPolicy.invoke(it.key, x)
             }.filter { x ->
                 x != null
             }.groupBy { x ->
                 x!!.targetEntity
             }.map { y ->
-                y.key to y.value.groupBy { x -> x!!.type }
+                y.key to (y.value as List<InterCompanyPolicy>).groupBy { x -> x.type }
             }.toMap()
         }.toMap()
+
+        InterCompanyPolicy.eliminate(tmp, targetReporting)
     }
 
     fun toXl(
