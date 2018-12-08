@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.accounting.model
 
 import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.reportings.model.ProtoEntity
+import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
@@ -68,15 +69,31 @@ class ReportingPackage(targetReportingTmpl: Reporting,
     ) {
         val shtNameOverview = "Overview"
         val shtNameAdjustments = "Adjustments"
+        val colStart = 2
+        var cnt = 0
+
+        val data: MutableMap<Int, Map<Long, String>> = mutableMapOf()
 
         targetReporting.prepareConsolidation(locale)
         targetReporting.toXl(path, t, locale, shtNameOverview, shtNameAdjustments, components)
 
         components.forEach { k, v ->
-            v.toXl(path, t, locale,
-                    "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameOverview",
-                    "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameAdjustments")
+            val overview = "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameOverview"
+            val adj = "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameAdjustments"
+            val (_, data1) = v.toXl(path, t, locale, overview, adj)
+            data[colStart + cnt++] = data1
         }
+
+        val (sht, ips) = ExcelUtil.getWorksheet(path, sheetName = shtNameOverview)
+
+        data.forEach { i, d ->
+            ExcelUtil.unload(d, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toLong() else -1 }, 0, i, { false }, { c, v ->
+                c.cellFormula = v
+            }, sht)
+        }
+
+        ExcelUtil.saveWorkbook(path, sht.workbook)
+
     }
 }
 

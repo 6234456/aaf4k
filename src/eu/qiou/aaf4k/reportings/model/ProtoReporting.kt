@@ -246,7 +246,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
              shtNameOverview: String = "src",
              shtNameAdjustment: String = "adj",
              components: Map<ProtoEntity, ProtoReporting<T>>? = null
-    ) {
+    ): Pair<Sheet, Map<Long, String>> {
 
         val msg = ResourceBundle.getBundle("aaf4k", locale)
 
@@ -275,6 +275,10 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         var dark: CellStyle? = null
         var fontBold: Font? = null
         var fontNormal: Font? = null
+
+        var res: MutableMap<Long, String> = mutableMapOf()
+
+        var res1: Pair<Sheet, Map<Long, String>>? = null
 
 
         fun writeAccountToXl(account: ProtoAccount, sht: Sheet, indent: Int = 0) {
@@ -322,6 +326,11 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     createCell(colOriginal).setCellValue(account.displayValue)
                 }
 
+                if (components != null) {
+                    createCell(colCategoryBegin - 1).cellFormula = "SUM(${(getCell(colCategoryBegin - 2)
+                            ?: createCell(colCategoryBegin - 2)).address}:${(getCell(colOriginal)
+                            ?: createCell(colOriginal)).address})"
+                }
                 createCell(colLast).cellFormula = "SUM(${
                 (getCell(colSumOriginal ?: colOriginal) ?: createCell(colSumOriginal
                         ?: colOriginal)).address}:${(getCell(colLast - 1)
@@ -348,8 +357,6 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                         ExcelUtil.Update(c).prepare().indent(indent).restore()
                     }
                 }
-
-                heightInPoints = 20f
             }
 
             account.subAccounts?.let {
@@ -386,7 +393,6 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     }
                     createCell(cnti++).setCellValue(titleOriginal)
                 }
-
                 this@ProtoReporting.categories.forEach {
                     createCell(colCategoryBegin++).setCellValue(it.name)
                 }
@@ -452,8 +458,6 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                                 this.createCell(4).setCellValue(it.desc)
                                 this.createCell(5).setCellValue(e.name)
 
-                                heightInPoints = 20f
-
                                 bookingFormat.applyTo(
                                         0.until(6).map { i ->
                                             ExcelUtil.Update(this.getCell(i)).alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
@@ -483,6 +487,18 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
                     c.cellFormula = v
                 }, sht)
             }
+
+            sht.rowIterator().forEach { x ->
+                if (x.rowNum > 1) {
+                    val c = x.getCell(colLast)
+                    res[x.getCell(colId).stringCellValue.toLong()] = "'${sht.sheetName}'!${c.address}"
+                }
+            }
+
+            res1 = sht to res
+
         })
+
+        return res1!!
     }
 }
