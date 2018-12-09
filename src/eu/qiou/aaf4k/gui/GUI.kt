@@ -250,7 +250,7 @@ class GUI : Application() {
                         promptText = msg.getString("documentDate")
 
                         setOnAction {
-                            entryDate = value
+                            entryDate = value ?: reporting.timeParameters.end
                         }
                     }, 0, 2)
 
