@@ -20,7 +20,7 @@ class ReportingPackage(targetReportingTmpl: Reporting,
 
     private val components: MutableMap<ProtoEntity, Reporting> = mutableMapOf()
 
-    private val targetReporting = targetReportingTmpl.clone().apply { clearCategories(); prepareConsolidation() }
+    val targetReporting = targetReportingTmpl.clone().apply { clearCategories(); prepareConsolidation() }
     val id: Int = targetReporting.id
     val name: String = targetReporting.name
     val desc: String = targetReporting.desc
@@ -39,6 +39,39 @@ class ReportingPackage(targetReportingTmpl: Reporting,
             components[this.entity] = this
             return this
         }
+    }
+
+    fun carryForward(targetReportingPackage: ReportingPackage): ReportingPackage {
+        if (targetReporting.consCategoriesAdded) {
+            with(targetReportingPackage.targetReporting) {
+                if (!this.consCategoriesAdded)
+                    this.prepareConsolidation()
+
+                (targetReporting.categories as List<Category>)
+                        .find { it.consolidationCategory == ConsolidationCategory.INIT_EQUITY }!!.deepCopy(this)
+
+                (targetReporting.categories as List<Category>)
+                        .find { it.consolidationCategory == ConsolidationCategory.SUBSEQUENT_EQUITY }!!.deepCopy(this)
+
+
+                val re = targetReportingPackage.targetReporting.retainedEarning!!.id
+                (targetReporting.categories as List<Category>)
+                        .find { it.consolidationCategory == ConsolidationCategory.UNREALIZED_PROFIT_AND_LOSS }!!
+                        .deepCopy(this).let {
+                            it.entries.forEach { e ->
+                                e.accounts.removeIf {
+                                    it.reportingType == ReportingType.REVENUE_GAIN
+                                            ||
+                                            it.reportingType == ReportingType.EXPENSE_LOSS
+                                }
+
+                                (e as Entry).balanceWith(re)
+                            }
+                        }
+            }
+        }
+
+        return targetReportingPackage
     }
 
     fun eliminateIntercompanyTransactions() {
@@ -84,7 +117,7 @@ class ReportingPackage(targetReportingTmpl: Reporting,
             data[colStart + cnt++] = data1
         }
 
-        val (sht, ips) = ExcelUtil.getWorksheet(path, sheetName = shtNameOverview)
+        val (sht, _) = ExcelUtil.getWorksheet(path, sheetName = shtNameOverview)
 
         data.forEach { i, d ->
             ExcelUtil.unload(d, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toLong() else -1 }, 0, i, { false }, { c, v ->
@@ -97,10 +130,10 @@ class ReportingPackage(targetReportingTmpl: Reporting,
     }
 }
 
-enum class ConsolidationCategory {
-    INIT_EQUITY,
-    SUBSEQUENT_EQUITY,
-    PAYABLES_RECEIVABLES,
-    UNREALIZED_PROFIT_AND_LOSS,
-    REVENUE_EXPENSE
+enum class ConsolidationCategory(val token: Int) {
+    INIT_EQUITY(0),
+    SUBSEQUENT_EQUITY(1),
+    PAYABLES_RECEIVABLES(2),
+    UNREALIZED_PROFIT_AND_LOSS(3),
+    REVENUE_EXPENSE(4)
 }

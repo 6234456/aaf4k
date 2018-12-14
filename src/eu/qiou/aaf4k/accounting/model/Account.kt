@@ -58,26 +58,18 @@ class Account(id: Long, name: String,
             }
         }
 
+        private var reportingCodePrepared = false
+        private lateinit var reportingCode: Map<String, ReportingType>
+
         val parseReportingType: (String) -> ReportingType = {
-            when (it) {
-                ReportingType.ASSET.code -> ReportingType.ASSET
-                ReportingType.ASSET_LONG_TERM.code -> ReportingType.ASSET_LONG_TERM
-                ReportingType.ASSET_SHORT_TERM.code -> ReportingType.ASSET_SHORT_TERM
-                ReportingType.EQUITY.code -> ReportingType.EQUITY
-                ReportingType.LIABILITY.code -> ReportingType.LIABILITY
-                ReportingType.LIABILITY_LONG_TERM.code -> ReportingType.LIABILITY_LONG_TERM
-                ReportingType.LIABILITY_SHORT_TERM.code -> ReportingType.LIABILITY_SHORT_TERM
-                ReportingType.REVENUE_GAIN.code -> ReportingType.REVENUE_GAIN
-                ReportingType.EXPENSE_LOSS.code -> ReportingType.EXPENSE_LOSS
-                ReportingType.PROFIT_LOSS_NEUTRAL.code -> ReportingType.PROFIT_LOSS_NEUTRAL
-                ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE.code -> ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE
-                ReportingType.RESULT_BALANCE.code -> ReportingType.RESULT_BALANCE
-                ReportingType.RETAINED_EARNINGS_BEGINNING.code -> ReportingType.RETAINED_EARNINGS_BEGINNING
-                ReportingType.AUTO.code -> ReportingType.AUTO
-                ReportingType.DIFF_CONS_RECEIVABLE_PAYABLE.code -> ReportingType.DIFF_CONS_RECEIVABLE_PAYABLE
-                ReportingType.DIFF_CONS_REVENUE_EXPENSE.code -> ReportingType.DIFF_CONS_REVENUE_EXPENSE
-                else -> throw java.lang.Exception("ParameterError: unknown ReportingType:$it")
+            if (!reportingCodePrepared) {
+                reportingCode = ReportingType.values().map {
+                    it.code to it
+                }.toMap()
+
+                reportingCodePrepared = true
             }
+            reportingCode[it]!!
         }
 
         fun parse(formula: String, accounts: Map<Int, Account>): Double {

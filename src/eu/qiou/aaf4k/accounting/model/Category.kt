@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.accounting.model
 
 import eu.qiou.aaf4k.reportings.model.ProtoCategory
 import eu.qiou.aaf4k.reportings.model.ProtoReporting
+import eu.qiou.aaf4k.util.strings.CollectionToString
 import java.util.*
 
 class Category(name: String, id: Int, desc: String, reporting: Reporting, val consolidationCategory: ConsolidationCategory? = null) : ProtoCategory<Account>(name, id, desc, reporting) {
@@ -13,7 +14,7 @@ class Category(name: String, id: Int, desc: String, reporting: Reporting, val co
     }
 
     override fun deepCopy(reporting: ProtoReporting<Account>): ProtoCategory<Account> {
-        return Category(name, id, desc, reporting as Reporting).apply {
+        return Category(name, id, desc, reporting as Reporting, consolidationCategory).apply {
             (this@Category.entries as Collection<Entry>).forEach {
                 if (it.id != 0)
                     it.deepCopy(this)
@@ -22,6 +23,11 @@ class Category(name: String, id: Int, desc: String, reporting: Reporting, val co
             this.nextEntryIndex = this@Category.nextEntryIndex
         }
     }
+
+    override fun toJSON(): String {
+        return """{ "id": $id, "desc": "$desc", "nextEntryIndex": $nextEntryIndex, "isWritable": $isWritable, "name": "$name", "consolidationCategory": ${consolidationCategory?.token}, "entries": ${CollectionToString.mkJSON(entries)} }"""
+    }
+
 
     fun summarizeResult() {
         transferEntry.clear()

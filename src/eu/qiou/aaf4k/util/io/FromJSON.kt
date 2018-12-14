@@ -1,10 +1,7 @@
 package eu.qiou.aaf4k.util.io
 
-import eu.qiou.aaf4k.accounting.model.Account
+import eu.qiou.aaf4k.accounting.model.*
 import eu.qiou.aaf4k.accounting.model.Account.Companion.parseReportingType
-import eu.qiou.aaf4k.accounting.model.Category
-import eu.qiou.aaf4k.accounting.model.Entry
-import eu.qiou.aaf4k.accounting.model.Reporting
 import eu.qiou.aaf4k.reportings.model.Address
 import eu.qiou.aaf4k.reportings.model.Person
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
@@ -80,11 +77,17 @@ object FromJSON {
     }
 
     fun category(json: JSONObject, reporting: Reporting): Category {
+        val cons = json.get("consolidationCategory")
+        val consCat = if (cons == null) null else ConsolidationCategory.values().find {
+            it.token == (cons as Long).toInt()
+        }
+
         return Category(
                 id = (json.get("id") as Long).toInt(),
                 name = json.get("name") as String,
                 desc = json.get("desc") as String,
-                reporting = reporting
+                reporting = reporting,
+                consolidationCategory = consCat
         ).apply {
             (json.get("entries") as JSONArray).forEach {
                 it as JSONObject
