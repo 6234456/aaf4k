@@ -47,6 +47,14 @@ class ReportingPackage(targetReportingTmpl: Reporting,
                 if (!this.consCategoriesAdded)
                     this.prepareConsolidation()
 
+                this.categories.removeIf {
+                    it as Category
+                    it.consolidationCategory == ConsolidationCategory.INIT_EQUITY ||
+                            it.consolidationCategory == ConsolidationCategory.SUBSEQUENT_EQUITY ||
+                            it.consolidationCategory == ConsolidationCategory.UNREALIZED_PROFIT_AND_LOSS
+                }
+
+
                 (targetReporting.categories as List<Category>)
                         .find { it.consolidationCategory == ConsolidationCategory.INIT_EQUITY }!!.deepCopy(this)
 

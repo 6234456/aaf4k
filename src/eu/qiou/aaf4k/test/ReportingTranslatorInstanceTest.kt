@@ -74,6 +74,15 @@ class ReportingTranslatorInstanceTest {
                 null
             }
         }
+        val rePackage1 = ReportingPackage(r) { e, a ->
+            if (reg.containsMatchIn(a.name)) {
+                val ent = e1.findChildBy({ x -> x.abbreviation == reg.find(a.name)!!.groups[1]!!.value })!!
+                InterCompanyPolicy(e, ent, a)
+
+            } else {
+                null
+            }
+        }
 
         rePackage.localReportingOf(r.update(
                 mapOf(
@@ -96,7 +105,9 @@ class ReportingTranslatorInstanceTest {
 
         rePackage.eliminateIntercompanyTransactions()
 
-        rePackage.toXl("data/package2.xlsx")
+        rePackage.carryForward(rePackage1)
+
+      rePackage.toXl("data/package2.xlsx")
     }
 
 
