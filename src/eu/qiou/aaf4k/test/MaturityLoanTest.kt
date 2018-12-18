@@ -31,7 +31,10 @@ class MaturityLoanTest {
 
     @Test
     fun effectiveIn() {
-        val loan = MaturityLoan(1, "", 100.0, 80.0, 0.15, LocalDate.of(2016, 12, 31), LocalDate.of(2018, 12, 31), ChronoUnit.MONTHS, 3, precision = 4)
+        val loan = MaturityLoan(1, "", 215440.0, 15440.0, 0.047,
+                LocalDate.of(2001, 1, 1),
+                LocalDate.of(2005, 12, 31),
+                ChronoUnit.YEARS, 1, precision = 0)
 
         with(loan) {
             println(r)

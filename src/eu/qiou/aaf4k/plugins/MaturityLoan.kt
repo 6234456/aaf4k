@@ -44,9 +44,19 @@ class MaturityLoan(val id: Int, val desc: String = "", val nominalValue: Double,
     val r = this.paymentPlan.values.irr()
 
     val carryingAmount = this.paymentPlan.let {
-        it.values.reduceTrackList { acc, e, i ->
-            if (i > 0) (acc * (1 + r) + e).roundUpTo(precision) else acc
-        }.replaceValueBasedOnIndex(it)
+        val l = it.values.reduceTrackList { acc, e, i ->
+            if (i > 0)
+                (acc * (1 + r) + e).roundUpTo(precision)
+            else
+                acc
+        }
+
+        // make sure the carryingAmount reduce to 0 in the last period
+        (
+                if (l.size < 2) l
+                else l.dropLast(2) + listOf<Double>(l[l.size - 2] - l.last(), 0.0)
+                )
+                .replaceValueBasedOnIndex(it)
     }
 
     val effectiveInterest = carryingAmount.mapValues {
@@ -55,7 +65,6 @@ class MaturityLoan(val id: Int, val desc: String = "", val nominalValue: Double,
 
     fun toEntries(): Map<LocalDate, Entry> {
         val keys = effectiveInterest.keys.toList()
-        var cnt = 0
         val reporting = Reporting(0, "Demo Reporting", "Demo",
                 listOf(
                         Account(0, "Langfristige Verbindlichkeit KI", subAccounts = mutableListOf(
@@ -71,12 +80,12 @@ class MaturityLoan(val id: Int, val desc: String = "", val nominalValue: Double,
 
         return carryingAmount.mapValuesIndexed { v, i ->
             if (i == 0) {
-                Entry(cnt++, "Initial Recognition", category).apply {
+                Entry(category.nextEntryIndex, "Initial Recognition", category).apply {
                     this.add(1, v.value)
                     this.add(3, nominalValue * -1)
                 }.balanceWith(4)
             } else {
-                Entry(cnt++, "${v.key}", category).apply {
+                Entry(category.nextEntryIndex, "${v.key}", category).apply {
                     this.add(2, effectiveInterest[keys[i - 1]]!!)
                     this.add(1, paymentPlan[keys[i]]!!)
                 }.balanceWith(4)
