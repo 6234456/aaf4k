@@ -1,5 +1,6 @@
-package eu.qiou.aaf4k.plugins
+package eu.qiou.aaf4k.test
 
+import eu.qiou.aaf4k.plugins.GermanLaw
 import eu.qiou.aaf4k.util.mkString
 import org.junit.Test
 import java.nio.file.Files
