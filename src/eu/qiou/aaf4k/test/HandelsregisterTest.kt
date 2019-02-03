@@ -8,6 +8,8 @@ class HandelsregisterTest {
 
     @Test
     fun get() {
-        println(Handelsregister.get("daimler AG", Amtsgericht.STUTTGART))
+        val l = Handelsregister.get("daimler AG", Amtsgericht.STUTTGART, 3)
+        println(l.size)
+        println(l)
     }
 }
