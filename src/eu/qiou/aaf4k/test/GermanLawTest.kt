@@ -10,7 +10,7 @@ class GermanLawTest {
 
     @Test
     fun law() {
-        println(GermanLaw.law())
+        println(GermanLaw.law("bgb"))
     }
 
     @Test

@@ -12,4 +12,11 @@ class HandelsregisterTest {
         println(l.size)
         println(l)
     }
+
+    @Test
+    fun collect() {
+        val l = Handelsregister.collect("daimler AG", Amtsgericht.STUTTGART)
+        println(l.size)
+        println(l)
+    }
 }

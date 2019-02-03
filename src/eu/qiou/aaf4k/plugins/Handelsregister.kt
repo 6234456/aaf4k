@@ -28,4 +28,21 @@ object Handelsregister {
             }
         }
     }
+
+    fun collect(name: String, gericht: Amtsgericht): List<String> {
+        var cnt = 0
+        var res: List<String> = listOf()
+        while (true) {
+            val l = get(name, gericht, cnt)
+
+            if (l.size == 0)
+                break
+
+            res += l
+
+            cnt++
+        }
+
+        return res
+    }
 }
