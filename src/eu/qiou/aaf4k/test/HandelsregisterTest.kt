@@ -8,6 +8,6 @@ class HandelsregisterTest {
 
     @Test
     fun get() {
-        println(Handelsregister.get("bdo", Amtsgericht.HAMBURG))
+        println(Handelsregister.get("daimler AG", Amtsgericht.STUTTGART))
     }
 }
