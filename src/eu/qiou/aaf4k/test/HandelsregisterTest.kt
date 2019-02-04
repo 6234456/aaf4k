@@ -15,7 +15,7 @@ class HandelsregisterTest {
 
     @Test
     fun collect() {
-        val l = Handelsregister.collect("daimler AG", Amtsgericht.STUTTGART)
+        val l = Handelsregister.walk("Ehrfeld", Amtsgericht.MAINZ)
         println(l.size)
         println(l)
     }

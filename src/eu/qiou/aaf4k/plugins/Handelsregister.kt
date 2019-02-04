@@ -5,6 +5,7 @@ import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.javanet.NetHttpTransport
 import org.jsoup.Jsoup
 import java.net.URLEncoder
+import java.time.LocalDate
 
 object Handelsregister {
     var requestFactory = NetHttpTransport().createRequestFactory()
@@ -45,4 +46,17 @@ object Handelsregister {
 
         return res
     }
+
+    fun walk(name: String, gericht: Amtsgericht): Map<Int, List<String>> {
+        var cnt = 0
+        return collect(name, gericht).map {
+            cnt++ to with(requestFactory.buildGetRequest(GenericUrl(it))) {
+                with(Jsoup.parse(this.execute().parseAsString())) {
+                    this.select("tbody > tr > td")
+                            .map { it.text() }.filter { it.isNotBlank() }
+                }
+            }
+        }.toMap()
+    }
+
 }
