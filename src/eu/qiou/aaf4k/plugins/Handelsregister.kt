@@ -11,6 +11,7 @@ object Handelsregister {
     var requestFactory = NetHttpTransport().createRequestFactory()
     val urlPart = """'([^']+)'""".toRegex()
     val root = """https://www.handelsregisterbekanntmachungen.de/skripte/hrb.php?"""
+    val dateReg = """(\d{2}).(\d{2}).(\d{4})""".toRegex()
 
     fun clear() {
         requestFactory = null
@@ -47,16 +48,24 @@ object Handelsregister {
         return res
     }
 
-    fun walk(name: String, gericht: Amtsgericht): Map<Int, List<String>> {
-        var cnt = 0
+    fun walk(name: String, gericht: Amtsgericht): Map<LocalDate, String> {
+
         return collect(name, gericht).map {
-            cnt++ to with(requestFactory.buildGetRequest(GenericUrl(it))) {
+            with(requestFactory.buildGetRequest(GenericUrl(it))) {
                 with(Jsoup.parse(this.execute().parseAsString())) {
                     this.select("tbody > tr > td")
-                            .map { it.text() }.filter { it.isNotBlank() }
+                            .map { it.text().trim() }.filter { it.isNotBlank() }
                 }
             }
+        }.map {
+            parseGermanDate(it.find { x -> dateReg.matches(x) }!!) to it.last()
         }.toMap()
+    }
+
+    private fun parseGermanDate(str: String): LocalDate {
+        with(dateReg.find(str)!!.groups) {
+            return LocalDate.parse("${this[3]!!.value}-${this[2]!!.value}-${this[1]!!.value}")
+        }
     }
 
 }

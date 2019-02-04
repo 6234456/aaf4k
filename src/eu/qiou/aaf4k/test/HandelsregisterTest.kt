@@ -15,8 +15,7 @@ class HandelsregisterTest {
 
     @Test
     fun collect() {
-        val l = Handelsregister.walk("Ehrfeld", Amtsgericht.MAINZ)
-        println(l.size)
-        println(l)
+        val l = Handelsregister.walk("BDO AG", Amtsgericht.HAMBURG)
+        println(l.filterValues { it.contains("Yang") })
     }
 }
