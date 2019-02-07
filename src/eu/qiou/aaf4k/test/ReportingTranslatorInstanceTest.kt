@@ -9,6 +9,7 @@ import eu.qiou.aaf4k.util.time.TimeParameters
 import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.*
 
 class ReportingTranslatorInstanceTest {
 
@@ -60,10 +61,9 @@ class ReportingTranslatorInstanceTest {
 
         val r = e.toReporting(0, "GroupReportingOfAGmbH", TimeParameters.forYear(2018), entity = e1)
 
-        r.prepareConsolidation()
-
         val reg = """_vk_(.+)$""".toRegex()
 
+        Locale.setDefault(Locale.GERMAN)
 
         val rePackage = ReportingPackage(r) { e, a ->
             if (reg.containsMatchIn(a.name)) {
@@ -90,6 +90,7 @@ class ReportingTranslatorInstanceTest {
                         112204L to 2345.65
                 )
         ))
+
         rePackage.localReportingOf(e.toReporting(1, "B GmbH", entity = e2).update(
                 mapOf(
                         112202L to -2345.65,

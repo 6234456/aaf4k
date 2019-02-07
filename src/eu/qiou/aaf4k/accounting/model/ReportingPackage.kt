@@ -106,7 +106,7 @@ class ReportingPackage(targetReportingTmpl: Reporting,
     fun toXl(
             path: String,
             t: Template.Theme = Template.Theme.DEFAULT,
-            locale: Locale = GlobalConfiguration.DEFAULT_LOCALE
+            locale: Locale = Locale.getDefault()
     ) {
         val shtNameOverview = "Overview"
         val shtNameAdjustments = "Adjustments"
