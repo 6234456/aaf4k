@@ -17,6 +17,12 @@ class TemplateEngineTest {
     }
 
     @Test
+    fun export1() {
+        val t = ExcelReportingTemplate("data/demo.xls", shtName = "tpl")
+        t.export(mapOf(1 to 0, 2 to 3, 3 to 0, "公司" to "示例公司", "年份" to 2018, "1500" to "hi",1500 to "Test"), "data/exp2.xls")
+    }
+
+    @Test
     fun fillReporting() {
         val r = Files.readAllLines(Paths.get("data/accounting.txt")).joinToString("").toReporting()
                 .generate()

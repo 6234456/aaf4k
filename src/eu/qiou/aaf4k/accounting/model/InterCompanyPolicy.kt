@@ -18,7 +18,7 @@ data class InterCompanyPolicy(
             ReportingType.EXPENSE_LOSS, ReportingType.REVENUE_GAIN, ReportingType.PROFIT_LOSS_NEUTRAL
             -> InterCompanyPolicyType.REVENUE_EXPENSE
 
-            else -> throw Exception("Cannot defer the PolicyType from ${account.reportingType}")
+            else -> throw Exception("Cannot infer the PolicyType from ${account.reportingType}")
         },
         val method: ConsolidationMethod = ConsolidationMethod.FULL_CONSOLIDATION
 ) {
