@@ -16,4 +16,13 @@ class InterpolatorTest {
         println(p(128.3623))
         println(p(128.3623).values.reduce { acc, d -> acc + d })
     }
+
+    @Test
+    fun parse1() {
+        val i = Interpolator(growth = -0.2, period = TimeSpan.forYear(2019), interval = ChronoUnit.MONTHS, interpolationBase = InterpolationBase.START, interpolationType = InterpolationType.PROPORTIONAL, decimalPosition = 2)
+        val p = i.parse()
+
+        println(p(1000.0))
+
+    }
 }
