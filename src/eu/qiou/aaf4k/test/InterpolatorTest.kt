@@ -23,6 +23,5 @@ class InterpolatorTest {
         val p = i.parse()
 
         println(p(1000.0))
-
     }
 }

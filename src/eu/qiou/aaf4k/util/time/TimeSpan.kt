@@ -200,6 +200,9 @@ operator fun LocalDate.minus(period: Period) = this.minus(period)
 fun LocalDate.isEndOfMonth() = this.plusDays(1).month != this.month
 fun LocalDate.toEndOfMonth() = this.plusMonths(1).withDayOfMonth(1).minusDays(1)
 
+fun LocalDate.startOfNextMonth() = this.withDayOfMonth(1).plusMonths(1)
+fun LocalDate.endOfNextMonth() = this.startOfNextMonth().minusDays(1)
+
 fun LocalDate.to(ends: LocalDate, withIntervalUnit: ChronoUnit = ChronoUnit.YEARS, withIntervalAmount: Int = 1): List<LocalDate> {
     val res = mutableListOf<LocalDate>()
     var tmp = this

@@ -461,16 +461,18 @@ class GUI : Application() {
                 }
 
                 setOnMouseClicked { e ->
-                    parseToEntry(selectionModel.selectedItem.value)?.let {
-                        val entry = it.first
-                        if (entry != null) {
-                            if (e.button == MouseButton.PRIMARY) {
-                                if (e.clickCount == 2) {
-                                    modifyMask(entry, entry.accounts[0])
+                    if (selectionModel.selectedItem != null) {
+                        parseToEntry(selectionModel.selectedItem.value)?.let {
+                            val entry = it.first
+                            if (entry != null) {
+                                if (e.button == MouseButton.PRIMARY) {
+                                    if (e.clickCount == 2) {
+                                        modifyMask(entry, entry.accounts[0])
+                                    }
                                 }
-                            }
-                            if (e.button == MouseButton.SECONDARY) {
-                                ctxMenu(selectionModel.selectedItems.map { parseToEntry(it.value)?.first }.filter { it != null } as Iterable<Entry>, entry, entry.accounts[0]).show(this, e.screenX, e.sceneY)
+                                if (e.button == MouseButton.SECONDARY) {
+                                    ctxMenu(selectionModel.selectedItems.map { parseToEntry(it.value)?.first }.filter { it != null } as Iterable<Entry>, entry, entry.accounts[0]).show(this, e.screenX, e.sceneY)
+                                }
                             }
                         }
                     }
