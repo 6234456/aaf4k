@@ -118,15 +118,20 @@ open class ProtoAccount(val id: Long, open val name: String,
                 subAccounts!!.fold(0.0) { acc, e ->
                     acc + if (e.isStatistical) 0.0 else e.decimalValue
                 }
-            else
-                value!!.toDouble() / Math.pow(10.0, decimalPrecision.toDouble())
+            else {
+                val tmp = value!!.toDouble() / Math.pow(10.0, decimalPrecision.toDouble())
+                when {
+                    unit is CurrencyUnit -> unit.convertFxTo(GlobalConfiguration.DEFAULT_CURRENCY_UNIT, timeParameters)(tmp)
+                    else -> tmp
+                }.roundUpTo(decimalPrecision)
+            }
         }
         private set
 
     var displayUnit: ProtoUnit = CurrencyUnit()
     var displayValue: Double = 0.0
         get() = when {
-            this.unit is CurrencyUnit -> unit.convertFxTo(displayUnit, timeParameters)(decimalValue)
+            unit is CurrencyUnit -> unit.convertFxTo(displayUnit, timeParameters)(decimalValue)
             else -> unit.convertTo(displayUnit)(decimalValue)
         }.roundUpTo(decimalPrecision)
         private set

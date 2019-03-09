@@ -3,7 +3,12 @@ package eu.qiou.aaf4k.test
 import eu.qiou.aaf4k.accounting.model.Account
 import eu.qiou.aaf4k.accounting.model.ReportingType
 import eu.qiou.aaf4k.reportings.model.ProtoAccount
+import eu.qiou.aaf4k.util.io.ECBFxProvider
 import eu.qiou.aaf4k.util.io.FromJSON
+import eu.qiou.aaf4k.util.time.TimeParameters
+import eu.qiou.aaf4k.util.time.TimeSpan
+import eu.qiou.aaf4k.util.unit.CurrencyUnit
+import eu.qiou.aaf4k.util.unit.ForeignExchange
 import org.junit.Test
 
 class ProtoAccountTest{
@@ -47,5 +52,25 @@ class ProtoAccountTest{
 
         println(Account.from(a3, ReportingType.LIABILITY).toJSON())
         println(FromJSON.account(FromJSON.read(Account.from(a3, ReportingType.LIABILITY).toJSON())))
+    }
+
+    @Test
+    fun testFx() {
+        val a = ProtoAccount(1, "demo1", 100000000, 4, CurrencyUnit("CNY"), timeParameters = TimeParameters.forYear(2018))
+        val b = ProtoAccount(2, "demo2", 100000000, 4, CurrencyUnit("USD"), timeParameters = TimeParameters.forYear(2018))
+        val c = ProtoAccount(3, "acc", subAccounts = mutableListOf(a, b))
+
+
+        val fx = ECBFxProvider.fetchFxFromSource(ForeignExchange("CNY", "EUR", TimeSpan.forYear(2018)))
+        val fx1 = ECBFxProvider.fetchFxFromSource(ForeignExchange("USD", "EUR", TimeSpan.forYear(2018)))
+
+        println(a.decimalValue)
+        println(a.value)
+        println("RMB : ${1 / fx}")
+
+        println(b.decimalValue)
+        println("USD : ${1 / fx1}")
+
+        println(c.decimalValue)
     }
 }
