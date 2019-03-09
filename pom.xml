@@ -108,6 +108,10 @@
             </resource>
 
             <resource>
+                <directory>script</directory>
+            </resource>
+
+            <resource>
                 <directory>stylesheet</directory>
             </resource>
 

@@ -20,7 +20,7 @@ object GermanLaw {
                     fullUrl
 
         with(
-                CNInfoDiscloure.requestFactory.buildGetRequest(GenericUrl(root))
+                requestFactory.buildGetRequest(GenericUrl(root))
         ) {
             with(Jsoup.parse(this.execute().parseAsString())) {
                 return Triple(

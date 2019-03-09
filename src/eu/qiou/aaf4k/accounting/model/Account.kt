@@ -37,14 +37,17 @@ class Account(id: Long, name: String,
         else -> if (reportingType.sign == 1) ReportingSide.DEBTOR else ReportingSide.CREDITOR
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ProtoAccount> deepCopy(callbackAtomicAccount: (T) -> T): T {
         return Account.from(super.deepCopy(callbackAtomicAccount), this.reportingType) as T
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ProtoAccount> deepCopy(data: Map<Long, Double>, updateMethod: (Double, Double) -> Double): T {
         return Account.from(super.deepCopy(data, updateMethod), this.reportingType) as T
     }
 
+    @Suppress("UNCHECKED_CAST")
     companion object {
         fun from(protoAccount: ProtoAccount, reportingType: ReportingType): Account {
             return Account(id = protoAccount.id, name = protoAccount.name,
