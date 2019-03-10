@@ -17,7 +17,7 @@ class JSExecutor(val script: String) {
 
     private val engine = ScriptEngineManager().getEngineByExtension("js")
 
-    private val content: Invocable = if (cache.containsKey(script)) cache[script]!! else Files.newBufferedReader(Paths.get(script), StandardCharsets.UTF_8).let {
+    val content: Invocable = if (cache.containsKey(script)) cache[script]!! else Files.newBufferedReader(Paths.get(script), StandardCharsets.UTF_8).let {
         engine.eval(it)
         (engine as Invocable).apply {
             cache[script] = this
