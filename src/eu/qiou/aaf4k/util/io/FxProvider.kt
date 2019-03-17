@@ -34,5 +34,9 @@ abstract class FxProvider {
         cache.clear()
     }
 
+    fun toXls(target: ForeignExchange, file: String) {
+        ExcelUtil.writeData(path = file, data = baseFx(target), header = listOf("Date", "Value"), sheetName = "${target.functionalCurrency.currencyCode}-${target.reportingCurrency.currencyCode}")
+    }
+
 
 }

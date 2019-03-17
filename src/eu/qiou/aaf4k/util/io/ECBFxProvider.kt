@@ -26,8 +26,6 @@ object ECBFxProvider : FxProvider() {
     }
 
     override fun baseFx(target: ForeignExchange): Map<java.time.LocalDate, Double> {
-
-
         if (target.timeParameters.timeAttribute == TimeAttribute.TIME_SPAN) {
             val url = buildURL(target)
             val v1 = hashMapOf<Int, Double>()

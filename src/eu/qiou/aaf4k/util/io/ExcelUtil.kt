@@ -605,15 +605,28 @@ object ExcelUtil {
     }
 
 
-    fun writeData(path: String, sheetName: String = "src", data: Map<String, List<Any>>, startRow: Int = 0, startCol: Int = 0) {
+    fun writeData(path: String, sheetName: String = "src", data: Map<*, *>, startRow: Int = 0, startCol: Int = 0, header: Iterable<String>? = null) {
             val f: (Sheet) -> Unit = {
-                var r = startRow
+                var r = startRow + if (header == null) 0 else 1
+
+                header?.let { h ->
+                    var c = startCol
+                    val row = it.createRow(startRow)
+                    h.forEach { x ->
+                        setCellValue(row.createCell(c++), x)
+                    }
+                }
+
                 data.forEach { t, u ->
                     val row = it.createRow(r++)
-                    var c = startCol
+                    var c = startCol + 1
 
-                    u.forEach { i->
-                        setCellValue(row.createCell(c++), i)
+                    setCellValue(row.createCell(startCol), t.toString())
+                    when {
+                        u is Iterable<*> -> u.forEach { i ->
+                            setCellValue(row.createCell(c++), i!!)
+                        }
+                        else -> setCellValue(row.createCell(c), u!!)
                     }
                 }
             }
