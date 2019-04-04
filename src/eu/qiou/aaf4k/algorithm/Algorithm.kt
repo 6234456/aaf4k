@@ -178,6 +178,21 @@ object Algorithm {
         return map.map { "${it.key}${if (it.value == 1) "" else "^${it.value}" }" }.mkString("*","","")
     }
 
+    fun congruence(a: Long, c: Long, m: Long): List<Long> {
+        val g = gcd(a, m)
 
+        if (c.rem(g) != 0L) return listOf()
 
+        val u0 = gcdSolution(a, m, g).first
+        val x0 = u0 * (c/ g)
+
+        val v = m / g
+
+        return (0.until(g)).map { it * v + x0 }
+    }
+
+    fun euler_phi(n:Long):Long {
+        return factorialPrime(n).keys.fold(n){acc, l -> acc / l * (l - 1L)  }
+    }
 }
+

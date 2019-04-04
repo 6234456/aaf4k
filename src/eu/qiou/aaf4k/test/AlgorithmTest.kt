@@ -78,8 +78,13 @@ class AlgorithmTest {
     @Test
     fun test2(){
         Algorithm.primesBefore(1000030)
+    }
 
-
+    @Test
+    fun congr(){
+        println(Algorithm.congruence(8, 6, 14))
+        println(Algorithm.congruence(72L, 47, 200))
+        println(Algorithm.congruence(4183L, 5781, 15087))
     }
 
     @Test
@@ -89,7 +94,11 @@ class AlgorithmTest {
             println(Algorithm.factorialToString(factorialPrime(it)))
         }
         println(factorialPrime(75460))
+    }
 
-
+    @Test
+    fun phi(){
+        println(Algorithm.factorialPrime(8800))
+        println(Algorithm.euler_phi(8800))
     }
 }
