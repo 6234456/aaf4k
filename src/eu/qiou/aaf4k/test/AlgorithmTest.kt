@@ -1,7 +1,10 @@
 package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.algorithm.Algorithm
+import eu.qiou.aaf4k.algorithm.Algorithm.euler_phi
 import eu.qiou.aaf4k.algorithm.Algorithm.factorialPrime
+import eu.qiou.aaf4k.algorithm.Algorithm.gcdSolution
+import eu.qiou.aaf4k.algorithm.Algorithm.multicongruence
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -100,5 +103,40 @@ class AlgorithmTest {
     fun phi(){
         println(Algorithm.factorialPrime(8800))
         println(Algorithm.euler_phi(8800))
+        println(Algorithm.euler_phi(1750))
+        println(Algorithm.factorialPrime(1750))
+
+        println((161 until (10000L)).filter { euler_phi(it) == 160L })
+        println((1001 until (10000L)).filter { euler_phi(it) == 1000L })
+        println((1001 until (10000L)).filter { euler_phi(it) == 1000L }.map { Algorithm.factorialPrime(it) })
+    }
+
+    @Test
+    fun gcdss(){
+        println(multicongruence(3, 7 ,5, 9))
+
+        println(multicongruence(3, 7 ,5, 9))
+        println(multicongruence(3, 37 ,1, 87))
+
+        //886
+        println(multicongruence(5, 7 ,2, 12, end = 7L * 12L * 13L))
+        println(multicongruence(5, 7 ,8, 13, end = 7L * 12L * 13L))
+        println(multicongruence(2, 12 ,8, 13, end = 7L * 12L * 13L))
+
+        //
+        println(multicongruence(2, 3 ,3, 5, end = 7L * 3L * 5L))
+        println(multicongruence(2, 3 ,2, 7, end = 7L * 3L * 5L))
+        println(multicongruence(3, 5 ,2, 7, end = 7L * 3L * 5L))
+    }
+
+    @Test
+    fun sdf(){
+        Algorithm.primesBefore(100000)
+        println((1 until (10000L)).filter { euler_phi(it) == (it/2) })
+        println((1 until (10000L)).filter { euler_phi(it) == (it/3) })
+        println((1 until (10000L)).filter { euler_phi(it) == (it/6) })
+        println(euler_phi(58))
+        println(Algorithm.factorialPrime(58))
+        println(Algorithm.factorialPrime(324))
     }
 }

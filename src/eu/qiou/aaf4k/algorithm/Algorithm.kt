@@ -131,11 +131,14 @@ object Algorithm {
         return res
     }
 
+    // a * x  +  b * y = gcd  solve x, y | integer
     fun gcdSolution(a: Long, b: Long, gcd: Long = gcd(a, b)): Pair<Long, Long>{
         if (a > b){
             if (gcd == 0L) return 0L to 0L
 
-            if (b == gcd || a.rem(b) == gcd) return 1L to -1L * (a / b)
+            if (b == 0L && a == 1L && gcd == 1L) return 1L to 0L
+
+            if (a.rem(b) == gcd) return 1L to -1L * (a / b)
 
             val p = gcdSolution(b, a.rem(b), gcd)
             return p.second to (p.second * (a / b) * (-1L) + p.first)
@@ -178,17 +181,25 @@ object Algorithm {
         return map.map { "${it.key}${if (it.value == 1) "" else "^${it.value}" }" }.mkString("*","","")
     }
 
-    fun congruence(a: Long, c: Long, m: Long): List<Long> {
+    fun congruence(a: Long, c: Long, m: Long, start: Long = 0L, end : Long? = null): List<Long> {
         val g = gcd(a, m)
-
         if (c.rem(g) != 0L) return listOf()
 
         val u0 = gcdSolution(a, m, g).first
-        val x0 = u0 * (c/ g)
-
         val v = m / g
 
-        return (0.until(g)).map { it * v + x0 }
+        var x0 = (u0 * (c/ g))
+
+        while (x0 < 0){
+            x0 += v
+        }
+
+        return ((start).until((end?:1) * g)).map { it * v + x0 }
+    }
+
+    // if multi > 2,  end = m * n * k
+    fun multicongruence(b: Long, m: Long, c: Long, n:Long, end:Long? = null) : Set<Long> {
+        return congruence(1, b, m, end = if (end == null) n else (end/m)).intersect(congruence(1, c, n, end = if (end == null) m else (end/n)))
     }
 
     fun euler_phi(n:Long):Long {
