@@ -151,6 +151,10 @@ object Algorithm {
 
     // invoke primeBefore to prepare the prime numbers first
     fun factorialPrime(n:Long): Map<Long, Int>{
+
+        if(primes.last() < n)
+            primesBefore(n)
+
         if (primes.binarySearch(n) >= 0){
             return mapOf(n to 1)
         }

@@ -131,7 +131,6 @@ class AlgorithmTest {
 
     @Test
     fun sdf(){
-        Algorithm.primesBefore(100000)
         println((1 until (10000L)).filter { euler_phi(it) == (it/2) })
         println((1 until (10000L)).filter { euler_phi(it) == (it/3) })
         println((1 until (10000L)).filter { euler_phi(it) == (it/6) })
