@@ -1,9 +1,8 @@
 package eu.qiou.aaf4k.algorithm
 
-import eu.qiou.aaf4k.util.foldTrackList
-import eu.qiou.aaf4k.util.foldTrackListInit
 import eu.qiou.aaf4k.util.mkString
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 
 object Algorithm {
@@ -210,8 +209,8 @@ object Algorithm {
         return congruence(1, b, m, end = if (end == null) n else (end/m)).intersect(congruence(1, c, n, end = if (end == null) m else (end/n)))
     }
 
-    fun euler_phi(n:Long):Long {
-        return factorialPrime(n).keys.fold(n){acc, l -> acc / l * (l - 1L)  }
+    fun euler_phi(n:Long, factorial: Map<Long, Int>? = null):Long {
+        return (factorial?:factorialPrime(n)).keys.fold(n){acc, l -> acc / l * (l - 1L)  }
     }
 
     // the sum of all the divisors of n including 1 and n
@@ -232,22 +231,59 @@ object Algorithm {
     @SuppressWarnings
     fun socialables(start: Long, order: Int): Set<Long>? {
         var s = start
-         (1..order.toLong()).fold(mutableListOf<Long?>(s)){
-            acc, i ->
+        var flag = true
+         (1..order).fold(mutableListOf<Long>(s)){
+            acc, _ ->
                 acc.apply {
-                    if(s <= 1L)
-                        this.add(null)
-                    else{
-                        s = sigma(s) - s
-                        this.add(s)
+                    if (flag){
+                        if(s <= 1L){
+                            flag = false
+                        }
+                        else{
+                            s = sigma(s) - s
+                            this.add(s)
+                        }
                     }
                 }
         }.let {
-            if(it.any { it == null} || it.last() != it.first())
-                return null
-            else
-                return it.dropLast(1).toSet() as Set<Long>
+            if(flag && it.drop(1).indexOfFirst  { x -> x == start } >= 0)
+                return it.toSet()
+
+            return null
         }
+    }
+
+    fun modPow(a:Long, k:Long, m:Long): Long {
+        var k0 = k
+        var a0 = a
+        var res = 1L
+
+        while (k0 >= 1){
+            val isOdd = (k0.rem(2) == 1L)
+            if (isOdd)
+                res = (res.times(a0)).rem(m)
+
+            a0 = (a0.times(a0)).rem(m)
+            k0 = if (isOdd) (k0 - 1) / 2 else (k0 / 2)
+        }
+
+        return res
+    }
+
+    // if false muss be composite
+    fun checkLargePrime(n:Long):Boolean{
+        return (1..10).map{ Random.nextLong(2L, n-1) }.all {
+            modPow(it, n-1, n) == 1L
+        }
+    }
+
+    fun solveRootsMod(k: Long, b: Long, m: Long, factorial: Map<Long, Int>? = null): Long {
+        val phi = euler_phi(m, factorial)
+        return modPow(b, gcdSolution(k, phi).first.let {
+            var res = it
+            while (res <= 0) res += phi
+            res
+        }, m)
     }
 }
 

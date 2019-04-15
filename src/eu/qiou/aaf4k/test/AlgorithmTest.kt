@@ -5,6 +5,7 @@ import eu.qiou.aaf4k.algorithm.Algorithm.euler_phi
 import eu.qiou.aaf4k.algorithm.Algorithm.factorialPrime
 import eu.qiou.aaf4k.algorithm.Algorithm.gcdSolution
 import eu.qiou.aaf4k.algorithm.Algorithm.multicongruence
+import eu.qiou.aaf4k.algorithm.powOf
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -147,14 +148,15 @@ class AlgorithmTest {
         println(Algorithm.sigma(172800))
 
         println(Algorithm.socialables(14316, 28))
+        println(Algorithm.socialables(1547860, 9))
+
+        println(euler_phi(12830603))
     }
 
     @Test
     fun socialable(){
-        Algorithm.primesBefore(900100000L)
-
-        for (i in 800000000L..900000000L){
-            if (i.rem(1000000L) == 0L)
+        for (i in 800000000L..850000000L){
+            if (i.rem(1000L) == 0L)
                 println(i)
 
             // order 4: [1547860, 1305184, 1727636, 1264460]
@@ -163,5 +165,27 @@ class AlgorithmTest {
                     println("$i : $it")
             }
         }
+    }
+
+    @Test
+    fun p(){
+        println(Algorithm.modPow(5, 13, 23))
+        println(Algorithm.modPow(7, 327, 853))
+        println(Algorithm.modPow(7, 7386, 7387))
+        println(Algorithm.modPow(37, 113, 463))
+
+        println(Algorithm.checkLargePrime(8500000003))
+        println(Algorithm.checkLargePrime(9991))
+    }
+
+    @Test
+    fun rootsMood(){
+        println(Algorithm.solveRootsMod(131, 758, 1073))
+        println(Algorithm.solveRootsMod(329, 452, 1147))
+        println(Algorithm.solveRootsMod(113, 347, 463))
+        println(Algorithm.euler_phi(1073))
+        println(Algorithm.euler_phi(463))
+        println(Algorithm.gcdSolution(131, 1008))
+        println(Algorithm.gcdSolution(113, 462))
     }
 }
