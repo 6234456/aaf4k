@@ -138,4 +138,30 @@ class AlgorithmTest {
         println(Algorithm.factorialPrime(58))
         println(Algorithm.factorialPrime(324))
     }
+
+    @Test
+    fun sig(){
+        println(Algorithm.sigma(10))
+        println(Algorithm.sigma(20))
+        println(Algorithm.sigma(1728))
+        println(Algorithm.sigma(172800))
+
+        println(Algorithm.socialables(14316, 28))
+    }
+
+    @Test
+    fun socialable(){
+        Algorithm.primesBefore(900100000L)
+
+        for (i in 800000000L..900000000L){
+            if (i.rem(1000000L) == 0L)
+                println(i)
+
+            // order 4: [1547860, 1305184, 1727636, 1264460]
+            Algorithm.socialables(i, 9)?.let {
+                if (it.size >= 3)
+                    println("$i : $it")
+            }
+        }
+    }
 }

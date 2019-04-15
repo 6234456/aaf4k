@@ -1,5 +1,7 @@
 package eu.qiou.aaf4k.algorithm
 
+import eu.qiou.aaf4k.util.foldTrackList
+import eu.qiou.aaf4k.util.foldTrackListInit
 import eu.qiou.aaf4k.util.mkString
 import kotlin.math.roundToInt
 
@@ -151,6 +153,8 @@ object Algorithm {
 
     // invoke primeBefore to prepare the prime numbers first
     fun factorialPrime(n:Long): Map<Long, Int>{
+        if (n <= 1)
+            throw java.lang.Exception("ParameterException: n should be greater than 1")
 
         if(primes.last() < n)
             primesBefore(n)
@@ -209,5 +213,54 @@ object Algorithm {
     fun euler_phi(n:Long):Long {
         return factorialPrime(n).keys.fold(n){acc, l -> acc / l * (l - 1L)  }
     }
+
+    // the sum of all the divisors of n including 1 and n
+    fun sigma(n:Long):Long {
+        return factorialPrime(n).toList().fold(1L) {
+            acc, pair ->
+                acc * sumOfGeometricSequence(pair.second.toLong(), pair.first)
+        }
+    }
+
+    fun sumOfGeometricSequence(pow: Long, increment: Long, start: Long = 1L):Long{
+        if (increment == 1L)
+            return pow * start
+
+        return start * (increment.powOf(pow + 1) - 1L) / (increment - 1L)
+    }
+
+    @SuppressWarnings
+    fun socialables(start: Long, order: Int): Set<Long>? {
+        var s = start
+         (1..order.toLong()).fold(mutableListOf<Long?>(s)){
+            acc, i ->
+                acc.apply {
+                    if(s <= 1L)
+                        this.add(null)
+                    else{
+                        s = sigma(s) - s
+                        this.add(s)
+                    }
+                }
+        }.let {
+            if(it.any { it == null} || it.last() != it.first())
+                return null
+            else
+                return it.dropLast(1).toSet() as Set<Long>
+        }
+    }
 }
 
+fun Long.powOf(n:Long):Long {
+    if (n == 1L)
+        return this
+
+    if (n.rem(2L) == 0L){
+        val a = this.powOf(n.div(2L))
+        return a.times(a)
+    }else{
+        val a = this.powOf((n-1).div(2L))
+        return this.times(a).times(a)
+    }
+
+}

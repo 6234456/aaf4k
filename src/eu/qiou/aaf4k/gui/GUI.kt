@@ -494,11 +494,14 @@ class GUI : Application() {
         updateTab3()
 
         fun updateTab2() {
-            with(tab2) {
-                val (sht, i) = ExcelUtil.getWorksheet("data/demo.xls", sheetIndex = 0)
-                content = XlTable(sht, true)
-                i.close()
-            }
+            val overview = "data/demo.xls"
+
+            if(Files.exists(Paths.get(overview)))
+                with(tab2) {
+                    val (sht, i) = ExcelUtil.getWorksheet("data/demo.xls", sheetIndex = 0)
+                    content = XlTable(sht, true)
+                    i.close()
+                }
         }
 
         updateTab2()
