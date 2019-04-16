@@ -3,12 +3,11 @@ package eu.qiou.aaf4k.test
 import eu.qiou.aaf4k.algorithm.Algorithm
 import eu.qiou.aaf4k.algorithm.Algorithm.euler_phi
 import eu.qiou.aaf4k.algorithm.Algorithm.factorialPrime
-import eu.qiou.aaf4k.algorithm.Algorithm.gcdSolution
 import eu.qiou.aaf4k.algorithm.Algorithm.multicongruence
-import eu.qiou.aaf4k.algorithm.powOf
+import eu.qiou.aaf4k.algorithm.crypto.RSA
+import org.junit.Assert
 import org.junit.Test
-
-import org.junit.Assert.*
+import java.math.BigInteger
 
 class AlgorithmTest {
 
@@ -187,5 +186,39 @@ class AlgorithmTest {
         println(Algorithm.euler_phi(463))
         println(Algorithm.gcdSolution(131, 1008))
         println(Algorithm.gcdSolution(113, 462))
+    }
+
+    @Test
+    fun num(){
+        println(Algorithm.splitNumberAt(1, 1))
+        println(Algorithm.splitNumberAt(10, 1))
+        Assert.assertEquals(Algorithm.truncatNumber(12232123, 1), 3L)
+        Assert.assertEquals(Algorithm.truncatNumber(12232123, 2), 23L)
+        Assert.assertEquals(Algorithm.truncatNumber(12232123, 2, true), 12L)
+        Assert.assertEquals(Algorithm.splitNumberAt(12232123, 2), 122321L to 23L)
+        println(Algorithm.splitNumberAt(12232123, 0, true))
+        println(Algorithm.splitNumberAt(122, 3, true))
+        println(Algorithm.splitNumberAt(122, 0, true))
+        println(Algorithm.splitNumberAt(122, 0))
+        println(Algorithm.splitNumberAt(122, 1))
+        println(Algorithm.splitNumberAt(122, 2))
+        println(Algorithm.splitNumberAt(122, 3))
+        println(Algorithm.totalDigit(0))
+    }
+
+    @Test
+    fun RSATest(){
+        val a = RSA(12553,13007,79921)
+        val msg = "Qiou Is Great ddddddddd"
+        println(msg.toCharArray().map { it.toInt() })
+        println(a.decode(a.encode(msg)))
+        println(a.decode(a.encode(msg)).toCharArray().map { it.toInt() })
+    }
+
+    @Test
+    fun pol(){
+        println(Algorithm.pollars_rho(12553))
+        println(Algorithm.pollars_rho(BigInteger("12553") * BigInteger("13007")))
+        println(Algorithm.pollars_rho(BigInteger("47386483629775753")))
     }
 }

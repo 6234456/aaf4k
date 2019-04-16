@@ -1,23 +1,26 @@
 package eu.qiou.aaf4k.algorithm
 
 import eu.qiou.aaf4k.util.mkString
+import java.math.BigInteger
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
 
 object Algorithm {
 
-    val primes = mutableListOf(2L, 3L, 5L, 7L, 11L, 13L, 17L, 19L, 23L)
+    val PRIMES = mutableListOf(2L, 3L, 5L, 7L, 11L, 13L, 17L, 19L, 23L)
+    private val CHECK_IF_GT = 100_000L
 
     fun sequentialIsPrime(n:Long):Boolean {
-        if (primes.binarySearch(n) >= 0)
+        if (PRIMES.binarySearch(n) >= 0)
             return true
 
-        if (preliminaryCheck(n)){
+        if (preliminaryCheck(n) || (n >= CHECK_IF_GT && checkLargePrime(n))){
             val ende = Math.sqrt(n.toDouble()).roundToInt() + 1
-            primes.forEachIndexed { index, l ->
+            PRIMES.forEachIndexed { index, l ->
                 if (l > ende) {
-                    primes.add(n)
+                    PRIMES.add(n)
                     return true
                 }
 
@@ -40,20 +43,20 @@ object Algorithm {
     }
 
     fun primesBefore(n: Long):List<Long>{
-        if (primes.last() >= n) {
+        if (PRIMES.last() >= n) {
             var tmp = n
             while (true){
-                val a = primes.binarySearch(tmp)
-                if(a < 0) tmp-- else return primes.take(a+1)
+                val a = PRIMES.binarySearch(tmp)
+                if(a < 0) tmp-- else return PRIMES.take(a+1)
             }
         }
 
-        (primes.last() until(n+1)).forEach { sequentialIsPrime(it) }
-        return primes
+        (PRIMES.last() until(n+1)).forEach { sequentialIsPrime(it) }
+        return PRIMES
     }
 
     fun threeDividable(n:Long): Boolean {
-        val len = Algorithm.totalDigit(n) + 1
+        val len = totalDigit(n) + 1
         if (len < 3)  return n.rem(3L) == 0L
 
         return threeDividable((1 until len).fold(0){ acc, i -> acc + digitAt(n, i) }.toLong())
@@ -70,9 +73,21 @@ object Algorithm {
                ).toInt()
     }
 
-    fun truncatNumber(number: Long, take: Int):Long{
-        val divisor = (1 until take).fold(10L){acc, _ -> acc * 10L }
-        return number.rem(divisor)
+    // take the digit from right to left, starting from 1
+    fun truncatNumber(number: Long, take: Int, fromLeft: Boolean = false):Long{
+        val tmp = splitNumberAt(number, take, fromLeft)
+        return if (fromLeft) tmp.first else tmp.second
+    }
+
+    fun splitNumberAt(number: Long, at: Int, fromLeft: Boolean = false): Pair<Long, Long>{
+        if (fromLeft && totalDigit(number) == at)
+            return number to 0L
+
+        if (!fromLeft && at == 0)
+            return number to 0L
+
+        val divisor = (1 until if (fromLeft) totalDigit(number) - at else at).fold(10L){acc, _ -> acc * 10L }
+        return  (number / divisor) to number.rem(divisor)
     }
 
     fun totalDigit(number: Long): Int{
@@ -87,8 +102,27 @@ object Algorithm {
         }
     }
 
+    fun gcd(a: BigInteger, b: BigInteger): BigInteger {
+        if ( a < BigInteger.ZERO || b < BigInteger.ZERO)
+            throw Exception("Only nature number supported.")
 
-    fun gcd(a: Long, b: Long):Long{
+        if (a == BigInteger.ZERO || b == BigInteger.ZERO) return BigInteger.ZERO
+
+        if (a == b) return a
+
+        return if (a > b){
+            val rem2 = a.rem(b)
+
+             if (rem2 == BigInteger.ZERO)
+                 b
+            else
+                 gcd(b, rem2)
+        } else{
+             gcd(b, a)
+        }
+    }
+
+    fun gcd(a: Long, b: Long): Long {
         if ( a < 0L || b < 0L)
             throw Exception("Only nature number supported.")
 
@@ -155,16 +189,16 @@ object Algorithm {
         if (n <= 1)
             throw java.lang.Exception("ParameterException: n should be greater than 1")
 
-        if(primes.last() < n)
+        if(PRIMES.last() < n)
             primesBefore(n)
 
-        if (primes.binarySearch(n) >= 0){
+        if (PRIMES.binarySearch(n) >= 0){
             return mapOf(n to 1)
         }
 
         var tmp = n
         val res = mutableMapOf<Long, Int>()
-        primes.forEach {
+        PRIMES.forEach {
             if (tmp == 1L)
                 return res
 
@@ -271,8 +305,8 @@ object Algorithm {
     }
 
     // if false muss be composite
-    fun checkLargePrime(n:Long):Boolean{
-        return (1..10).map{ Random.nextLong(2L, n-1) }.all {
+    fun checkLargePrime(n:Long, sampleBase: Iterable<Long>? = null):Boolean{
+        return (sampleBase?:((1..10).map{ Random.nextLong(2L, n-1) })).all {
             modPow(it, n-1, n) == 1L
         }
     }
@@ -284,6 +318,40 @@ object Algorithm {
             while (res <= 0) res += phi
             res
         }, m)
+    }
+
+    fun pollars_rho(n:BigInteger, x: BigInteger = 2.toBigInteger(), y:BigInteger = 2.toBigInteger(), d: BigInteger = BigInteger.ONE, f: (BigInteger) -> BigInteger = {it.powOf(2) + BigInteger.ONE}): BigInteger {
+        var x0 = x
+        var y0 = y
+        var d0 = d
+
+        while (d0 == BigInteger.ONE){
+            x0 = f(x0)
+            y0 = f(f(y0))
+            d0 = gcd(if((x0 - y0) > BigInteger.ZERO) x0 -y0 else y0 - x0 , n)
+        }
+
+        if (d0 == n)
+            throw Exception("Error")
+
+        return d0
+    }
+
+    fun pollars_rho(n:Long, x: Long = 2, y:Long = 2, d: Long = 1, f: (Long) -> Long = {it.powOf(2) + 1}): Long {
+        var x0 = x
+        var y0 = y
+        var d0 = d
+
+        while (d0 == 1L){
+            x0 = f(x0)
+            y0 = f(f(y0))
+            d0 = gcd(if((x0 - y0) > 0) x0 -y0 else y0 - x0 , n)
+        }
+
+        if (d0 == n)
+            throw Exception("Error")
+
+        return d0
     }
 }
 
@@ -298,5 +366,21 @@ fun Long.powOf(n:Long):Long {
         val a = this.powOf((n-1).div(2L))
         return this.times(a).times(a)
     }
+}
 
+fun BigInteger.powOf(n:Long):BigInteger {
+    if (n == 1L)
+        return this
+
+    if (n.rem(2L) == 0L){
+        val a = this.powOf(n.div(2L))
+        return a.times(a)
+    }else{
+        val a = this.powOf((n-1).div(2L))
+        return this.times(a).times(a)
+    }
+}
+
+fun Long.powOf(n:Int):Long{
+    return this.powOf(n.toLong())
 }
