@@ -587,7 +587,7 @@ class GUI : Application() {
                                                                 },
                                                                 MenuItem(msg.getString("viewBookings")).apply {
                                                                     setOnAction {
-
+                                                                        println(category.entries.filter { x-> x.accounts.contains(targetAccount) })
                                                                     }
                                                                 },
                                                                 SeparatorMenuItem(),

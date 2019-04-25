@@ -71,4 +71,13 @@ class GUITest {
             prepareConsolidation(Locale.CHINESE)
         })
     }
+
+    @Test
+    fun open4() {
+        val f = AccountingFrame.inflate(123, "de_hgb_2018")
+        GUI.locale = Locale.GERMAN
+        GUI.open(f.toReporting(123, "Demo2", TimeParameters.forYear(2018)).apply {
+            prepareConsolidation(Locale.GERMAN)
+        })
+    }
 }
