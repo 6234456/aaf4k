@@ -8,8 +8,12 @@ import org.apache.poi.ss.util.CellUtil
 
 open class Template(val headings: List<HeadingFormat>? = null, val data: List<Map<*, *>>, val caption: List<Pair<String, String>>? = null, val colorSchema: ColorSchema = ColorSchema(),
                     val sumColRight: HeadingFormat? = null, val sumRowBottom: HeadingFormat? = null, val sumRowBottomFormula: String = "SUM", val sumColRightFormula: String = "SUM", val theme: Theme? = null) {
-    data class ColorSchema(val colorHeading: IndexedColors = IndexedColors.ROYAL_BLUE, val colorDarkRow: IndexedColors = IndexedColors.PALE_BLUE, val colorCaption: IndexedColors = colorHeading)
-    data class HeadingFormat(val value: Any, val formatHeading: String = ExcelUtil.DataFormat.STRING.format, val formatData: String = ExcelUtil.DataFormat.NUMBER.format, val dataAggregatable: Boolean = false, val bindingKeyinData: String? = null)
+    class ColorSchema(val colorHeading: IndexedColors = IndexedColors.ROYAL_BLUE, val colorDarkRow: IndexedColors = IndexedColors.PALE_BLUE)
+
+    // the formula param if not null depend on other columns
+    class HeadingFormat(val value: Any = "", val formatHeading: String = ExcelUtil.DataFormat.STRING.format,
+                        val formatData: String = ExcelUtil.DataFormat.NUMBER.format, val dataAggregatable: Boolean = false,
+                        val bindingKeyinData: String? = null, val formula: String? = null, val isAutoIncrement: Boolean = false)
 
     enum class Theme(val dark: Long, val light: Long) {
         DEFAULT(11892015L, 16247773L),
@@ -137,13 +141,14 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
 
             var cnt = rowStart + 1
             val orderedHeadings = this@Template.headings?.map { k -> k.bindingKeyinData ?: k.value.toString() }
+            val isFormula = headings?.map { k -> k.formula != null }
 
 
             this@Template.data.forEach { v0 ->
                 with(it.createRow(cnt++)) {
                     this.heightInPoints = rowHeight
 
-                    // transform the Map into List
+                    // transform the Map into List, the values
                     val v = orderedHeadings?.map { k -> v0.getOrDefault(k, "") } ?: (v0.values)
 
                     v.forEachIndexed { index, d ->
@@ -157,8 +162,17 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
                                                     left = if (index.equals(0)) BorderStyle.MEDIUM else null
                                             )
                                             .build()
-                                    )
-                                    .value(d)
+                                    ).apply {
+                                        (headings[index]).let{ e->
+                                            if (e.isAutoIncrement)
+                                                value(index + 1)
+                                            else if (e.formula == null)
+                                                value(d)
+                                            else
+                                                formula(e.formula)
+                                            }
+                                        }
+
                         }
                     }
 
