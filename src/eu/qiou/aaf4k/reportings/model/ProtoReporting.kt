@@ -254,7 +254,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         val titleName: String = msg.getString("accountName")
         val titleOriginal: String = msg.getString("balanceBeforeAdj")
         val titleFinal: String = msg.getString("balanceAfterAdj")
-        val prefixStatistical: String = " ${msg.getString("thereOf")}: "
+        val prefixStatistical = " ${msg.getString("thereOf")}: "
 
         val categoryID = msg.getString("categoryId")
         val categoryName = msg.getString("categoryName")
@@ -373,7 +373,7 @@ open class ProtoReporting<T : ProtoAccount>(val id: Int, val name: String, val d
         ExcelUtil.createWorksheetIfNotExists(path, sheetName = shtNameOverview, callback = { sht ->
             val w = sht.workbook
             val heading = Template.heading(w, t)
-            light = Template.rowLight(w, t)
+            light = Template.rowLight(w)
             dark = Template.rowDark(w, t)
             fontNormal = ExcelUtil.StyleBuilder(w).buildFontFrom(light!!)
             fontBold = ExcelUtil.StyleBuilder(w).buildFontFrom(fontNormal!!, bold = true)
