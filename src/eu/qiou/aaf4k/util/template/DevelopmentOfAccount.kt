@@ -10,7 +10,7 @@ class DevelopmentOfAccount(data: List<Map<String, *>>, entityName: String, proje
                 HeadingFormat(value = "Zugang", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
                 HeadingFormat(value = "Abgang", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
                 HeadingFormat(value = "Umbuchung", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
-                HeadingFormat(value = "Endebestand", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true, formula = "RC[-1]-RC[-2]+RC[-3]+RC[-4]")
+                HeadingFormat(value = "Endebestand", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true, formula = "[-1]-[-2]+[-3]+[-4]")
         ),
         theme = theme,
         data = data,

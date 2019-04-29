@@ -11,6 +11,8 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
     class ColorSchema(val colorHeading: IndexedColors = IndexedColors.ROYAL_BLUE, val colorDarkRow: IndexedColors = IndexedColors.PALE_BLUE)
 
     // the formula param if not null depend on other columns
+    // [1] + [2]   relative reference
+    // (1) + (2)   absolute reference
     class HeadingFormat(val value: Any = "", val formatHeading: String = ExcelUtil.DataFormat.STRING.format,
                         val formatData: String = ExcelUtil.DataFormat.NUMBER.format, val dataAggregatable: Boolean = false,
                         val bindingKeyinData: String? = null, val formula: String? = null, val isAutoIncrement: Boolean = false)
@@ -26,7 +28,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
     }
 
     companion object {
-        fun heading(wb: Workbook, theme: Template.Theme = Theme.DEFAULT): CellStyle {
+        fun heading(wb: Workbook, theme: Theme = Theme.DEFAULT): CellStyle {
             return ExcelUtil.StyleBuilder(wb)
                     .fillLong(theme.dark)
                     .font(name = DEFAULT_FONT_NAME, color = IndexedColors.WHITE.index, bold = true)
@@ -35,7 +37,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
                     .build()
         }
 
-        fun rowLight(wb: Workbook, theme: Template.Theme = Theme.DEFAULT): CellStyle {
+        fun rowLight(wb: Workbook): CellStyle {
             return ExcelUtil.StyleBuilder(wb)
                     .alignment(vertical = VerticalAlignment.CENTER)
                     .font()
@@ -43,7 +45,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
                     .build()
         }
 
-        fun rowDark(wb: Workbook, theme: Template.Theme = Theme.DEFAULT): CellStyle {
+        fun rowDark(wb: Workbook, theme: Theme = Theme.DEFAULT): CellStyle {
             return ExcelUtil.StyleBuilder(wb)
                     .fromStyle(rowLight(wb))
                     .fillLong(theme.light)
@@ -52,7 +54,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
     }
 
     fun build(path: String, sheetName: String = "Overview") {
-        val cols = data[0].count()
+        val cols = headings?.size ?: data[0].count()
         val colWidth = 18
         val headingHeight = 45f
         val rowHeight = 20f
@@ -67,12 +69,13 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
 
         ExcelUtil.createWorksheetIfNotExists(path, sheetName, {
             it.isDisplayGridlines = false
-            val dark = ExcelUtil.StyleBuilder(it.workbook).fromStyle(rowDark(it.workbook), false).apply {
-                if (theme == null)
-                    this.fill(colorSchema.colorDarkRow.index)
-                else
-                    this.fill(theme.light)
-            }
+            val dark = ExcelUtil.StyleBuilder(it.workbook).fromStyle(rowDark(it.workbook), false)
+                    .apply {
+                        if (theme == null)
+                            this.fill(colorSchema.colorDarkRow.index)
+                        else
+                            this.fill(theme.light)
+                    }
                     .build()
 
             val w = it.workbook
@@ -141,8 +144,6 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
 
             var cnt = rowStart + 1
             val orderedHeadings = this@Template.headings?.map { k -> k.bindingKeyinData ?: k.value.toString() }
-            val isFormula = headings?.map { k -> k.formula != null }
-
 
             this@Template.data.forEach { v0 ->
                 with(it.createRow(cnt++)) {
@@ -153,9 +154,10 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
 
                     v.forEachIndexed { index, d ->
                         with(this.createCell(index + colStart)) {
+                            val c = this
                             ExcelUtil.Update(this)
                                     .style(ExcelUtil.StyleBuilder(w).fromStyle(if ((cnt - rowStart) % 2 == 0) light else dark)
-                                    .dataFormat(this@Template.headings!!.get(index).formatData)
+                                            .dataFormat(this@Template.headings!!.get(index).formatData)
                                             .borderStyle(
                                                     down = if (cnt.equals(data.count() + 1 + rowStart)) BorderStyle.MEDIUM else null,
                                                     right = if (index.equals(v.count() - 1)) BorderStyle.MEDIUM else null,
@@ -165,13 +167,13 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
                                     ).apply {
                                         (headings[index]).let{ e->
                                             if (e.isAutoIncrement)
-                                                value(index + 1)
+                                                value(cnt - 1 - rowStart)
                                             else if (e.formula == null)
                                                 value(d)
                                             else
-                                                formula(e.formula)
-                                            }
+                                                formula(parseFormula(c, e.formula))
                                         }
+                                    }
 
                         }
                     }
@@ -182,7 +184,8 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
                                     .style(ExcelUtil.StyleBuilder(w).fromStyle(if ((cnt - rowStart) % 2 == 0) light else dark)
                                     .borderColor(right = IndexedColors.BLACK.index)
                                     .borderStyle(right = BorderStyle.MEDIUM)
-                                            .dataFormat(sumColRight!!.formatData).build())
+                                            .dataFormat(sumColRight!!.formatData)
+                                            .build())
                                     .formula("${sumColRightFormula}(${CellUtil.getCell(this.row, colStart + 1).address}:${CellUtil.getCell(this.row, this.columnIndex - 1).address})")
                         }
                     }
@@ -211,5 +214,18 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
                 }
             }
         })
+    }
+
+    private fun parseFormula(c: Cell, formulaString: String): String {
+        val relativeReg = """\[\s*(-?\d+)\s*]""".toRegex()
+        val absoluteReg = """\(\s*(\d+)\s*\)""".toRegex()
+
+        return formulaString.replace(relativeReg) {
+            val v = it.groups[1]!!.value.toInt()
+            "${CellUtil.getCell(c.row, c.columnIndex + v).address}"
+        }.replace(absoluteReg) {
+            val v = it.groups[1]!!.value.toInt()
+            "${CellUtil.getCell(c.row, v - 1).address}"
+        }
     }
 }

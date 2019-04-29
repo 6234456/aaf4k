@@ -17,6 +17,6 @@ class DevelopmentOfAccountTest {
                 "Jahresabschlussprüfung 2018",
                 "Rückstellungen",
                 "Qiou Yang", theme = Template.Theme.BLACK_WHITE)
-                .build("data/trail.xls")
+                .build("data/trail.xlsx")
     }
 }
