@@ -61,13 +61,8 @@ class ExcelUtilTest {
                         Template.HeadingFormat(LocalDate.now(), "mmm yyyy", "#,###,")
                 ),
                 listOf(
-                        listOf("Hello", -12345),
-                        listOf("Hello2", 12345.98),
-                        listOf("Hello3", 1231145),
-                        listOf("Hello4", 1231145),
-                        listOf("Hello5", 112345),
-                        listOf("Hello6", 112345),
-                        listOf("Hello7", 123415)
+                        mapOf("0" to "Hello", "1" to -12345),
+                        mapOf("0" to "Hello7", "1" to 123415)
                 ),
                 colorSchema = Template.ColorSchema(IndexedColors.LIGHT_ORANGE, IndexedColors.GREY_25_PERCENT),
                 caption = listOf(

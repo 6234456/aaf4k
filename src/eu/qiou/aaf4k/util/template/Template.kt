@@ -6,25 +6,25 @@ import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
 
 
-open class Template(val headings: List<HeadingFormat>? = null, val data: List<List<*>>, val caption: List<Pair<String, String>>? = null, val colorSchema: ColorSchema = ColorSchema(),
-                    val sumColRight: HeadingFormat? = null, val sumRowBottom: HeadingFormat? = null, val sumRowBottomFormula: String = "SUM", val sumColRightFormula: String = "SUM") {
+open class Template(val headings: List<HeadingFormat>? = null, val data: List<Map<*, *>>, val caption: List<Pair<String, String>>? = null, val colorSchema: ColorSchema = ColorSchema(),
+                    val sumColRight: HeadingFormat? = null, val sumRowBottom: HeadingFormat? = null, val sumRowBottomFormula: String = "SUM", val sumColRightFormula: String = "SUM", val theme: Theme? = null) {
     data class ColorSchema(val colorHeading: IndexedColors = IndexedColors.ROYAL_BLUE, val colorDarkRow: IndexedColors = IndexedColors.PALE_BLUE, val colorCaption: IndexedColors = colorHeading)
-    data class HeadingFormat(val value: Any, val formatHeading: String = ExcelUtil.DataFormat.STRING.format, val formatData: String = ExcelUtil.DataFormat.NUMBER.format)
+    data class HeadingFormat(val value: Any, val formatHeading: String = ExcelUtil.DataFormat.STRING.format, val formatData: String = ExcelUtil.DataFormat.NUMBER.format, val dataAggregatable: Boolean = false, val bindingKeyinData: String? = null)
 
-    enum class Theme(val param: Pair<Long, Long>) {
-        DEFAULT(11892015L to 16247773L),
-        BLACK_WHITE(7434613L to 14277081L),
-        LAVENA(10498160L to 16306927L),
-        ORANGE(3243501L to 14083324L),
-        SKY_BLUE(15773696L to 16247773L),
-        LIGHT_GREEN(9359529L to 14348258L),
-        BLOOD(3620091L to 9147389L)
+    enum class Theme(val dark: Long, val light: Long) {
+        DEFAULT(11892015L, 16247773L),
+        BLACK_WHITE(7434613L, 14277081L),
+        LAVENA(10498160L, 16306927L),
+        ORANGE(3243501L, 14083324L),
+        SKY_BLUE(15773696L, 16247773L),
+        LIGHT_GREEN(9359529L, 14348258L),
+        BLOOD(3620091L, 9147389L)
     }
 
     companion object {
         fun heading(wb: Workbook, theme: Template.Theme = Theme.DEFAULT): CellStyle {
             return ExcelUtil.StyleBuilder(wb)
-                    .fillLong(theme.param.first)
+                    .fillLong(theme.dark)
                     .font(name = DEFAULT_FONT_NAME, color = IndexedColors.WHITE.index, bold = true)
                     .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
                     .borderStyle(down = BorderStyle.THICK, up = BorderStyle.MEDIUM, left = BorderStyle.THIN, right = BorderStyle.THIN)
@@ -42,16 +42,17 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
         fun rowDark(wb: Workbook, theme: Template.Theme = Theme.DEFAULT): CellStyle {
             return ExcelUtil.StyleBuilder(wb)
                     .fromStyle(rowLight(wb))
-                    .fillLong(theme.param.second)
+                    .fillLong(theme.light)
                     .build()
         }
     }
 
     fun build(path: String, sheetName: String = "Overview") {
         val cols = data[0].count()
-        val colWidth = 10
-        val headingHeight = 35f
-        val rowHeight = 15f
+        val colWidth = 18
+        val headingHeight = 45f
+        val rowHeight = 20f
+        val captionHeight = 30f
 
         val rowStart = (caption?.count() ?: -1) + 1
         val colStart = 0
@@ -62,33 +63,46 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
 
         ExcelUtil.createWorksheetIfNotExists(path, sheetName, {
             it.isDisplayGridlines = false
-            val dark = ExcelUtil.StyleBuilder(it.workbook).fromStyle(rowDark(it.workbook)).fill(color = this.colorSchema.colorDarkRow.index).build()
-            val light = rowLight(it.workbook)
+            val dark = ExcelUtil.StyleBuilder(it.workbook).fromStyle(rowDark(it.workbook), false).apply {
+                if (theme == null)
+                    this.fill(colorSchema.colorDarkRow.index)
+                else
+                    this.fill(theme.light)
+            }
+                    .build()
 
-            val heading = ExcelUtil.StyleBuilder(it.workbook).fromStyle(Template.heading(it.workbook))
+            val w = it.workbook
+            val light = rowLight(w)
+
+            val heading = ExcelUtil.StyleBuilder(it.workbook).fromStyle(heading(it.workbook), false)
                     .borderColor(left = IndexedColors.WHITE.index, right = IndexedColors.WHITE.index)
-                    .fill(color = this@Template.colorSchema.colorHeading.index)
+                    .apply {
+                        if (theme == null)
+                            this.fill(colorSchema.colorHeading.index)
+                        else
+                            this.fill(theme.dark)
+                    }
                     .build()
 
             if (this.caption != null) {
-                val caption = ExcelUtil.StyleBuilder(it.workbook).fromStyle(heading)
+                val caption = ExcelUtil.StyleBuilder(it.workbook).fromStyle(heading, false)
                         .borderStyle(BorderStyle.NONE, BorderStyle.NONE, BorderStyle.NONE, BorderStyle.NONE)
-                        .fill(color = this@Template.colorSchema.colorCaption.index)
                         .dataFormat(ExcelUtil.DataFormat.STRING.format)
                         .build()
 
                 this.caption.forEachIndexed { index, list ->
                     with(it.createRow(index)) {
+                        this.heightInPoints = captionHeight
                         for (i: Int in 1 + colStart..cols + colStart + extraCol) {
                             with(this.createCell(i - 1)) {
                                 ExcelUtil
                                         .Update(this)
-                                        .style(caption)
-                                        .alignment(when (i) {
-                                            1 + colStart -> HorizontalAlignment.LEFT
-                                            cols + colStart + extraCol -> HorizontalAlignment.RIGHT
-                                            else -> HorizontalAlignment.CENTER
-                                        })
+                                        .style(ExcelUtil.StyleBuilder(w).fromStyle(caption)
+                                                .alignment(when (i) {
+                                                    1 + colStart -> HorizontalAlignment.LEFT
+                                                    cols + colStart + extraCol -> HorizontalAlignment.RIGHT
+                                                    else -> HorizontalAlignment.CENTER
+                                                }).build())
                                         .value(when (i) {
                                             1 + colStart -> list.first
                                             cols + colStart + extraCol -> list.second
@@ -106,12 +120,15 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
                         this.row.sheet.setColumnWidth(this.columnIndex, colWidth * 256)
                         ExcelUtil
                                 .Update(this)
-                                .style(heading)
-                                .borderColor(left = if (i == 1 + colStart) IndexedColors.BLACK.index else null)
-                                .borderStyle(left = if (i == 1 + colStart) BorderStyle.MEDIUM else null)
-                                .borderColor(right = if (i == cols + colStart + extraCol) IndexedColors.BLACK.index else null)
-                                .borderStyle(right = if (i == cols + colStart + extraCol) BorderStyle.MEDIUM else null)
-                                .dataFormat(if (extraCol == 1 && i == cols + colStart + extraCol) sumColRight!!.formatHeading else this@Template.headings!!.get(i - 1 - colStart).formatHeading)
+                                .style(
+                                        ExcelUtil.StyleBuilder(w).fromStyle(heading)
+                                                .borderColor(left = if (i == 1 + colStart) IndexedColors.BLACK.index else null)
+                                                .borderStyle(left = if (i == 1 + colStart) BorderStyle.MEDIUM else null)
+                                                .borderColor(right = if (i == cols + colStart + extraCol) IndexedColors.BLACK.index else null)
+                                                .borderStyle(right = if (i == cols + colStart + extraCol) BorderStyle.MEDIUM else null)
+                                                .dataFormat(if (extraCol == 1 && i == cols + colStart + extraCol) sumColRight!!.formatHeading else this@Template.headings!!.get(i - 1 - colStart).formatHeading)
+                                                .build()
+                                )
                                 .value(if (extraCol == 1 && i == cols + colStart + extraCol) sumColRight!!.value else this@Template.headings!!.get(i - 1 - colStart).value)
                     }
                 }
@@ -119,40 +136,39 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
             }
 
             var cnt = rowStart + 1
+            val orderedHeadings = this@Template.headings?.map { k -> k.bindingKeyinData ?: k.value.toString() }
 
 
-            this@Template.data.forEach { v ->
+            this@Template.data.forEach { v0 ->
                 with(it.createRow(cnt++)) {
                     this.heightInPoints = rowHeight
+
+                    // transform the Map into List
+                    val v = orderedHeadings?.map { k -> v0.getOrDefault(k, "") } ?: (v0.values)
 
                     v.forEachIndexed { index, d ->
                         with(this.createCell(index + colStart)) {
                             ExcelUtil.Update(this)
-                                    .style(if ((cnt - rowStart) % 2 == 0) light else dark)
+                                    .style(ExcelUtil.StyleBuilder(w).fromStyle(if ((cnt - rowStart) % 2 == 0) light else dark)
                                     .dataFormat(this@Template.headings!!.get(index).formatData)
+                                            .borderStyle(
+                                                    down = if (cnt.equals(data.count() + 1 + rowStart)) BorderStyle.MEDIUM else null,
+                                                    right = if (index.equals(v.count() - 1)) BorderStyle.MEDIUM else null,
+                                                    left = if (index.equals(0)) BorderStyle.MEDIUM else null
+                                            )
+                                            .build()
+                                    )
                                     .value(d)
-
-                            if (cnt.equals(data.count() + 1 + rowStart)) {
-                                ExcelUtil.Update(this).borderStyle(down = BorderStyle.MEDIUM)
-                            }
-
-                            if (index.equals(v.count() - 1)) {
-                                ExcelUtil.Update(this).borderStyle(right = BorderStyle.MEDIUM)
-                            }
-
-                            if (index.equals(0)) {
-                                ExcelUtil.Update(this).borderStyle(left = BorderStyle.MEDIUM)
-                            }
                         }
                     }
 
                     if (extraCol == 1) {
                         with(this.createCell(v.count() + colStart)) {
                             ExcelUtil.Update(this)
-                                    .style(if ((cnt - rowStart) % 2 == 0) light else dark)
+                                    .style(ExcelUtil.StyleBuilder(w).fromStyle(if ((cnt - rowStart) % 2 == 0) light else dark)
                                     .borderColor(right = IndexedColors.BLACK.index)
                                     .borderStyle(right = BorderStyle.MEDIUM)
-                                    .dataFormat(sumColRight!!.formatData)
+                                            .dataFormat(sumColRight!!.formatData).build())
                                     .formula("${sumColRightFormula}(${CellUtil.getCell(this.row, colStart + 1).address}:${CellUtil.getCell(this.row, this.columnIndex - 1).address})")
                         }
                     }
@@ -161,20 +177,21 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Li
 
             if (extraRow == 1) {
                 with(it.createRow(cnt++)) {
+                    this.heightInPoints = rowHeight
                     for (i: Int in 1 + colStart..cols + colStart + extraCol) {
                         with(this.createCell(i - 1)) {
-                            ExcelUtil.Update(this).style(heading)
+                            ExcelUtil.Update(this).style(ExcelUtil.StyleBuilder(w).fromStyle(heading)
                                     .borderStyle(down = BorderStyle.MEDIUM, up = BorderStyle.DOUBLE)
                                     .borderStyle(left = if (i == 1 + colStart) BorderStyle.MEDIUM else null)
                                     .borderColor(left = if (i == 1 + colStart) IndexedColors.BLACK.index else null)
                                     .borderStyle(right = if (i == cols + colStart + extraCol) BorderStyle.MEDIUM else null)
-                                    .borderColor(right = if (i == cols + colStart + extraCol) IndexedColors.BLACK.index else null)
-                                    .formula(if (i == 1 + colStart) null else
-                                        "${sumRowBottomFormula}(${CellUtil.getCell(CellUtil.getRow(rowStart + 1, this.sheet), this.columnIndex).address}:${CellUtil.getCell(CellUtil.getRow(this.rowIndex - 1, this.sheet), this.columnIndex).address})"
-                                    )
-                                    .value(if (i == 1 + colStart) sumRowBottom!!.value else null)
                                     .dataFormat(if (i == 1 + colStart) sumRowBottom!!.formatHeading else sumRowBottom!!.formatData)
                                     .alignment(if (i == 1 + colStart) null else HorizontalAlignment.RIGHT)
+                                    .borderColor(right = if (i == cols + colStart + extraCol) IndexedColors.BLACK.index else null).build())
+                                    .formula(if (this@Template.headings?.get(i - 1 - colStart)?.dataAggregatable != true) null else
+                                        "$sumRowBottomFormula(${CellUtil.getCell(CellUtil.getRow(rowStart + 1, this.sheet), this.columnIndex).address}:${CellUtil.getCell(CellUtil.getRow(this.rowIndex - 1, this.sheet), this.columnIndex).address})"
+                                    )
+                                    .value(if (i == 1 + colStart) sumRowBottom.value else null)
                         }
                     }
                 }

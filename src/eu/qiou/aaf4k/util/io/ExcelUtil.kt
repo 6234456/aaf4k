@@ -465,6 +465,10 @@ object ExcelUtil {
             return this
         }
 
+        fun fill(l: Long, style: FillPatternType = FillPatternType.SOLID_FOREGROUND): StyleBuilder {
+            return fillRGB(longToRGB(l), style)
+        }
+
         fun fillRGB(rgb: Triple<Int, Int, Int>, style: FillPatternType = FillPatternType.SOLID_FOREGROUND): StyleBuilder {
 
             if (wb is HSSFWorkbook) {
@@ -545,7 +549,7 @@ object ExcelUtil {
 
             // facilitate the rgb-color setting in xls
             private val replaceableHSSFColors = listOf(
-                    HSSFColor.OLIVE_GREEN.index, HSSFColor.GREEN.index
+                    HSSFColor.OLIVE_GREEN.index, HSSFColor.GREEN.index, HSSFColor.BRIGHT_GREEN.index, HSSFColor.SEA_GREEN.index
             )
 
             private var index = 0
@@ -559,8 +563,9 @@ object ExcelUtil {
 
             fun get(rgb: Triple<Int, Int, Int>): Short {
 
-                if (m.containsKey(rgb))
+                if (m.containsKey(rgb)) {
                     return m.get(rgb)!!
+                }
                 else {
                     if (index == lastIndex) {
                         throw Exception("All the replaceable slots are taken!")

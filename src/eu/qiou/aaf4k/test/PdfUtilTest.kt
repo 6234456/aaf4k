@@ -3,6 +3,7 @@ package eu.qiou.aaf4k.test
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.io.PdfUtil
 import eu.qiou.aaf4k.util.template.Template
+import eu.qiou.aaf4k.util.toIndexedMap
 import org.junit.Test
 import java.awt.Rectangle
 import java.io.File
@@ -121,7 +122,7 @@ class PdfUtilTest {
                 //   Template.HeadingFormat("KontoNr", formatData = ExcelUtil.DataFormat.INT.format),
                 Template.HeadingFormat("KontoName", formatData = ExcelUtil.DataFormat.STRING.format)
         ),
-                map.values.toList()
+                map.values.map { it.toIndexedMap() }
 
         ).build("skr4.xls")
     }

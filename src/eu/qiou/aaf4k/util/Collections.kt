@@ -87,5 +87,4 @@ fun <K, V, R> Map<K, V>.mapKeysIndexed(operation: (Map.Entry<K, V>, Int) -> R): 
 
 fun <K, V, R> Iterable<R>.replaceValueBasedOnIndex(map: Map<K, V>): Map<K, R> = map.replaceValueBasedOnIndex(this)
 
-
-
+fun <K> Iterable<K>.toIndexedMap(): Map<Int, K> = this.mapIndexed { i, k -> i to k }.toMap()

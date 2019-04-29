@@ -6,6 +6,7 @@ import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.time.TimeSpan
+import eu.qiou.aaf4k.util.toIndexedMap
 import eu.qiou.aaf4k.util.unit.ForeignExchange
 import org.junit.Test
 import java.time.LocalDate
@@ -43,7 +44,7 @@ class ForeignExchangeTest {
                         Template.HeadingFormat("Date", ExcelUtil.DataFormat.STRING.format, "yyyy-mm-dd"),
                         Template.HeadingFormat("Exchange Rate", ExcelUtil.DataFormat.STRING.format, "#,###.0000")
                 ),
-                data = f.flatList(),
+                data = f.flatList().map { it.toIndexedMap() },
                 sumRowBottom = Template.HeadingFormat("Average", formatData = "#,###.0000"),
                 sumRowBottomFormula = "AVERAGE"
         ).build("src/eu/qiou/aaf4k/test/demo2.xlsx", "trail")
