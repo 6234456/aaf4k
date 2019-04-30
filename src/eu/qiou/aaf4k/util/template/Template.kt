@@ -7,7 +7,7 @@ import org.apache.poi.ss.util.CellUtil
 
 
 open class Template(val headings: List<HeadingFormat>? = null, val data: List<Map<*, *>>, val caption: List<Pair<String, String>>? = null, val colorSchema: ColorSchema = ColorSchema(),
-                    val sumColRight: HeadingFormat? = null, val sumRowBottom: HeadingFormat? = null, val sumRowBottomFormula: String = "SUM", val sumColRightFormula: String = "SUM", val theme: Theme? = null) {
+                    val sumColRight: HeadingFormat? = null, val sumRowBottom: HeadingFormat? = null, val sumRowBottomFormula: String = "SUM", val sumColRightFormula: String = "SUM", var theme: Theme? = null) {
     class ColorSchema(val colorHeading: IndexedColors = IndexedColors.ROYAL_BLUE, val colorDarkRow: IndexedColors = IndexedColors.PALE_BLUE)
 
     // the formula param if not null depend on other columns
@@ -55,7 +55,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
 
     fun build(path: String, sheetName: String = "Overview") {
         val cols = headings?.size ?: data[0].count()
-        val colWidth = 18
+        val colWidth = 24
         val headingHeight = 45f
         val rowHeight = 20f
         val captionHeight = 30f
@@ -74,7 +74,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
                         if (theme == null)
                             this.fill(colorSchema.colorDarkRow.index)
                         else
-                            this.fill(theme.light)
+                            this.fill(theme!!.light)
                     }
                     .build()
 
@@ -87,7 +87,7 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
                         if (theme == null)
                             this.fill(colorSchema.colorHeading.index)
                         else
-                            this.fill(theme.dark)
+                            this.fill(theme!!.dark)
                     }
                     .build()
 

@@ -1,19 +1,22 @@
 package eu.qiou.aaf4k.util.template
 
+import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.util.io.ExcelUtil
 
-class DevelopmentOfAccount(data: List<Map<String, *>>, entityName: String, projectName: String, workingPaperName: String, processedBy: String, theme: Theme? = Theme.BLOOD) : Template(
-        headings = listOf(
-                HeadingFormat(value = "Nr.", formatData = ExcelUtil.DataFormat.STRING.format, isAutoIncrement = true),
-                HeadingFormat(value = "Name", formatData = ExcelUtil.DataFormat.STRING.format),
-                HeadingFormat(value = "Anfangsbestand", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
-                HeadingFormat(value = "Zugang", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
-                HeadingFormat(value = "Abgang", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
-                HeadingFormat(value = "Umbuchung", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
-                HeadingFormat(value = "Endebestand", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true, formula = "[-1]-[-2]+[-3]+[-4]")
-        ),
-        theme = theme,
-        data = data,
-        caption = listOf(entityName to projectName, workingPaperName to "$processedBy/${java.time.LocalDate.now()}"),
-        sumRowBottom = HeadingFormat("Summe")
-)
+class DevelopmentOfAccount(
+        data: List<Map<String, *>> = listOf(),
+        entityName: String = GlobalConfiguration.DEFAULT_ENTITY.name,
+        projectName: String = GlobalConfiguration.DEFAULT_PROJECT_NAME,
+        workingPaperName: String = "",
+        processedBy: String = GlobalConfiguration.DEFAULT_PROCESSOR_NAME,
+        theme: Template.Theme? = Template.Theme.BLOOD
+) :
+        WorkingPaper(listOf(
+                Template.HeadingFormat(value = "Nr.", formatData = ExcelUtil.DataFormat.STRING.format, isAutoIncrement = true),
+                Template.HeadingFormat(value = "Name", formatData = ExcelUtil.DataFormat.STRING.format),
+                Template.HeadingFormat(value = "Anfangsbestand", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
+                Template.HeadingFormat(value = "Zugang", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
+                Template.HeadingFormat(value = "Abgang", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
+                Template.HeadingFormat(value = "Umbuchung", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true),
+                Template.HeadingFormat(value = "Endebestand", formatData = ExcelUtil.DataFormat.NUMBER.format, dataAggregatable = true, formula = "[-1]-[-2]+[-3]+[-4]")
+        ), data, entityName, projectName, workingPaperName, processedBy, theme)

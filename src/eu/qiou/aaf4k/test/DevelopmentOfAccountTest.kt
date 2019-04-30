@@ -14,9 +14,22 @@ class DevelopmentOfAccountTest {
                 mapOf( "Name" to "Demo1", "Anfangsbestand" to 100, "Zugang" to 20, "Abgang" to 9, "Umbuchung" to 0)
         ), "Demo GmbH",
 
-                "Jahresabschlussprüfung 2018",
+                "JAP 2018",
                 "Rückstellungen",
-                "Qiou Yang", theme = Template.Theme.BLACK_WHITE)
+                "Yang", theme = Template.Theme.BLACK_WHITE).also {
+            it.entityName = "Trail GmbH"
+        }
                 .build("data/trail.xlsx")
+
+        DevelopmentOfAccount(listOf(
+                mapOf("Name" to "Demo1", "Anfangsbestand" to 100, "Zugang" to 20, "Abgang" to 9, "Umbuchung" to 0),
+                mapOf("Name" to "Demo1", "Anfangsbestand" to 100, "Abgang" to 20, "Zugang" to 9, "Umbuchung" to 0),
+                mapOf("Name" to "Demo1", "Anfangsbestand" to 100, "Zugang" to 20, "Abgang" to 9, "Umbuchung" to 0)
+        ), "Demo GmbH",
+
+                "JAP 2018",
+                "Rückstellungen",
+                "Qiou Yang", theme = Template.Theme.ORANGE)
+                .build("data/trail.xls")
     }
 }

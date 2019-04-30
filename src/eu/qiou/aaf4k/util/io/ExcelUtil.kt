@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.util.io
 
+import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_FONT_NAME
 import eu.qiou.aaf4k.util.strings.times
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
@@ -17,7 +18,7 @@ import java.util.*
 
 object ExcelUtil {
     val digitRegex = """[-.\d]+""".toRegex()
-    val formatSpecifier = """(?:([0#]*)|(?:([0#]{1,3})?(\,(?:[0#]{3})?)*))(\.)?([0#]*)""".toRegex()
+    val formatSpecifier = """(?:([0#]*)|(?:([0#]{1,3})?(,(?:[0#]{3})?)*))(\.)?([0#]*)""".toRegex()
 
 
     // the float numbers in the spreadsheet should be formatted, or by default in will be parsed to Int
@@ -123,9 +124,13 @@ object ExcelUtil {
         } else {
 
             val workbook = if (path.endsWith(".xls"))
-                HSSFWorkbook()
+                HSSFWorkbook().apply {
+                    summaryInformation.author = GlobalConfiguration.DEFAULT_AUTHOR_NAME
+                }
             else
-                XSSFWorkbook()
+                XSSFWorkbook().apply {
+                    properties.coreProperties.creator = GlobalConfiguration.DEFAULT_AUTHOR_NAME
+                }
 
             callback(workbook)
             saveWorkbook(path, workbook)

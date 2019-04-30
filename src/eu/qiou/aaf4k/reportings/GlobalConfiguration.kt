@@ -31,6 +31,10 @@ object GlobalConfiguration {
     val DEFAULT_ENTITY = ProtoEntity(0, "Demo GmbH", "Demo", "a fictive company")
 
     val DEFAULT_FONT_NAME = "Bahnschrift"
+    val DEFAULT_PROJECT_NAME = "JAP 2018"
+    val DEFAULT_PROCESSOR_NAME = "Qiou Yang"
+
+    val DEFAULT_AUTHOR_NAME = "Qiou Yang"
 
     // Foreign Exchange Rate
 
