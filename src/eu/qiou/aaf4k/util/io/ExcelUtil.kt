@@ -125,6 +125,9 @@ object ExcelUtil {
 
             val workbook = if (path.endsWith(".xls"))
                 HSSFWorkbook().apply {
+                    if (summaryInformation == null) {
+                        this.createInformationProperties()
+                    }
                     summaryInformation.author = GlobalConfiguration.DEFAULT_AUTHOR_NAME
                 }
             else
