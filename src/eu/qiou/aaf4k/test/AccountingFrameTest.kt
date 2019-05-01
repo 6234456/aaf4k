@@ -36,7 +36,7 @@ class AccountingFrameTest {
             if (it.exists())
                 it.delete()
         }
-        frame.toXl("data/de_trail.xlsx", t = Template.Theme.LAVENA)
+        frame.toXl("data/de_trail.xlsx", t = Template.Theme.LAVANDA)
 
         Files.write(Paths.get("data/de_accounting.txt"), frame.toJSON().lines())
     }
@@ -55,7 +55,7 @@ class AccountingFrameTest {
             if (it.exists())
                 it.delete()
         }
-        frame.toXl("data/de_trail.xlsx", t = Template.Theme.LAVENA)
+        frame.toXl("data/de_trail.xlsx", t = Template.Theme.LAVANDA)
 
         Files.write(Paths.get("data/de_accounting.txt"), frame.toJSON().lines())
     }

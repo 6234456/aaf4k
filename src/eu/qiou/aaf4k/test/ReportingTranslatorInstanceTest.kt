@@ -44,7 +44,7 @@ class ReportingTranslatorInstanceTest {
             }
         }
 
-        p.toXl("data/packages.xls", t = Template.Theme.LAVENA)
+        p.toXl("data/packages.xls", t = Template.Theme.LAVANDA)
 
     }
 

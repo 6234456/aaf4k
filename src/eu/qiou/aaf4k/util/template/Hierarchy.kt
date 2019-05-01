@@ -8,7 +8,7 @@ import kotlin.reflect.full.createInstance
 
 //the default reference index comply with the numeration of list
 //the hierarchy is separated by period
-class Hierarchy(private val name: String, private var index: String = "0") {
+class Hierarchy(private val name: String, private var index: String = "A0") {
     companion object {
         private var unifyFileName: (String) -> String = { "${GlobalConfiguration.DEFAULT_PROJECT_NAME}_${GlobalConfiguration.DEFAULT_ENTITY.abbreviation}_${it.replace("""[*$%|/\\]+""".toRegex(), "_")}".take(100) }
     }

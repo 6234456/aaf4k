@@ -14,13 +14,16 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
     // [1] + [2]   relative reference
     // (1) + (2)   absolute reference
     class HeadingFormat(val value: Any = "", val formatHeading: String = ExcelUtil.DataFormat.STRING.format,
-                        val formatData: String = ExcelUtil.DataFormat.NUMBER.format, val dataAggregatable: Boolean = false,
-                        val bindingKeyinData: String? = null, val formula: String? = null, val isAutoIncrement: Boolean = false)
+                        val formatData: String = ExcelUtil.DataFormat.NUMBER.format,
+                        val dataAggregatable: Boolean = false,
+                        val bindingKeyinData: String? = null, val formula: String? = null,
+                        val isAutoIncrement: Boolean = false,
+                        val columnWidth: Int = 24)
 
     enum class Theme(val dark: Long, val light: Long) {
         DEFAULT(11892015L, 16247773L),
         BLACK_WHITE(7434613L, 14277081L),
-        LAVENA(10498160L, 16306927L),
+        LAVANDA(10498160L, 16306927L),
         ORANGE(3243501L, 14083324L),
         SKY_BLUE(15773696L, 16247773L),
         LIGHT_GREEN(9359529L, 14348258L),
@@ -124,7 +127,8 @@ open class Template(val headings: List<HeadingFormat>? = null, val data: List<Ma
             with(it.createRow(rowStart)) {
                 for (i: Int in 1 + colStart..cols + colStart + extraCol) {
                     with(this.createCell(i - 1)) {
-                        this.row.sheet.setColumnWidth(this.columnIndex, colWidth * 256)
+                        this.row.sheet.setColumnWidth(this.columnIndex, ((headings?.get(i - 1 - colStart)?.columnWidth)
+                                ?: colWidth) * 256)
                         ExcelUtil
                                 .Update(this)
                                 .style(
