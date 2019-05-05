@@ -13,8 +13,8 @@ import javax.script.ScriptEngineManager
  *         [= new Date()]
  */
 class TemplateEngine(val prefix: String = "[", val affix: String = "]", val fmt: String = "%,.2f") {
-    private val regEvaluate = """\${prefix}=([^\|]+)(?:\s*\|\s*(%[\d\w.,]+))?\s*\${affix}""".toRegex()
-    private val regElement = """\${prefix}([^\${prefix}\${affix}\|]+)(?:\s*\|\s*(%[\d\w.,]+))?\s*\${affix}""".toRegex()
+    private val regEvaluate = """\$prefix=([^|]+)(?:\s*\|\s*(%[\d\w.,]+))?\s*\$affix""".toRegex()
+    private val regElement = """\$prefix([^\$prefix\$affix\|]+)(?:\s*\|\s*(%[\d\w.,]+))?\s*\$affix""".toRegex()
     private val js = ScriptEngineManager().getEngineByName("js")
 
     private fun parse(tpl: String, data: Map<String, Any>, withBrackets: Boolean = false): String {
