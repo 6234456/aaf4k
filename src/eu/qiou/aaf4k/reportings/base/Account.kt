@@ -19,6 +19,22 @@ data class Account(override val id: Long, override val name: String,
                    override val reportingType: ReportingType = ReportingType.AUTO, override val displayUnit: ProtoUnit = CurrencyUnit()
 ) : ProtoAccount {
 
+    companion object {
+        private var reportingCodePrepared = false
+        private lateinit var reportingCode: Map<String, ReportingType>
+
+        val parseReportingType: (String) -> ReportingType = { x->
+            if (!reportingCodePrepared) {
+                reportingCode = ReportingType.values().map {
+                    it.code to it
+                }.toMap()
+
+                reportingCodePrepared = true
+            }
+            reportingCode[x]!!
+        }
+    }
+
     override fun nullify(): ProtoAccount {
         return copy(value = 0L)
     }

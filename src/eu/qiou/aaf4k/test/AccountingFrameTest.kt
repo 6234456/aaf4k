@@ -1,12 +1,9 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.accounting.model.*
 import eu.qiou.aaf4k.gui.GUI
-import eu.qiou.aaf4k.reportings.etl.AccountingFrame
+import eu.qiou.aaf4k.reportings.base.*
 import eu.qiou.aaf4k.reportings.model.Address
 import eu.qiou.aaf4k.reportings.model.Person
-import eu.qiou.aaf4k.reportings.model.ProtoAccount
-import eu.qiou.aaf4k.reportings.model.ProtoEntity
 import eu.qiou.aaf4k.util.groupNearby
 import eu.qiou.aaf4k.util.io.*
 import eu.qiou.aaf4k.util.template.Template
@@ -21,16 +18,19 @@ import java.util.*
 class AccountingFrameTest {
     @Test
     fun trailDE() {
-        val frame: Reporting = AccountingFrame.inflate(123, "de_hgb_2018").toReporting(123, "ED",
-                displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016)).update(
-                mapOf(24L to 25000.0, 61L to -25000.0)
-        )
+        val frame: Reporting = AccountingFrame.inflate(123, "de_hgb_2018")
+                .toReporting(123, "ED", displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"),
+                        timeParameters = TimeParameters.forYear(2016)).apply {
+                    update(mapOf(111L to 2123.23, 124L to 20.0 ))
+                }
 
-        val cat1 = Category("KapKons-Erst", 1, "Kapital Konsolidierung", frame)
-        val cat4 = Category("KapKons-Folge", 2, "Kapital Konsolidierung", frame)
-        val cat5 = Category("ZG-Elimilierung", 3, "Kapital Konsolidierung", frame)
-        val cat2 = Category("SchuKons", 4, "Kapital Konsolidierung", frame)
-        val cat3 = Category("A/E-Kons", 5, "Kapital Konsolidierung", frame)
+        println(frame)
+
+        Category("KapKons-Erst", "Kapital Konsolidierung", frame)
+        Category("KapKons-Folge",  "Kapital Konsolidierung", frame)
+        Category("ZG-Elimilierung",  "Kapital Konsolidierung", frame)
+        Category("SchuKons",  "Kapital Konsolidierung", frame)
+        Category("A/E-Kons", "Kapital Konsolidierung", frame)
 
         Paths.get("data/de_trail.xlsx").toFile().let {
             if (it.exists())
@@ -45,11 +45,11 @@ class AccountingFrameTest {
     fun trailDE1() {
         val frame: Reporting = AccountingFrame.inflate(123, "hgb", "credentials/de_hgb_2018.txt").toReporting(123, "ED",
                 displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016))
-        val cat1 = Category("KapKons-Erst", 1, "Kapital Konsolidierung", frame)
-        val cat4 = Category("KapKons-Folge", 2, "Kapital Konsolidierung", frame)
-        val cat5 = Category("ZG-Elimilierung", 3, "Kapital Konsolidierung", frame)
-        val cat2 = Category("SchuKons", 4, "Kapital Konsolidierung", frame)
-        val cat3 = Category("A/E-Kons", 5, "Kapital Konsolidierung", frame)
+        val cat1 = Category("KapKons-Erst", "Kapital Konsolidierung", frame)
+        val cat4 = Category("KapKons-Folge", "Kapital Konsolidierung", frame)
+        val cat5 = Category("ZG-Elimilierung",  "Kapital Konsolidierung", frame)
+        val cat2 = Category("SchuKons", "Kapital Konsolidierung", frame)
+        val cat3 = Category("A/E-Kons",  "Kapital Konsolidierung", frame)
 
         Paths.get("data/de_trail.xlsx").toFile().let {
             if (it.exists())
@@ -64,32 +64,35 @@ class AccountingFrameTest {
     companion object {
         fun testReporting(): Reporting {
             val frame = AccountingFrame.inflate(123, "cn_cas_2018").toReporting(123, "ED",
-                    displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016)).update(
-                    mapOf(3100L to 1203.0, 3400L to -1203.0)
-            )
+                    displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016)).apply {
+                update(
+                        mapOf(3100L to 1203.0, 3400L to -1203.0)
+                )
+            }
 
-            val category = Category("年度账户", 0, "laufende Buchungen", frame)
-            val category1 = Category("合并抵销分录", 1, "laufende Buchungen", frame)
-            val category2 = Category("权益抵销分录", 2, "laufende Buchungen", frame)
-            val entry = Entry(0, "Demo1", category)
+
+            val category = Category("年度账户", "laufende Buchungen", frame)
+            val category1 = Category("合并抵销分录", "laufende Buchungen", frame)
+            val category2 = Category("权益抵销分录", "laufende Buchungen", frame)
+            val entry = Entry("Demo1", category)
 
             entry.add(3100, 3000.0)
             entry.add(3400, 3400.0)
             entry.balanceWith(3200)
 
-            val entry1 = Entry(category.nextEntryIndex, "Demo2", category)
+            val entry1 = Entry("Demo2", category)
 
             entry1.add(3100, 3000.0)
             entry1.add(3400, 3400.0)
             entry1.balanceWith(3200)
 
-            Entry(category1.nextEntryIndex, "Trail", category1).apply {
+            Entry("Trail", category1).apply {
                 add(1005, 3000.0)
                 add(2900, 3400.0)
                 balanceWith(3200)
             }
 
-            Entry(category2.nextEntryIndex, "Demo3", category2).apply {
+            Entry("Demo3", category2).apply {
                 add(1005, 3000.0)
                 add(2800, 3400.0)
                 balanceWith(3200)
@@ -106,19 +109,12 @@ class AccountingFrameTest {
     @Test
     fun stat() {
         val reporting = testReporting()
-        Entry(8, "dsder", reporting.categories.elementAt(0) as Category).add(
+        Entry("dsder", reporting.categories.elementAt(0) as Category).add(
                 5202, 100.0
         )
 
         reporting.findAccountByID(5202)!!.let {
             println(it.isStatistical)
-            println(it.toBuilder().isStatistical)
-            println(it.toBuilder()
-                    .setValue(v = 1000.0, decimalPrecision = it.decimalPrecision)
-                    .build().isStatistical)
-            println(Account.from(it.toBuilder()
-                    .setValue(v = 1000.0, decimalPrecision = it.decimalPrecision)
-                    .build(), it.reportingType).isStatistical)
         }
 
     }
@@ -140,7 +136,7 @@ class AccountingFrameTest {
 
     @Test
     fun nullify() {
-        println(Account.from(ProtoAccount.Builder(123, "Demo").setValue(10.0).build(), ReportingType.LIABILITY).nullify())
+        println(Account(123,"Demo",34234, reportingType = ReportingType.LIABILITY).nullify())
         Files.write(Paths.get("data/accounting.txt"), AccountingFrameTest.testReporting().toJSON().lines())
     }
 
@@ -176,7 +172,7 @@ class AccountingFrameTest {
         println(a)
         println(a.toJSON().toAddress())
 
-        val entity = ProtoEntity(1234, "Qiou GmbH", "Qiou", "dsf", p, a)
+        val entity = Entity(1234, "Qiou GmbH", "Qiou", "dsf", p, a)
         println(entity)
         println(entity.toJSON().toEntity())
 
@@ -197,7 +193,7 @@ class AccountingFrameTest {
 
     @Test
     fun carryForward() {
-        val r = AccountingFrame.inflate(123, "hgb", "data/de/credentials.de_hgb_2018.txt").toReporting(123, "Demo", entity = ProtoEntity(123, "Qiou GmbH", "Qiou"))
+        val r = AccountingFrame.inflate(123, "hgb", "data/de/credentials.de_hgb_2018.txt").toReporting(123, "Demo", entity = Entity(123, "Qiou GmbH", "Qiou"))
         r.prepareConsolidation(Locale.ENGLISH)
         Files.write(Paths.get("data/de_accounting.txt"), r.toJSON().split("\n"))
 

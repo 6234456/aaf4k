@@ -16,7 +16,7 @@ import org.apache.poi.ss.util.CellUtil
 import java.util.*
 
 
-class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccount by core {
+open class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccount by core {
 
     companion object {
         private const val INIT_KAPCONS_CAT_ID = 0
@@ -39,7 +39,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
     })
 
 
-    private val flattened: List<ProtoAccount> = this.flatten().sortedBy { it.id }
+    val flattened: List<ProtoAccount> = this.flatten().sortedBy { it.id }
     private val sortedFlattenedAll: List<ProtoAccount> = flattenWithAllAccounts().sortedBy { it.id }
 
 
@@ -194,7 +194,9 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         }
     }
 
-    private var consCategoriesAdded = false
+    var consCategoriesAdded = false
+        private set
+
     private var reclAdjCategoriesAdded = false
 
     fun clearCategories() {
