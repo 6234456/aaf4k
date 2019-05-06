@@ -24,7 +24,19 @@ class AccountingFrameTest {
                     update(mapOf(111L to 2123.23, 124L to 20.0 ))
                 }
 
-        println(frame)
+        assert(frame.countRecursively(false) == frame.sortedList.size)
+        assert(frame.countRecursively(true) == frame.sortedAllList.size)
+
+        with(frame.search(6)) {
+
+            this as CollectionAccount
+
+
+            println(countRecursively(true))
+            println(sortedAllList.map { it.id })
+            assert(countRecursively(true) == sortedAllList.size)
+        }
+
 
         Category("KapKons-Erst", "Kapital Konsolidierung", frame)
         Category("KapKons-Folge",  "Kapital Konsolidierung", frame)
@@ -45,11 +57,11 @@ class AccountingFrameTest {
     fun trailDE1() {
         val frame: Reporting = AccountingFrame.inflate(123, "hgb", "credentials/de_hgb_2018.txt").toReporting(123, "ED",
                 displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"), timeParameters = TimeParameters.forYear(2016))
-        val cat1 = Category("KapKons-Erst", "Kapital Konsolidierung", frame)
-        val cat4 = Category("KapKons-Folge", "Kapital Konsolidierung", frame)
-        val cat5 = Category("ZG-Elimilierung",  "Kapital Konsolidierung", frame)
-        val cat2 = Category("SchuKons", "Kapital Konsolidierung", frame)
-        val cat3 = Category("A/E-Kons",  "Kapital Konsolidierung", frame)
+        Category("KapKons-Erst", "Kapital Konsolidierung", frame)
+        Category("KapKons-Folge", "Kapital Konsolidierung", frame)
+        Category("ZG-Elimilierung", "Kapital Konsolidierung", frame)
+        Category("SchuKons", "Kapital Konsolidierung", frame)
+        Category("A/E-Kons", "Kapital Konsolidierung", frame)
 
         Paths.get("data/de_trail.xlsx").toFile().let {
             if (it.exists())
@@ -109,7 +121,7 @@ class AccountingFrameTest {
     @Test
     fun stat() {
         val reporting = testReporting()
-        Entry("dsder", reporting.categories.elementAt(0) as Category).add(
+        Entry("dsder", reporting.categories.elementAt(0)).add(
                 5202, 100.0
         )
 
@@ -137,12 +149,12 @@ class AccountingFrameTest {
     @Test
     fun nullify() {
         println(Account(123,"Demo",34234, reportingType = ReportingType.LIABILITY).nullify())
-        Files.write(Paths.get("data/accounting.txt"), AccountingFrameTest.testReporting().toJSON().lines())
+        Files.write(Paths.get("data/accounting.txt"), testReporting().toJSON().lines())
     }
 
     @Test
     fun parseJSON() {
-        val s = AccountingFrameTest.testReporting()
+        val s = testReporting()
 
         print(s.categories.elementAt(0).toJSON())
     }
@@ -176,7 +188,7 @@ class AccountingFrameTest {
         println(entity)
         println(entity.toJSON().toEntity())
 
-        val re = AccountingFrameTest.testReporting()
+        val re = testReporting()
         println(re.toJSON().toReporting().entity.toJSON())
 
     }

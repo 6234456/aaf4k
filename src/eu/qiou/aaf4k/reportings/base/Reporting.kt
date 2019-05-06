@@ -33,15 +33,33 @@ open class Reporting(private val core: ProtoCollectionAccount) : ProtoCollection
     override val timeParameters: TimeParameters = core.timeParameters ?: GlobalConfiguration.DEFAULT_TIME_PARAMETERS
     private val structure = core.subAccounts
 
-
     fun add(category: Category) = categories.add(category.apply {
         id = nextCategoryIndex++
     })
 
+    override fun add(child: ProtoAccount, index: Int?): ProtoCollectionAccount {
+        return this.apply {
+            super.add(child, index)
+            toUpdate = true
+        }
+    }
 
-    val flattened: List<ProtoAccount> = this.flatten().sortedBy { it.id }
-    private val sortedFlattenedAll: List<ProtoAccount> = flattenWithAllAccounts().sortedBy { it.id }
+    var toUpdate = false
 
+    override var sortedList: List<ProtoAccount> = flatten()
+        get() = if (toUpdate) field else {
+            toUpdate = false; flatten()
+        }
+
+    override var sortedAllList: List<ProtoAccount> = flattenAll()
+        get() = if (toUpdate) field else {
+            toUpdate = false; flattenAll()
+        }
+
+    fun immutable() {
+        sortedAllList = flattenAll()
+        sortedList = flatten()
+    }
 
     private fun mergeCategories(): Map<Long, Double> {
         return if (categories.isEmpty()) mapOf() else categories.map { it.toDataMap() }.reduce { acc, map ->
@@ -52,7 +70,7 @@ open class Reporting(private val core: ProtoCollectionAccount) : ProtoCollection
     fun guessSuperAccount(id: Long): ProtoAccount {
         tailrec fun search(low: Int, high: Int): Int {
             val mid = (low + high) / 2
-            val midVal = sortedFlattenedAll[mid].id
+            val midVal = this.sortedAllList[mid].id
 
             return when {
                 high - low == 1 -> low
@@ -60,7 +78,7 @@ open class Reporting(private val core: ProtoCollectionAccount) : ProtoCollection
                 else -> search(low, mid)
             }
         }
-        return findAccountByID(id) ?: sortedFlattenedAll[search(0, sortedFlattenedAll.size)]
+        return findAccountByID(id) ?: this.sortedAllList[search(0, this.sortedAllList.size)]
     }
 
     // entry-Id to entry
@@ -86,7 +104,7 @@ open class Reporting(private val core: ProtoCollectionAccount) : ProtoCollection
     }
 
     fun shorten(): Reporting {
-        val whiteList = categories.fold(flattened) { acc, protoCategory ->
+        val whiteList = categories.fold(this.sortedList) { acc, protoCategory ->
             acc + protoCategory.flatten(true)
         }.filter { it.value != 0L }.toSet()
 
@@ -99,12 +117,6 @@ open class Reporting(private val core: ProtoCollectionAccount) : ProtoCollection
 
         return structure.map { if (it is ProtoCollectionAccount) it.flatten() else mutableListOf(it) }.reduce { acc, mutableList ->
             acc.apply { addAll(mutableList) }
-        }
-    }
-
-    private fun flattenWithAllAccounts(): List<ProtoAccount> {
-        return structure.fold(listOf()) { acc, t ->
-            (acc + if (t is ProtoCollectionAccount) t.flattenIncludeSelf() else listOf(t))
         }
     }
 
@@ -150,11 +162,11 @@ open class Reporting(private val core: ProtoCollectionAccount) : ProtoCollection
     }
 
 
-    val periodResultInBalance = flattened.find { it.reportingType == ReportingType.RESULT_BALANCE }
-    val retainedEarning = flattened.find { it.reportingType == ReportingType.RETAINED_EARNINGS_BEGINNING }
-    val oci = flattened.find { it.reportingType == ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE }
-    val diffSchuKons = flattened.find { it.reportingType == ReportingType.DIFF_CONS_RECEIVABLE_PAYABLE }
-    val diffAEKons = flattened.find { it.reportingType == ReportingType.DIFF_CONS_REVENUE_EXPENSE }
+    val periodResultInBalance = this.sortedList.find { it.reportingType == ReportingType.RESULT_BALANCE }
+    val retainedEarning = this.sortedList.find { it.reportingType == ReportingType.RETAINED_EARNINGS_BEGINNING }
+    val oci = this.sortedList.find { it.reportingType == ReportingType.PROFIT_LOSS_NEUTRAL_BALANCE }
+    val diffSchuKons = this.sortedList.find { it.reportingType == ReportingType.DIFF_CONS_RECEIVABLE_PAYABLE }
+    val diffAEKons = this.sortedList.find { it.reportingType == ReportingType.DIFF_CONS_REVENUE_EXPENSE }
 
     fun prepareConsolidation(locale: Locale? = null) {
         if (!consCategoriesAdded && !reclAdjCategoriesAdded) {
@@ -208,7 +220,7 @@ open class Reporting(private val core: ProtoCollectionAccount) : ProtoCollection
     fun carryForward(): Reporting {
         return (deepCopy() as Reporting).apply {
             val re = this.retainedEarning!!
-            val pl = this.flattened.filter {
+            val pl = this.sortedList.filter {
                 it.reportingType == ReportingType.REVENUE_GAIN
                         || it.reportingType == ReportingType.EXPENSE_LOSS
                         || it.reportingType == ReportingType.PROFIT_LOSS_NEUTRAL

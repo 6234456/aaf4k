@@ -18,34 +18,29 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
 
     fun remove(child: C): P
 
-    var sortedList: List<C>?
-    var sortedAllList: List<C>?
+    val sortedList: List<C>
+        get() = sortedAllList.filter { it !is Drilldownable<*, *> }
+
+    val sortedAllList: List<C>
+        get() = flattenAll()
 
     @Suppress("UNCHECKED_CAST")
     fun search(id: Long): C? {
-        getChildren().forEach {
-            if (it.id == id) return it
-            if (it is Drilldownable<*, *>) return it.search(id) as C?
-        }
-
-        return null
+        return binarySearch(id, true)
     }
 
     fun binarySearch(id: Long, includeSelf: Boolean = false): C? {
-        if (!includeSelf && sortedList == null) flatten()
-        if (includeSelf && sortedAllList == null) flattenIncludeSelf()
-
         val l = if (includeSelf) sortedAllList else sortedList
 
-        val tmp = (l?.binarySearch {
+        val tmp = (l.binarySearch {
             when {
                 it.id == id -> 0
                 it.id < id -> -1
                 else -> 1
             }
-        }) ?: -1
+        })
 
-        return if (tmp < 0) null else l?.get(tmp)
+        return if (tmp < 0) null else l.get(tmp)
 
     }
 
@@ -100,7 +95,7 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
 
     // collection of the atomic accounts
     @Suppress("UNCHECKED_CAST")
-    fun flatten(): MutableList<C> {
+    fun flatten(): List<C> {
         val res: MutableList<C> = mutableListOf()
 
         if (hasChildren())
@@ -112,22 +107,18 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
                 }
             }
 
-        sortedList = res.sortedBy { it.id }
-
-        return res
+        return res.sortedBy { it.id }
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun flattenIncludeSelf(): MutableList<C> {
+    fun flattenAll(): List<C> {
         val res: MutableList<C> = mutableListOf(this as C)
 
         getChildren().forEach { a ->
-            res.addAll(if (a is Drilldownable<*, *>) (a as Drilldownable<P, C>).flattenIncludeSelf() else listOf(a))
+            res.addAll(if (a is Drilldownable<*, *>) (a as Drilldownable<P, C>).flattenAll() else listOf(a))
         }
 
-        sortedAllList = res
-
-        return res
+        return res.sortedBy { it.id }
     }
 
     fun countRecursively(includeSelf: Boolean = false): Int {

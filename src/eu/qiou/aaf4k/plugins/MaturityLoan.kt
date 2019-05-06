@@ -1,6 +1,6 @@
 package eu.qiou.aaf4k.plugins
 
-import eu.qiou.aaf4k.accounting.model.*
+import eu.qiou.aaf4k.reportings.base.*
 import eu.qiou.aaf4k.util.*
 import eu.qiou.aaf4k.util.time.ofNext
 import eu.qiou.aaf4k.util.time.times
@@ -65,29 +65,36 @@ class MaturityLoan(val id: Int, val desc: String = "", val nominalValue: Double,
 
     fun toEntries(): Map<LocalDate, Entry> {
         val keys = effectiveInterest.keys.toList()
-        val reporting = Reporting(0, "Demo Reporting", "Demo",
+        val reporting = Reporting(CollectionAccount(0, "Demo Reporting").apply {
+            addAll(
                 listOf(
-                        Account(0, "Langfristige Verbindlichkeit KI", subAccounts = mutableListOf(
+                        CollectionAccount(0, "Langfristige Verbindlichkeit KI", reportingType = ReportingType.LIABILITY).apply {
+                            addAll(
+                                    mutableListOf(
                                 Account(3, "Verbindlichkeit KI - Principal", reportingType = ReportingType.LIABILITY, value = 0),
                                 Account(4, "Verbindlichkeit KI - Accrued Interest", reportingType = ReportingType.LIABILITY, value = 0)
-                        ), reportingType = ReportingType.LIABILITY),
+                                    )
+                            )
+                        },
                         Account(1, "Guthaben KI", value = 0, reportingType = ReportingType.ASSET),
                         Account(2, "Zinsaufwand", value = 0, reportingType = ReportingType.EXPENSE_LOSS)
                 )
-        )
-        val category = Category("Maturity Loan", 0,
-                "Entries Generated for Maturity Loan #${id}", reporting)
+            )
+        })
+
+        val category = Category("Maturity Loan",
+                "Entries Generated for Maturity Loan #$id", reporting)
 
         return carryingAmount.mapValuesIndexed { v, i ->
             if (i == 0) {
-                Entry(category.nextEntryIndex, "Initial Recognition", category).apply {
+                Entry("Initial Recognition", category).apply {
                     this.add(1, v.value)
                     this.add(3, nominalValue * -1)
                 }.balanceWith(4)
             } else {
-                Entry(category.nextEntryIndex, "${v.key}", category).apply {
-                    this.add(2, effectiveInterest[keys[i - 1]]!!)
-                    this.add(1, paymentPlan[keys[i]]!!)
+                Entry("${v.key}", category).apply {
+                    this.add(2, effectiveInterest.getValue(keys[i - 1]))
+                    this.add(1, paymentPlan.getValue(keys[i]))
                 }.balanceWith(4)
             }
         }

@@ -22,10 +22,6 @@ data class Entity(override val id: Long, var name: String, var abbreviation: Str
         else "null"}}"""
     }
 
-    override var sortedAllList: List<Entity>? = null
-    override var sortedList: List<Entity>? = null
-
-
     val childEntities: MutableMap<Entity, Double> = mutableMapOf()
     private val parentEntities: MutableMap<Entity, Double> = mutableMapOf()
 

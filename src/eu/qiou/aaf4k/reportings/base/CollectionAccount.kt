@@ -20,9 +20,6 @@ data class CollectionAccount(override val id: Long, override val name: String,
     override val subAccounts: MutableList<ProtoAccount> = mutableListOf()
     override val superAccounts: MutableList<ProtoCollectionAccount> = mutableListOf()
 
-    override var sortedList: List<ProtoAccount>? = null
-    override var sortedAllList: List<ProtoAccount>? = null
-
     override fun deepCopy(): ProtoAccount {
         return copy(id = id).apply {
             subAccounts.clear()

@@ -39,7 +39,6 @@ class ReportingPackage(targetReportingTmpl: Reporting,
                     this.prepareConsolidation()
 
                 this.categories.removeIf {
-                    it as Category
                     it.consolidationCategory == ConsolidationCategory.INIT_EQUITY ||
                             it.consolidationCategory == ConsolidationCategory.SUBSEQUENT_EQUITY ||
                             it.consolidationCategory == ConsolidationCategory.UNREALIZED_PROFIT_AND_LOSS
@@ -64,7 +63,7 @@ class ReportingPackage(targetReportingTmpl: Reporting,
                                             it.reportingType == ReportingType.EXPENSE_LOSS
                                 }
 
-                                (e as Entry).balanceWith(re)
+                                e.balanceWith(re)
                             }
                         }
             }
@@ -81,7 +80,7 @@ class ReportingPackage(targetReportingTmpl: Reporting,
 
         // srcEntity, targEntity, type
         val tmp = components.map {
-            it.key to it.value.flattened.map { x ->
+            it.key to it.value.sortedList.map { x ->
                 intercompanyAccountPolicy.invoke(it.key, x)
             }.filter { x ->
                 x != null
