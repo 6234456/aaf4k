@@ -16,7 +16,7 @@ import org.apache.poi.ss.util.CellUtil
 import java.util.*
 
 
-open class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccount by core {
+class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccount by core {
 
     companion object {
         private const val INIT_KAPCONS_CAT_ID = 0
@@ -55,11 +55,6 @@ open class Reporting(private val core: ProtoCollectionAccount) : ProtoCollection
         get() = if (toUpdate) field else {
             toUpdate = false; flattenAll()
         }
-
-    fun immutable() {
-        sortedAllList = flattenAll()
-        sortedList = flatten()
-    }
 
     private fun mergeCategories(): Map<Long, Double> {
         return if (categories.isEmpty()) mapOf() else categories.map { it.toDataMap() }.reduce { acc, map ->
