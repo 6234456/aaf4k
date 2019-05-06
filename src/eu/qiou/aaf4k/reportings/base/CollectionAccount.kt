@@ -30,6 +30,12 @@ data class CollectionAccount(override val id: Long, override val name: String,
         }
     }
 
+    override var toUpdate = false
+
+    override var cacheList: List<ProtoAccount> = listOf()
+    override var cacheAllList: List<ProtoAccount> = listOf()
+
+
     override fun toString(): String = toStrings()
 
 }

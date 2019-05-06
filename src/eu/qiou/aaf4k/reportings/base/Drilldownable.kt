@@ -12,25 +12,61 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
 
     fun getParents(): Collection<P>?
 
-    override fun iterator(): Iterator<C> = flatten().iterator()
+    @Suppress("UNCHECKED_CAST")
+    fun getTopMostParent(): P {
+        val p = getParents()
+        return if (p == null || p.isEmpty()) this as P else (p.first() as Drilldownable<*, *>).getTopMostParent() as P
+    }
 
-    fun add(child: C, index: Int? = null): P
+    override fun iterator(): Iterator<C> = sortedList().iterator()
 
-    fun remove(child: C): P
+    //get the sortlist of the top most parent
+    // in case of update, just before the binarysearch update the sortlist of the parent
 
-    val sortedList: List<C>
-        get() = sortedAllList.filter { it !is Drilldownable<*, *> }
+    var toUpdate: Boolean
 
-    val sortedAllList: List<C>
-        get() = flattenAll()
+    @Suppress("UNCHECKED_CAST")
+    fun add(child: C, index: Int? = null): P {
+        toUpdate = true
+        return this as P
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun remove(child: C): P {
+        toUpdate = true
+        return this as P
+    }
+
+    var cacheList: List<C>
+    var cacheAllList: List<C>
+
+    fun sortedList(): List<C> {
+        updateList()
+        return cacheList
+    }
+
+    fun sortedAllList(): List<C> {
+        updateList()
+        return cacheAllList
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun updateList() {
+        if (toUpdate) {
+            cacheList = flatten()
+            cacheAllList = flattenAll()
+            toUpdate = false
+        }
+    }
 
     @Suppress("UNCHECKED_CAST")
     fun search(id: Long): C? {
         return binarySearch(id, true)
     }
 
+
     fun binarySearch(id: Long, includeSelf: Boolean = false): C? {
-        val l = if (includeSelf) sortedAllList else sortedList
+        val l = if (includeSelf) sortedAllList() else sortedList()
 
         val tmp = (l.binarySearch {
             when {
@@ -41,7 +77,6 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
         })
 
         return if (tmp < 0) null else l.get(tmp)
-
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -112,6 +147,7 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
 
     @Suppress("UNCHECKED_CAST")
     fun flattenAll(): List<C> {
+        println("flattenAll Called : ${(this as Identifiable).id}")
         val res: MutableList<C> = mutableListOf(this as C)
 
         getChildren().forEach { a ->

@@ -34,6 +34,6 @@ class AccountTestBase {
         }
 
         println(acc2.deepCopy())
-        println(acc2.sortedAllList)
+        println(acc2.sortedAllList())
     }
 }

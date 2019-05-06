@@ -33,6 +33,10 @@ data class Entity(override val id: Long, var name: String, var abbreviation: Str
         return parentEntities.keys
     }
 
+    override var toUpdate: Boolean = false
+    override var cacheList: List<Entity> = listOf()
+    override var cacheAllList: List<Entity> = listOf()
+
     // 100% to 10000   18.23% to 1823
     override fun add(child: Entity, index: Int?): Entity {
         childEntities.put(child, if (index == null) 1.0 else index / 10000.0)

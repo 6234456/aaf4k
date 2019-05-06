@@ -18,24 +18,45 @@ import java.util.*
 class AccountingFrameTest {
     @Test
     fun trailDE() {
-        val frame: Reporting = AccountingFrame.inflate(123, "de_hgb_2018")
-                .toReporting(123, "ED", displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"),
+        val frame: Reporting = AccountingFrame.inflate(0, "de_hgb_2018")
+                .toReporting(-1, "ED", displayUnit = CurrencyUnit(UnitScalar.UNIT, "EUR"),
                         timeParameters = TimeParameters.forYear(2016)).apply {
                     update(mapOf(111L to 2123.23, 124L to 20.0 ))
                 }
 
-        assert(frame.countRecursively(false) == frame.sortedList.size)
-        assert(frame.countRecursively(true) == frame.sortedAllList.size)
+        println("start assert")
 
+        assert(frame.countRecursively(false) == frame.sortedList().size)
+        assert(frame.countRecursively(true) == frame.sortedAllList().size)
+        assert(frame.search(7) != null)
+        assert(frame.search(6) != null)
+        assert(frame.findAccountByID(6) != null)
+
+        println("assert ends")
         with(frame.search(6)) {
 
             this as CollectionAccount
 
-
             println(countRecursively(true))
-            println(sortedAllList.map { it.id })
-            assert(countRecursively(true) == sortedAllList.size)
+            println(sortedAllList().map { it.id })
+            assert(countRecursively(true) == sortedAllList().size)
+
+            search(63).let {
+                it as CollectionAccount
+
+                assert(it.countRecursively(false) == 4)
+                it.add(this.search(65)!!.deepCopy())
+                println(it)
+            }
+
+            println(search(6))
         }
+
+        println("end compare")
+
+        frame.addAccountTo((frame.search(634)!! as Account).copy(isStatistical = true), 0, 7)
+        println(frame.search(7))
+
 
 
         Category("KapKons-Erst", "Kapital Konsolidierung", frame)

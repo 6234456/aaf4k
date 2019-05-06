@@ -25,13 +25,15 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
         else
             subAccounts.add(index, child)
 
-        return this
+        child.superAccounts.add(this)
+        return super.add(child, index)
     }
 
     override fun remove(child: ProtoAccount): ProtoCollectionAccount {
         if (child in this) {
             subAccounts.remove(child)
             child.superAccounts.remove(this)
+            super.remove(child)
         }
         return this
     }

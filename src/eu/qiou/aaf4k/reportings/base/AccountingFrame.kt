@@ -25,6 +25,11 @@ class AccountingFrame(override val id: Long, override val name: String, override
         throw Exception("AccountingFrame can not be copied.")
     }
 
+    override var toUpdate = false
+
+    override var cacheList: List<ProtoAccount> = listOf()
+    override var cacheAllList: List<ProtoAccount> = listOf()
+
 
     fun toReporting(id: Long, name: String,
                     timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS,

@@ -80,7 +80,7 @@ class ReportingPackage(targetReportingTmpl: Reporting,
 
         // srcEntity, targEntity, type
         val tmp = components.map {
-            it.key to it.value.sortedList.map { x ->
+            it.key to it.value.sortedList().map { x ->
                 intercompanyAccountPolicy.invoke(it.key, x)
             }.filter { x ->
                 x != null
