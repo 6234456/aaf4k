@@ -1,6 +1,6 @@
 package eu.qiou.aaf4k.reportings.etl
 
-import eu.qiou.aaf4k.reportings.model.ProtoAccount
+import eu.qiou.aaf4k.reportings.base.ProtoAccount
 
 interface StructureLoader {
     /**

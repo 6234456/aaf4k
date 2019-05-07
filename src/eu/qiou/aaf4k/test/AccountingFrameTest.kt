@@ -215,21 +215,10 @@ class AccountingFrameTest {
     }
 
     @Test
-    fun trailAddAccount() {
-        val r = Files.readAllLines(Paths.get("data/de_accounting.txt")).joinToString("\n").toReporting()
-        //println(r.addAccountTo(Account.from(ProtoAccount(0, "hi", 123L,2), ReportingType.ASSET_SHORT_TERM), 0))
-        /*GUI.open((r.addAccountTo(Account.from(ProtoAccount(0, "hi", 123L,2), ReportingType.ASSET_SHORT_TERM), 0, 10000)
-                .addAccountTo(Account.from(ProtoAccount(-2, "hi", 123L,2), ReportingType.ASSET_SHORT_TERM),0, 110000) as Reporting)
-        )*/
-        GUI.open(r.removeAccount(10000).apply { prepareConsolidation(Locale.CHINESE) })
-    }
-
-    @Test
     fun carryForward() {
         val r = AccountingFrame.inflate(123, "hgb", "data/de/credentials.de_hgb_2018.txt").toReporting(123, "Demo", entity = Entity(123, "Qiou GmbH", "Qiou"))
         r.prepareConsolidation(Locale.ENGLISH)
         Files.write(Paths.get("data/de_accounting.txt"), r.toJSON().split("\n"))
-
     }
 
     @Test

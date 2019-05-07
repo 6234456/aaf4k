@@ -26,7 +26,7 @@ class TemplateEngineTest {
     fun fillReporting() {
         val r = Files.readAllLines(Paths.get("data/accounting.txt")).joinToString("").toReporting()
                 .generate()
-        val data = r.flattened.map { it.id to it.decimalValue }.toMap() +
+        val data = r.sortedList().map { it.id to it.decimalValue }.toMap() +
                 mapOf("E" to r.entity.abbreviation, "Y" to r.timeParameters.end.year, "M" to r.timeParameters.end.monthValue, "D" to r.timeParameters.end.dayOfMonth)
 
         ExcelReportingTemplate("data/demo.xls").export(data, "data/exp.xls")

@@ -29,7 +29,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
     override val entity: Entity = core.entity ?: GlobalConfiguration.DEFAULT_REPORTING_ENTITY
 
     override val timeParameters: TimeParameters = core.timeParameters ?: GlobalConfiguration.DEFAULT_TIME_PARAMETERS
-    private val structure = core.subAccounts
+    val structure = core.subAccounts
 
     fun add(category: Category) = categories.add(category.apply {
         id = nextCategoryIndex++
@@ -66,7 +66,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
     }
 
     fun toDataMap(): Map<Long, Double> {
-        return generate().flattenWithStatistical().map { it.id to it.decimalValue }.toMap()
+        return generate().sortedList().map { it.id to it.decimalValue }.toMap()
     }
 
     fun checkDuplicate(): Map<Long, Int> {
@@ -88,15 +88,6 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         }.filter { it.value != 0L }.toSet()
 
         return Reporting(core.shorten(whiteList = whiteList) as ProtoCollectionAccount)
-    }
-
-    private fun flattenWithStatistical(): List<ProtoAccount> {
-        if (structure.isEmpty())
-            return listOf()
-
-        return structure.map { if (it is ProtoCollectionAccount) it.flatten() else mutableListOf(it) }.reduce { acc, mutableList ->
-            acc.apply { addAll(mutableList) }
-        }
     }
 
     override fun deepCopy(): ProtoAccount {
@@ -122,6 +113,10 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
     // including self
     fun findAccountByID(id: Long): ProtoAccount? {
         return binarySearch(id, true)
+    }
+
+    override fun nullify(): ProtoAccount {
+        return Reporting(core.nullify() as ProtoCollectionAccount)
     }
 
 

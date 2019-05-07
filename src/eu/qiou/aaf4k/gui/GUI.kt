@@ -1,8 +1,7 @@
 package eu.qiou.aaf4k.gui
 
-import eu.qiou.aaf4k.accounting.model.*
 import eu.qiou.aaf4k.reportings.GlobalConfiguration
-import eu.qiou.aaf4k.reportings.model.ProtoAccount
+import eu.qiou.aaf4k.reportings.base.*
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.io.toReporting
 import eu.qiou.aaf4k.util.roundUpTo
@@ -54,20 +53,21 @@ class GUI : Application() {
             }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun start(primaryStage: Stage?) {
 
         val msg = ResourceBundle.getBundle("aaf4k", GUI.locale)
         Locale.setDefault(GUI.locale)
 
         val reporting = GUI.reporting
-        val reportingNull = reporting.nullify()
+        val reportingNull = reporting.nullify() as Reporting
 
-        val accountShown: (Account) -> String = { "${it.id} ${it.name}${if (it.hasParent()) "-" + it.superAccounts!![0].name else ""}" }
-        val suggestions = reporting.flattenWithStatistical().toSet().map { accountShown(it) to it.id }.toMap()
+        val accountShown: (ProtoAccount) -> String = { "${it.id} ${it.name}${if (it is ProtoCollectionAccount) "-" + it.superAccounts[0].name else ""}" }
+        val suggestions = reporting.sortedList().toSet().map { accountShown(it) to it.id }.toMap()
 
         val categories = FXCollections.observableArrayList<Category>().apply {
-            reporting.categories.map {
-                this.add(it as Category)
+            reporting.categories.forEach {
+                this.add(it)
             }
         }
 
@@ -100,7 +100,8 @@ class GUI : Application() {
             isClosable = false
         }
 
-        fun evokeBookingDialog(targetEntry: Entry? = null, targetAccount: Account, category: Category, updateViewCallback: (Category) -> Unit) {
+        fun evokeBookingDialog(targetEntry: Entry? = null, targetAccount: ProtoAccount,
+                               category: Category, updateViewCallback: (Category) -> Unit) {
             // booking mask
             val dialog: Dialog<Entry> = Dialog()
             var category1 = category
@@ -112,7 +113,8 @@ class GUI : Application() {
                         ButtonType.CANCEL
                 )
 
-                dialogPane.stylesheets.add("file:///" + File("stylesheet/main.css").absolutePath.replace("\\", "/"))
+                dialogPane.stylesheets.add("file:///" + File("stylesheet/main.css")
+                        .absolutePath.replace("\\", "/"))
 
                 val rootPane = GridPane()
 
@@ -149,8 +151,8 @@ class GUI : Application() {
 
                                     val f = (g.elements[valuePos] as List<NumericTextField>)
 
-                                    f.forEach {
-                                        it.bindingContext = f
+                                    f.forEach { it1 ->
+                                        it1.bindingContext = f
                                     }
                                 }
                             }
@@ -165,10 +167,9 @@ class GUI : Application() {
 
                     if (targetEntry == null) {
                         (this.elements[indexPos][0] as AutoCompleteTextField<Long>).run {
-                            setTextValue(if (!targetAccount.hasChildren()) accountShown(targetAccount) else "")
+                            setTextValue(if (targetAccount !is ProtoCollectionAccount) accountShown(targetAccount) else "")
 
-                            if (!targetAccount.hasChildren())
-                                result = targetAccount.id
+                            if (targetAccount !is ProtoCollectionAccount) result = targetAccount.id
                         }
                     } else {
                         targetEntry.accounts.forEachIndexed { index, account ->
@@ -183,14 +184,14 @@ class GUI : Application() {
                         }
                     }
 
-                    val f = (this.elements[valuePos] as List<NumericTextField>)
+                    val f = this.elements[valuePos] as List<NumericTextField>
 
                     f.forEach {
                         it.bindingContext = f
                     }
                 }
 
-                var entryDate: LocalDate = if (targetEntry == null) category.timeParameters.end else targetEntry.date
+                var entryDate: LocalDate = targetEntry?.date ?: category.timeParameters.end
 
                 rootPane.apply {
 
@@ -208,7 +209,7 @@ class GUI : Application() {
                             }
 
                             override fun fromString(string: String?): Category {
-                                return categories.find { it.name.equals(string) } as Category
+                                return categories.find { it.name == string } as Category
                             }
 
                         }
@@ -223,7 +224,6 @@ class GUI : Application() {
 
                     this.add(TextField().apply {
                         this.textProperty().bindBidirectional(description)
-
                         promptText = msg.getString("desc")
                     }, 0, 1)
 
@@ -263,32 +263,33 @@ class GUI : Application() {
                     if (it == ButtonType.OK) {
                         val text = group.elements[0] as List<AutoCompleteTextField<Long>>
                         val values = group.elements[valuePos] as List<NumericTextField>
-                        with(text.map { it.result }.zip(values.map { it.number })) {
-                            if (this.any { it.first != null && it.second != null }) {
-                                val e = Entry(category1.nextEntryIndex, description.value
+                        with(text.map { field -> field.result }.zip(values.map { field -> field.number })) {
+                            if (this.any { it1 -> it1.first != null && it1.second != null }) {
+                                val e = Entry( description.value
                                         ?: "", category1, entryDate).apply {
                                     this@with.forEach { p ->
                                         p.first?.let { id ->
-                                            p.second?.let {
-                                                this.add(id, it.toDouble())
+                                            p.second?.let { number ->
+                                                this.add(id, number.toDouble())
                                             }
                                         }
                                     }
                                 }
 
-                                if ((!e.balanced()) || e.accounts.all { it.decimalValue == 0.0 }) {
+                                if ((!e.isBalanced) || e.accounts.all { account -> account.decimalValue == 0.0 }) {
+                                    println("UNREGISTERED: $this ")
                                     e.unregister()
                                     null
                                 } else {
                                     targetEntry?.unregister()
                                     e.apply {
-                                        targetEntry?.let {
-                                            this.isActive = it.isActive
-                                            this.isWritable = it.isWritable
-                                            this.isVisible = it.isVisible
+                                        targetEntry?.let { entry ->
+                                            this.isActive = entry.isActive
+                                            this.isWritable = entry.isWritable
+                                            this.isVisible = entry.isVisible
                                         }
-                                        (this.category as Category).summarizeResult()
-                                        updateViewCallback(e.category as Category)
+                                        this.category.summarizeResult()
+                                        updateViewCallback(e.category)
                                     }
                                 }
                             } else {
@@ -300,7 +301,7 @@ class GUI : Application() {
                     }
                 }
 
-                showAndWait().ifPresent { _ ->
+                showAndWait().ifPresent {
                     saveToJSON()
                 }
             }
@@ -308,14 +309,14 @@ class GUI : Application() {
 
         fun updateTab3() {
             val contextMenu = ContextMenu()
-            fun modifyMask(entry: Entry, acc: Account) {
-                evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = entry.category as Category) {
+            fun modifyMask(entry: Entry, acc: ProtoAccount) {
+                evokeBookingDialog(targetEntry = entry, targetAccount = acc, category = entry.category) {
                     updateTab3()
                     toUpdateTab1 = true
                 }
             }
 
-            fun ctxMenu(entries: Iterable<Entry>, entry: Entry, acc: Account): ContextMenu {
+            fun ctxMenu(entries: Iterable<Entry>, entry: Entry, acc: ProtoAccount): ContextMenu {
                 return contextMenu.apply {
                     items.removeAll(items)
                     items.addAll(
@@ -329,8 +330,8 @@ class GUI : Application() {
                             ).apply {
                                 setOnAction {
                                     val res = !entry.isActive
-                                    entries.forEach { it.isActive = res }
-                                    (entry.category as Category).summarizeResult()
+                                    entries.forEach { entry1 -> entry1.isActive = res }
+                                    entry.category.summarizeResult()
                                     updateTab3()
                                     toUpdateTab1 = true
                                     saveToJSON()
@@ -345,8 +346,8 @@ class GUI : Application() {
                                         title = msg.getString("deleteBooking")
                                     }.showAndWait()) {
                                         if (this.get() == ButtonType.OK) {
-                                            entries.forEach { it.unregister() }
-                                            (entry.category as Category).summarizeResult()
+                                            entries.forEach { entry1 -> entry1.unregister() }
+                                            entry.category.summarizeResult()
                                             updateTab3()
                                             toUpdateTab1 = true
                                             saveToJSON()
@@ -419,7 +420,7 @@ class GUI : Application() {
                     isExpanded = true
                     if (it.entries.isNotEmpty())
                         children.addAll(
-                                it.entries.filter { it.isVisible }.map { TreeItem("${c.id}.${it.id} ${it.desc}") }
+                                it.entries.filter { entry -> entry.isVisible }.map { entry -> TreeItem("${c.id}.${entry.id} ${entry.desc}") }
                         )
                 })
             }
@@ -471,7 +472,7 @@ class GUI : Application() {
                                     }
                                 }
                                 if (e.button == MouseButton.SECONDARY) {
-                                    ctxMenu(selectionModel.selectedItems.map { parseToEntry(it.value)?.first }.filter { it != null } as Iterable<Entry>, entry, entry.accounts[0]).show(this, e.screenX, e.sceneY)
+                                    ctxMenu(selectionModel.selectedItems.map { treeItem -> parseToEntry(treeItem.value)?.first }.filter { entry1 -> entry1 != null } as Iterable<Entry>, entry, entry.accounts[0]).show(this, e.screenX, e.sceneY)
                                 }
                             }
                         }
@@ -509,22 +510,22 @@ class GUI : Application() {
         fun updateTab1(selectedRow: Int? = null) {
 
             val root = TreeItem(
-                    Account.from(ProtoAccount(0, reporting.entity.name, 0L), ReportingType.AUTO)
-            ).apply {
-                isExpanded = true
-            }
+                    reporting
+                ).apply {
+                    isExpanded = true
+                } as TreeItem<ProtoAccount>
 
-            val treeView = TreeTableView<Account>(root)
+            val treeView = TreeTableView<ProtoAccount>(root)
 
-            fun inflateTreeItem(item: TreeItem<Account> = root, accounts: List<Account> = reporting.structure) {
+            fun inflateTreeItem(item: TreeItem<ProtoAccount> = root, accounts: List<ProtoAccount> = reporting.structure) {
                 accounts.forEach {
                     val parent = TreeItem(it)
 
                     item.children.add(parent)
                     item.isExpanded = true
 
-                    if (it.hasChildren()) {
-                        inflateTreeItem(parent, it.subAccounts!!.toList() as List<Account>)
+                    if (it is ProtoCollectionAccount) {
+                        inflateTreeItem(parent, it.subAccounts.toList())
                     }
                 }
             }
@@ -532,12 +533,12 @@ class GUI : Application() {
             inflateTreeItem()
 
             val cols = listOf(
-                    TreeTableColumn<Account, String>(msg.getString("accountId")).apply {
+                    TreeTableColumn<ProtoAccount, String>(msg.getString("accountId")).apply {
                         setCellValueFactory {
                             ReadOnlyStringWrapper(it.value.value.id.toString())
                         }
                     },
-                    TreeTableColumn<Account, String>(msg.getString("accountName")).apply {
+                    TreeTableColumn<ProtoAccount, String>(msg.getString("accountName")).apply {
                         setCellValueFactory {
                             ReadOnlyStringWrapper(
                                     with(it.value.value) {
@@ -547,7 +548,7 @@ class GUI : Application() {
                         }
 
                     },
-                    TreeTableColumn<Account, String>(msg.getString("balanceBeforeAdj")).apply {
+                    TreeTableColumn<ProtoAccount, String>(msg.getString("balanceBeforeAdj")).apply {
                         setCellValueFactory {
                             ReadOnlyStringWrapper(formatter(it.value.value.displayValue, it.value.value.decimalPrecision))
                         }
@@ -557,17 +558,19 @@ class GUI : Application() {
             ) +
                     reporting.categories.map {
 
-                        val category = it as Category
-                        TreeTableColumn<Account, String>(it.name).apply {
-                            val data = reportingNull.update(it.toDataMap()).flattenWithAllAccounts().map { it.id to it.displayValue }.toMap()
+                        val category = it
+                        TreeTableColumn<ProtoAccount, String>(it.name).apply {
+                            val data = reportingNull.apply {
+                                update(it.toDataMap())
+                            }.sortedList().map { account -> account.id to account.displayValue }.toMap()
 
                             setCellFactory {
-                                object : TreeTableCell<Account, String>() {
+                                object : TreeTableCell<ProtoAccount, String>() {
                                     override fun updateItem(item: String?, empty: Boolean) {
                                         super.updateItem(item, empty)
                                         this.text = ""
-                                        this.treeTableRow?.item?.let {
-                                            this.text = formatter(data.getOrDefault(it.id, 0.0), it.decimalPrecision)
+                                        this.treeTableRow?.item?.let { account ->
+                                            this.text = formatter(data.getOrDefault(account.id, 0.0), account.decimalPrecision)
                                         }
                                     }
                                 }.apply {
@@ -595,9 +598,9 @@ class GUI : Application() {
                                                                     items.addAll(
                                                                             MenuItem(".xls").apply {
                                                                                 setOnAction {
-                                                                                    Paths.get("data/demo.xls").toFile().let {
-                                                                                        if (it.exists())
-                                                                                            it.delete()
+                                                                                    Paths.get("data/demo.xls").toFile().let { file ->
+                                                                                        if (file.exists())
+                                                                                            file.delete()
                                                                                     }
                                                                                     reporting.shorten().toXl("data/demo.xls", t = Template.Theme.DEFAULT, locale = GUI.locale)
                                                                                     println("exported")
@@ -605,9 +608,9 @@ class GUI : Application() {
                                                                             },
                                                                             MenuItem(".xlsx").apply {
                                                                                 setOnAction {
-                                                                                    Paths.get("data/demo.xlsx").toFile().let {
-                                                                                        if (it.exists())
-                                                                                            it.delete()
+                                                                                    Paths.get("data/demo.xlsx").toFile().let { file ->
+                                                                                        if (file.exists())
+                                                                                            file.delete()
                                                                                     }
                                                                                     reporting.shorten().toXl("data/demo.xlsx", t = Template.Theme.DEFAULT, locale = GUI.locale)
                                                                                     println("exported")
@@ -635,8 +638,8 @@ class GUI : Application() {
                         }
                     } +
                     listOf(
-                            TreeTableColumn<Account, String>(msg.getString("balanceAfterAdj")).apply {
-                                val data = reporting.generate().flattenWithAllAccounts().map { it.id to it.displayValue }.toMap()
+                            TreeTableColumn<ProtoAccount, String>(msg.getString("balanceAfterAdj")).apply {
+                                val data = reporting.generate().sortedList().map { it.id to it.displayValue }.toMap()
                                 setCellValueFactory {
                                     ReadOnlyStringWrapper(
                                             formatter(data.getOrDefault(it.value.value.id, 0.0), it.value.value.decimalPrecision)

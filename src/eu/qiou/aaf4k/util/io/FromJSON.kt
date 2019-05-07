@@ -1,11 +1,9 @@
 package eu.qiou.aaf4k.util.io
 
-import eu.qiou.aaf4k.accounting.model.*
-import eu.qiou.aaf4k.accounting.model.Account.Companion.parseReportingType
+import eu.qiou.aaf4k.reportings.base.*
+import eu.qiou.aaf4k.reportings.base.Account.Companion.parseReportingType
 import eu.qiou.aaf4k.reportings.model.Address
 import eu.qiou.aaf4k.reportings.model.Person
-import eu.qiou.aaf4k.reportings.model.ProtoAccount
-import eu.qiou.aaf4k.reportings.model.ProtoEntity
 import eu.qiou.aaf4k.util.time.TimeAttribute
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.time.TimeSpan
@@ -20,79 +18,76 @@ import kotlin.math.roundToInt
 
 object FromJSON {
 
-    fun account(json: JSONObject): Account {
+    fun account(json: JSONObject): ProtoAccount {
 
-        val hasSubAccounts = json.get("hasSubAccounts") as Boolean
-        val validate = json.get("validateUntil")
+        val hasSubAccounts = json["hasSubAccounts"] as Boolean
+        val validate = json["validateUntil"]
 
         val date = if (validate == null) null else LocalDate.parse(validate as String)
 
 
         return if (hasSubAccounts) {
-            Account.from(
-                    ProtoAccount(
-                            id = json.get("id") as Long,
-                            name = json.get("name") as String,
-                            subAccounts =
-                            (json.get("subAccounts") as JSONArray).map {
-                                account(it as JSONObject)
-                            } as MutableList<Account>,
-                            desc = json.get("desc") as String,
-                            decimalPrecision = (json.get("decimalPrecision") as Long).toInt(),
-                            isStatistical = json.get("isStatistical") as Boolean,
-                            validateUntil = date
-                    ),
-
-                    parseReportingType(json.get("reportingType") as String))
+            CollectionAccount(
+                    id = json["id"] as Long,
+                    name = json["name"] as String,
+                    desc = json["desc"] as String,
+                    decimalPrecision = (json["decimalPrecision"] as Long).toInt(),
+                    isStatistical = json["isStatistical"] as Boolean,
+                    validateUntil = date,
+                    reportingType = parseReportingType(json.get("reportingType") as String)
+            ).apply {
+                (json["subAccounts"] as JSONArray).forEach {
+                    account(it as JSONObject)
+                }
+            }
         } else {
-            Account.from(
-                    ProtoAccount.Builder(
-                            id = json.get("id") as Long,
-                            name = json.get("name") as String,
-                            desc = json.get("desc") as String,
-                            isStatistical = json.get("isStatistical") as Boolean,
-                            validateUntil = date
-                    ).setValue(v = json.get("value") as Double, decimalPrecision = (json.get("decimalPrecision") as Long).toInt())
-                            .build(),
-
-                    parseReportingType(json.get("reportingType") as String))
+            Account(
+                    id = json["id"] as Long,
+                    name = json["name"] as String,
+                    desc = json["desc"] as String,
+                    isStatistical = json["isStatistical"] as Boolean,
+                    validateUntil = date,
+                    decimalPrecision = (json["decimalPrecision"] as Long).toInt(),
+                    reportingType = parseReportingType(json["reportingType"] as String)
+                    ).copyWith(value = json["value"] as Double, decimalPrecision = (json["decimalPrecision"] as Long).toInt())
         }
 
     }
 
     fun entry(json: JSONObject, category: Category): Entry {
-        return Entry(id = (json.get("id") as Long).toInt(),
-                desc = json.get("desc") as String,
+        return Entry(
+                desc = json["desc"] as String,
                 category = category,
-                date = if (json.get("date") == null) category.timeParameters.end else LocalDate.parse(json.get("date") as String)
+                date = if (json["date"] == null) category.timeParameters.end else LocalDate.parse(json["date"] as String)
         ).apply {
-            (json.get("accounts") as JSONArray).forEach {
-                add(account(it as JSONObject))
+            id = (json["id"] as Long).toInt()
+            (json["accounts"] as JSONArray).forEach {
+                add(account(it as JSONObject) as Account)
             }
 
-            this.isActive = (json.get("isActive") as Boolean?) ?: true
-            this.isWritable = (json.get("isWritable") as Boolean?) ?: true
-            this.isVisible = (json.get("isVisible") as Boolean?) ?: true
+            this.isActive = (json["isActive"] as Boolean?) ?: true
+            this.isWritable = (json["isWritable"] as Boolean?) ?: true
+            this.isVisible = (json["isVisible"] as Boolean?) ?: true
         }
     }
 
     fun category(json: JSONObject, reporting: Reporting): Category {
-        val cons = json.get("consolidationCategory")
+        val cons = json["consolidationCategory"]
         val consCat = if (cons == null) null else ConsolidationCategory.values().find {
             it.token == (cons as Long).toInt()
         }
 
         return Category(
-                id = (json.get("id") as Long).toInt(),
-                name = json.get("name") as String,
-                desc = json.get("desc") as String,
+                name = json["name"] as String,
+                desc = json["desc"] as String,
                 reporting = reporting,
                 consolidationCategory = consCat
         ).apply {
-            (json.get("entries") as JSONArray).forEach {
+            id = (json["id"] as Long).toInt()
+            (json["entries"] as JSONArray).forEach {
                 it as JSONObject
                 // id 0 is reserved for the balance entry, omitted
-                if ((it.get("id") as Long).toInt() != 0)
+                if ((it["id"] as Long).toInt() != 0)
                     entry(it, this)
             }
 
@@ -147,7 +142,7 @@ object FromJSON {
         )
     }
 
-    fun entity(json: JSONObject): ProtoEntity {
+    fun entity(json: JSONObject): Entity {
 
         val p = json.get("contactPerson")
         val ps = if (p == null) null else person(p as JSONObject)
@@ -159,8 +154,8 @@ object FromJSON {
         val child = if (c == null) null else (c as JSONArray)
                 .map { entity((it as JSONObject).get("key") as JSONObject) to it.get("value") as Double }.toMap()
 
-        return ProtoEntity(
-                id = (json.get("id") as Long).toInt(),
+        return Entity(
+                id = json.get("id") as Long,
                 name = json.get("name") as String,
                 desc = json.get("desc") as String,
                 abbreviation = json.get("abbreviation") as String,
@@ -175,21 +170,25 @@ object FromJSON {
 
     fun reporting(json: JSONObject): Reporting {
         return Reporting(
-                id = (json.get("id") as Long).toInt(),
-                name = json.get("name") as String,
-                desc = json.get("desc") as String,
-                structure = (json.get("structure") as JSONArray).map {
-                    account(it as JSONObject)
-                } as MutableList<Account>,
-                entity = entity(json.get("entity") as JSONObject),
-                timeParameters = timeParameters(json.get("timeParameters") as JSONObject)
+                CollectionAccount(
+                    id = json["id"] as Long,
+                    name = json["name"] as String,
+                    desc = json["desc"] as String,
+                    entity = entity(json["entity"] as JSONObject),
+                    timeParameters = timeParameters(json["timeParameters"] as JSONObject)
+                ).apply {
+                    (json["structure"] as JSONArray).forEach {
+                        add(account(it as JSONObject))
+                    }
+                }
         ).apply {
-            (json.get("categories") as JSONArray).forEach {
+            (json["categories"] as JSONArray).forEach {
                 category(it as JSONObject, this).apply {
                     summarizeResult()
                 }
             }
         }
+
     }
 
 
@@ -199,11 +198,11 @@ object FromJSON {
     }
 }
 
-fun String.toAccount(): Account = FromJSON.account(FromJSON.read(this))
+fun String.toAccount(): ProtoAccount = FromJSON.account(FromJSON.read(this))
 fun String.toEntry(category: Category): Entry = FromJSON.entry(FromJSON.read(this), category)
 fun String.toCategory(reporting: Reporting): Category = FromJSON.category(FromJSON.read(this), reporting)
 fun String.toTimeParameters(): TimeParameters = FromJSON.timeParameters(FromJSON.read(this))
 fun String.toPerson(): Person = FromJSON.person(FromJSON.read(this))
 fun String.toAddress(): Address = FromJSON.address(FromJSON.read(this))
-fun String.toEntity(): ProtoEntity = FromJSON.entity(FromJSON.read(this))
+fun String.toEntity(): Entity = FromJSON.entity(FromJSON.read(this))
 fun String.toReporting(): Reporting = FromJSON.reporting(FromJSON.read(this))

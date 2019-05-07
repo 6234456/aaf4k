@@ -1,6 +1,8 @@
 package eu.qiou.aaf4k.reportings.etl
 
-import eu.qiou.aaf4k.reportings.model.ProtoAccount
+import eu.qiou.aaf4k.reportings.base.Account
+import eu.qiou.aaf4k.reportings.base.CollectionAccount
+import eu.qiou.aaf4k.reportings.base.ProtoAccount
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.ss.usermodel.Row
 
@@ -11,7 +13,7 @@ import org.apache.poi.ss.usermodel.Row
 class ExcelStructureLoader(val path: String, val sheetIndex: Int = 0, val sheetName: String? = null, val keyCol: Int = 1, val secondaryKeyCol: Int = 2) : StructureLoader {
     override fun load(): List<ProtoAccount> {
         val res: MutableList<ProtoAccount> = mutableListOf()
-        var tmpAggregateAccount: ProtoAccount? = null
+        var tmpAggregateAccount: CollectionAccount? = null
 
         val f: (Row) -> Unit = {
 
@@ -20,14 +22,14 @@ class ExcelStructureLoader(val path: String, val sheetIndex: Int = 0, val sheetN
                     val t1 = parseAccount(it)
 
                     tmpAggregateAccount?.let { res.add(it) }
-                    tmpAggregateAccount = ProtoAccount(id = t1.first, name = t1.second)
+                    tmpAggregateAccount = CollectionAccount(id = t1.first, name = t1.second)
                 }
             }
 
             it.getCell(secondaryKeyCol - 1)?.stringCellValue?.trim()?.let {
                 if (!it.isEmpty()) {
                     val t1 = parseAccount(it)
-                    tmpAggregateAccount?.add(ProtoAccount(id = t1.first, name = t1.second, value = 0L))
+                    tmpAggregateAccount?.add(Account(id = t1.first, name = t1.second, value = 0L))
                 }
             }
         }

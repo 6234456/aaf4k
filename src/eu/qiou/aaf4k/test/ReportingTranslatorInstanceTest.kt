@@ -1,8 +1,6 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.accounting.model.*
-import eu.qiou.aaf4k.reportings.etl.AccountingFrame
-import eu.qiou.aaf4k.reportings.model.ProtoEntity
+import eu.qiou.aaf4k.reportings.base.*
 import eu.qiou.aaf4k.util.io.toReporting
 import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
@@ -32,14 +30,15 @@ class ReportingTranslatorInstanceTest {
                     generate(true)
                 }
 
-        val f = Reporting(234, "Demo2", "hgb", listOf(), entity = ProtoEntity(2, "Holding AG", "AG"))
-                .cloneWith(e.structure)
+        val f = Reporting(CollectionAccount(234, "Demo2",  entity = Entity(2, "Holding AG", "AG")).apply {
+            addAll(e.structure)
+        })
 
         val p = ReportingPackage(e)
         p.localReportingOf(e)
         p.localReportingOf(f).apply {
             val c = this.categories[1] as Category
-            Entry(c.nextEntryIndex, "trail", c).apply {
+            Entry("trail", c).apply {
                 this.add(1800, 23.4)
             }
         }
@@ -52,9 +51,9 @@ class ReportingTranslatorInstanceTest {
     fun testReportingPackage() {
         val e = AccountingFrame.inflate(0, "CAS", "data/cn/cn_cas1_2018.txt")
 
-        val e3 = ProtoEntity(3, "C GmbH", "C")
-        val e2 = ProtoEntity(2, "B GmbH", "B")
-        val e1 = ProtoEntity(1, "A GmbH", "A").apply {
+        val e3 = Entity(3, "C GmbH", "C")
+        val e2 = Entity(2, "B GmbH", "B")
+        val e1 = Entity(1, "A GmbH", "A").apply {
             add(e2)
             add(e3)
         }
@@ -68,7 +67,7 @@ class ReportingTranslatorInstanceTest {
         val rePackage = ReportingPackage(r) { e, a ->
             if (reg.containsMatchIn(a.name)) {
                 val ent = e1.findChildBy({ x -> x.abbreviation == reg.find(a.name)!!.groups[1]!!.value })!!
-                InterCompanyPolicy(e, ent, a)
+                InterCompanyPolicy(e, ent, a as Account)
 
             } else {
                 null
@@ -77,18 +76,20 @@ class ReportingTranslatorInstanceTest {
         val rePackage1 = ReportingPackage(r) { e, a ->
             if (reg.containsMatchIn(a.name)) {
                 val ent = e1.findChildBy({ x -> x.abbreviation == reg.find(a.name)!!.groups[1]!!.value })!!
-                InterCompanyPolicy(e, ent, a)
+                InterCompanyPolicy(e, ent, a as Account)
 
             } else {
                 null
             }
         }
 
-        rePackage.localReportingOf(r.update(
+        rePackage.localReportingOf(
+            (r.update(
                 mapOf(
                         112203L to 2345.65,
                         112204L to 2345.65
                 )
+            ) as Reporting
         ))
 
         rePackage.localReportingOf(e.toReporting(1, "B GmbH", entity = e2).update(
@@ -96,13 +97,13 @@ class ReportingTranslatorInstanceTest {
                         112202L to -2345.65,
                         112204L to 2345.65
                 )
-        ))
+        ) as Reporting)
         rePackage.localReportingOf(e.toReporting(2, "C GmbH", entity = e3).update(
                 mapOf(
                         112203L to -2345.65,
                         112202L to -2348.65
                 )
-        ))
+        ) as Reporting)
 
         rePackage.eliminateIntercompanyTransactions()
 

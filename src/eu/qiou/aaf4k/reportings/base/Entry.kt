@@ -31,13 +31,12 @@ class Entry(val desc: String = "", val category: Category,
 
     // in an entry there might be multiple accounts with the same id
     val accounts: MutableList<Account> = mutableListOf()
-    val isEmpty = accounts.count() == 0
 
     val isBalanced: Boolean
         get() = residual() == 0.0
 
     fun toDataMap(): Map<Long, Double> {
-        if (!isActive || isEmpty) return mapOf()
+        if (!isActive || accounts.isEmpty()) return mapOf()
 
         return accounts.groupBy { it.id }.mapValues {
             it.value.fold(0.0) { acc, e ->

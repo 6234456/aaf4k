@@ -1,9 +1,9 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.accounting.model.Category
 import eu.qiou.aaf4k.gui.GUI
 import eu.qiou.aaf4k.gui.StringParser
-import eu.qiou.aaf4k.reportings.etl.AccountingFrame
+import eu.qiou.aaf4k.reportings.base.AccountingFrame
+import eu.qiou.aaf4k.reportings.base.Category
 import eu.qiou.aaf4k.util.io.toReporting
 import eu.qiou.aaf4k.util.time.TimeParameters
 import org.junit.Test
@@ -22,11 +22,11 @@ class GUITest {
         //val e = Files.readAllLines(Paths.get("data/accounting.txt")).joinToString("\n").toReporting()
         //println(e)
         //println(e.checkDuplicate())
-        val e = AccountingFrame.inflate(123, "SKR4-2018", "data/de/credentials.de_hgb_2018.txt")
+        val e = AccountingFrame.inflate(123, "SKR4-2018", "data/de/credentials.de_hgb_2018.txt").toReporting()
 
-        Category("SchKons", 1, "Schuldenkonsolidierung", e)
-        Category("KapKons", 2, "Kapitalkonsolidierung", e)
-        Category("A/E-Kons", 3, "Aufwands-und Ertragskonsolidierung", e)
+        Category("SchKons", "Schuldenkonsolidierung", e)
+        Category("KapKons", "Kapitalkonsolidierung", e)
+        Category("A/E-Kons", "Aufwands-und Ertragskonsolidierung", e)
 
         GUI.srcJSONFile = "data/de_accounting.txt"
         GUI.open(e)

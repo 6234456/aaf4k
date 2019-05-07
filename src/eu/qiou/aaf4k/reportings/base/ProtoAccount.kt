@@ -90,7 +90,7 @@ interface ProtoAccount : JSONable, Identifiable {
     }
 
     // change in-place
-    fun update(data: Map<Long, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }) {
+    fun update(data: Map<Long, Double>, updateMethod: (Double, Double) -> Double = { valueNew, valueOld -> valueNew + valueOld }):ProtoAccount {
         if (this is ProtoCollectionAccount) {
             getChildren().forEach { it.update(data, updateMethod) }
         } else {
@@ -98,6 +98,8 @@ interface ProtoAccount : JSONable, Identifiable {
                 value = Math.round(updateMethod(it, decimalValue) * Math.pow(10.0, decimalPrecision.toDouble()))
             }
         }
+
+        return this
     }
 
     fun toStrings(lvl: Int = 0): String {

@@ -147,7 +147,6 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
 
     @Suppress("UNCHECKED_CAST")
     fun flattenAll(): List<C> {
-        println("flattenAll Called : ${(this as Identifiable).id}")
         val res: MutableList<C> = mutableListOf(this as C)
 
         getChildren().forEach { a ->

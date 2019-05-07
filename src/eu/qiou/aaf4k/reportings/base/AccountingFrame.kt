@@ -31,15 +31,15 @@ class AccountingFrame(override val id: Long, override val name: String, override
     override var cacheAllList: List<ProtoAccount> = listOf()
 
 
-    fun toReporting(id: Long, name: String,
+    fun toReporting(id: Long = this.id, name: String = this.name,
                     timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS,
                     desc: String = "",
                     displayUnit: CurrencyUnit = CurrencyUnit(),
                     entity: Entity = GlobalConfiguration.DEFAULT_REPORTING_ENTITY): Reporting {
         return Reporting(CollectionAccount(id, name, timeParameters = timeParameters,
                 desc = desc, displayUnit = displayUnit, entity = entity).apply {
-            addAll(structure)
-        })
+                    addAll(structure)
+                })
     }
 
     companion object {
