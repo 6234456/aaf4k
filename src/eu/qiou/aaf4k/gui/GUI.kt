@@ -35,14 +35,14 @@ class GUI : Application() {
 
         fun open(reporting: Reporting) {
             GUI.reporting = reporting
-            Application.launch(GUI::class.java)
+            launch(GUI::class.java)
         }
 
         fun open(srcFile: String) {
-            GUI.reporting = Files.readAllLines(Paths.get(srcFile)).joinToString("\n").toReporting()
+            reporting = Files.readAllLines(Paths.get(srcFile)).joinToString("\n").toReporting()
             srcJSONFile = srcFile
 
-            Application.launch(GUI::class.java)
+            launch(GUI::class.java)
         }
 
         lateinit var reporting: Reporting
@@ -56,10 +56,10 @@ class GUI : Application() {
     @Suppress("UNCHECKED_CAST")
     override fun start(primaryStage: Stage?) {
 
-        val msg = ResourceBundle.getBundle("aaf4k", GUI.locale)
-        Locale.setDefault(GUI.locale)
+        val msg = ResourceBundle.getBundle("aaf4k", locale)
+        Locale.setDefault(locale)
 
-        val reporting = GUI.reporting
+        val reporting = reporting
         val reportingNull = reporting.nullify() as Reporting
 
         val accountShown: (ProtoAccount) -> String = { "${it.id} ${it.name}${if (it is ProtoCollectionAccount) "-" + it.superAccounts[0].name else ""}" }
@@ -67,7 +67,7 @@ class GUI : Application() {
 
         val categories = FXCollections.observableArrayList<Category>().apply {
             reporting.categories.forEach {
-                this.add(it)
+                add(it)
             }
         }
 
@@ -277,7 +277,6 @@ class GUI : Application() {
                                 }
 
                                 if ((!e.isBalanced) || e.accounts.all { account -> account.decimalValue == 0.0 }) {
-                                    println("UNREGISTERED: $this ")
                                     e.unregister()
                                     null
                                 } else {
@@ -525,7 +524,7 @@ class GUI : Application() {
                     item.isExpanded = true
 
                     if (it is ProtoCollectionAccount) {
-                        inflateTreeItem(parent, it.subAccounts.toList())
+                        inflateTreeItem(parent, it.subAccounts)
                     }
                 }
             }
@@ -557,13 +556,9 @@ class GUI : Application() {
                     }
             ) +
                     reporting.categories.map {
-
                         val category = it
                         TreeTableColumn<ProtoAccount, String>(it.name).apply {
-                            val data = reportingNull.apply {
-                                update(it.toDataMap())
-                            }.sortedList().map { account -> account.id to account.displayValue }.toMap()
-
+                            val data = it.toDataMap()
                             setCellFactory {
                                 object : TreeTableCell<ProtoAccount, String>() {
                                     override fun updateItem(item: String?, empty: Boolean) {
@@ -602,7 +597,7 @@ class GUI : Application() {
                                                                                         if (file.exists())
                                                                                             file.delete()
                                                                                     }
-                                                                                    reporting.shorten().toXl("data/demo.xls", t = Template.Theme.DEFAULT, locale = GUI.locale)
+                                                                                    reporting.toXl("data/demo.xls", t = Template.Theme.DEFAULT, locale = GUI.locale)
                                                                                     println("exported")
                                                                                 }
                                                                             },
@@ -612,7 +607,7 @@ class GUI : Application() {
                                                                                         if (file.exists())
                                                                                             file.delete()
                                                                                     }
-                                                                                    reporting.shorten().toXl("data/demo.xlsx", t = Template.Theme.DEFAULT, locale = GUI.locale)
+                                                                                    reporting.toXl("data/demo.xlsx", t = Template.Theme.DEFAULT, locale = GUI.locale)
                                                                                     println("exported")
                                                                                 }
                                                                             }
@@ -639,10 +634,11 @@ class GUI : Application() {
                     } +
                     listOf(
                             TreeTableColumn<ProtoAccount, String>(msg.getString("balanceAfterAdj")).apply {
-                                val data = reporting.generate().sortedList().map { it.id to it.displayValue }.toMap()
+                                val data = reporting.toDataMap()
                                 setCellValueFactory {
                                     ReadOnlyStringWrapper(
-                                            formatter(data.getOrDefault(it.value.value.id, 0.0), it.value.value.decimalPrecision)
+                                            formatter(data.getOrDefault(it.value.value.id, 0.0),
+                                                    it.value.value.decimalPrecision)
                                     )
                                 }
                                 style = "-fx-alignment:center-right"

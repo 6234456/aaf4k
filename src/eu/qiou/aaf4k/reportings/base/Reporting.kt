@@ -105,7 +105,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
      */
     fun generate(clearCategories: Boolean = false): Reporting {
         return (deepCopy() as Reporting).apply {
-            update(mergeCategories())
+            update(this@Reporting.mergeCategories())
             if (clearCategories) this.categories.clear()
         }
     }
