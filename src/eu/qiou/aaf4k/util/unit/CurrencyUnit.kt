@@ -6,28 +6,27 @@ import java.util.*
 import kotlin.math.roundToInt
 
 
-data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var currency: Currency = GlobalConfiguration.DEFAULT_FUNCTIONAL_CURRENCY) : ProtoUnit(scalar) {
+data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, val currency: Currency = GlobalConfiguration.DEFAULT_FUNCTIONAL_CURRENCY, val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION) : ProtoUnit(scalar) {
 
-    constructor(currency: String) : this(currency = Currency.getInstance(currency))
-    constructor(scalar: UnitScalar, currency: String) : this(scalar, currency = Currency.getInstance(currency))
+    constructor(currency: String, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION) : this(currency = Currency.getInstance(currency), decimalPrecision = decimalPrecision)
+    constructor(scalar: UnitScalar, currency: String, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION) : this(scalar, currency = Currency.getInstance(currency), decimalPrecision = decimalPrecision)
     private val currencyCode:String = currency.currencyCode
 
     override fun format(locale: Locale): (Number) -> String {
-        val f: (Number) -> String =
-                  when(scalar){
-                            UnitScalar.UNIT         ->  { n -> currencyCode + " " + String.format(locale, "%,.2f", n) }
-                            else                    ->  { n -> currencyCode + " " + String.format(locale, "%,d", n.toDouble().roundToInt()) + " "+
-                                when(scalar){
-                                    UnitScalar.THOUSAND         -> "thousand"
-                                    UnitScalar.TEN_THOUSAND     -> "ten thousand"
-                                    UnitScalar.MILLION          -> "million"
-                                    UnitScalar.HUNDRED_MILLION  -> "hundred million"
-                                    UnitScalar.BILLION          -> "billion"
-                                    else                        -> ""
-                                }
-                            }
+        return when (scalar) {
+            UnitScalar.UNIT -> { n -> currencyCode + " " + String.format(locale, "%,.${decimalPrecision}f", n) }
+            else -> { n ->
+                currencyCode + " " + String.format(locale, "%,d", n.toDouble().roundToInt()) + " " +
+                        when (scalar) {
+                            UnitScalar.THOUSAND -> "thousand"
+                            UnitScalar.TEN_THOUSAND -> "ten thousand"
+                            UnitScalar.MILLION -> "million"
+                            UnitScalar.HUNDRED_MILLION -> "hundred million"
+                            UnitScalar.BILLION -> "billion"
+                            else -> ""
                         }
-        return f
+            }
+        }
     }
 
     override fun toString(): String {
@@ -35,17 +34,17 @@ data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var c
     }
 
     override fun convertTo(unit: ProtoUnit): (Double) -> Double {
-        if(!(unit is CurrencyUnit))
+        if (unit !is CurrencyUnit)
             throw Exception("Different Types are not convertible. $unit to Currency")
 
         return super.convertTo(unit)
     }
 
     fun convertFxTo(targetCurrency: ProtoUnit, timeParameters: TimeParameters?=null): (Double) -> Double {
-        if(!(targetCurrency is CurrencyUnit))
+        if (targetCurrency !is CurrencyUnit)
             throw Exception("Different Types are not convertible. $targetCurrency to Currency")
 
-        if(currency.equals(targetCurrency.currency))
+        if (currency == targetCurrency.currency)
             return super.convertTo(targetCurrency)
 
         if(timeParameters == null)
@@ -53,15 +52,13 @@ data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, var c
 
         val fxRate = ForeignExchange(functionalCurrency = currency, reportingCurrency = targetCurrency.currency, timeParameters = timeParameters).fetch()
 
-        val f : (Double) -> Double = {
+        return {
             super.convertTo(targetCurrency)(it * fxRate)
         }
-
-        return f
     }
 
-    fun getSymbol():String {
-        return "${scalar.token}${currencyCode}"
+    private fun getSymbol(): String {
+        return "${scalar.token}$currencyCode"
     }
 
 }

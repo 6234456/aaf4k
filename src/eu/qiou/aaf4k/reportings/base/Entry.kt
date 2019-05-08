@@ -15,6 +15,16 @@ class Entry(val desc: String = "", val category: Category,
         private const val UNINITIALIZED_ID = -1
     }
 
+    // can only be set once or be reset
+    var id: Int = UNINITIALIZED_ID
+        set(value) {
+            if (field == UNINITIALIZED_ID || value == UNINITIALIZED_ID || value == Category.RESULT_TRANSFER_ENTRY_ID)
+                field = value
+        }
+
+    // in an entry there might be multiple accounts with the same id
+    val accounts: MutableList<Account> = mutableListOf()
+
     init {
         if (!category.reporting.timeParameters.contains(date))
             throw Exception("IllegalAttribute: date $date should be within the TimeSpan of the Category!")
@@ -22,15 +32,6 @@ class Entry(val desc: String = "", val category: Category,
         category.add(this)
     }
 
-    // can only be set once or be reset
-    var id: Int = UNINITIALIZED_ID
-        set(value) {
-            if (field == UNINITIALIZED_ID || value == UNINITIALIZED_ID)
-                field = value
-        }
-
-    // in an entry there might be multiple accounts with the same id
-    val accounts: MutableList<Account> = mutableListOf()
 
     val isBalanced: Boolean
         get() = residual() == 0.0

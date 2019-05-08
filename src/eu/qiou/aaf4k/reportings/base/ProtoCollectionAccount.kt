@@ -7,9 +7,11 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
     val subAccounts: MutableList<ProtoAccount>
 
     override var value: Long
-        get() = subAccounts.map { if (it.isStatistical) 0 else it.value }
+        get() = if (subAccounts.isEmpty()) 0L else subAccounts.map { if (it.isStatistical) 0 else it.value }
                 .reduce { acc, l -> acc + l }
-        set(value) {}
+        set(value) {
+            throw Exception("set $value to the CollectionAccount $name is not forbidden.")
+        }
 
     override fun getChildren(): Collection<ProtoAccount> = subAccounts
 

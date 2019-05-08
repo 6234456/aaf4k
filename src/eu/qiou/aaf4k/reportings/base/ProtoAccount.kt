@@ -103,7 +103,7 @@ interface ProtoAccount : JSONable, Identifiable {
     }
 
     fun toStrings(lvl: Int = 0): String {
-        if (this is ProtoCollectionAccount) {
+        if (this is ProtoCollectionAccount && getChildren().isNotEmpty()) {
             return CollectionToString.structuredToStr<ProtoCollectionAccount, ProtoAccount>(this, lvl, ProtoAccount::toStrings, ProtoAccount::superAccountStr)
         }
 
@@ -120,18 +120,17 @@ interface ProtoAccount : JSONable, Identifiable {
 
     }
 
-    fun shorten(whiteList: Iterable<ProtoAccount>? = null, blackList: Iterable<ProtoAccount>? = null): ProtoAccount {
+    fun shorten(whiteList: Iterable<Long>? = null, blackList: Iterable<Long>? = null): ProtoAccount {
         return if (this is ProtoCollectionAccount) {
             (if (whiteList != null) {
-                this.flatten().filter { !whiteList.contains(it) }
+                this.sortedList().filter { !whiteList.contains(it.id) }
             } else {
-                blackList ?: this.flatten().filter { it.value == 0L }
-            })
-                    .fold(this.deepCopy() as ProtoCollectionAccount) { acc, x ->
-                        acc.removeRecursively(x)
-                    }
+                blackList?.map { this.search(it) } ?: this.sortedList().filter { it.value == 0L }
+            }).fold(this.deepCopy() as ProtoCollectionAccount) { acc, x ->
+                if (x != null) acc.removeRecursively(x) else acc
+            }
         } else
-            this
+            this.deepCopy()
     }
 
     fun notStatistical(): List<ProtoAccount> {

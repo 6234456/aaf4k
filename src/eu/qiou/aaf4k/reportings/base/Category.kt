@@ -12,13 +12,11 @@ class Category(val name: String, val desc: String, val reporting: Reporting,
         Entry-ID reserved for the functional Entries
          */
         //transfer the P&L and OCI result to B/S
-        private const val RESULT_TRANSFER_ENTRY_ID = 0
+        const val RESULT_TRANSFER_ENTRY_ID = 0
         private const val UNINITIALIZED_ID = -1
     }
 
-    init {
-        reporting.add(this)
-    }
+    var nextEntryIndex = RESULT_TRANSFER_ENTRY_ID + 1
 
     val entries: MutableList<Entry> = mutableListOf()
     val timeParameters = reporting.timeParameters
@@ -26,16 +24,26 @@ class Category(val name: String, val desc: String, val reporting: Reporting,
 
     var id: Int = UNINITIALIZED_ID
         set(value) {
-            if (field == UNINITIALIZED_ID || value == UNINITIALIZED_ID)
+            if (field == UNINITIALIZED_ID || value in listOf(UNINITIALIZED_ID,
+                            Reporting.AEKONS_CAT_ID,
+                            Reporting.ERSTKONS_CAT_ID,
+                            Reporting.FOLGEKONS_CAT_ID,
+                            Reporting.ZGE_CAT_ID,
+                            Reporting.SCHULDKONS_CAT_ID
+                    )
+            )
                 field = value
         }
 
-    // balance via result and oci to the balance stmt
-    private val transferEntry = Entry(Message.of("transferResult"), this).apply {
-        id = RESULT_TRANSFER_ENTRY_ID
+    init {
+        reporting.add(this)
     }
 
-    private var nextEntryIndex = RESULT_TRANSFER_ENTRY_ID + 1
+    // balance via result and oci to the balance stmt
+    private val transferEntry = Entry(Message.of("transferResult"), this, isVisible = false).apply {
+        id = RESULT_TRANSFER_ENTRY_ID
+        this@Category.nextEntryIndex--
+    }
 
 
     fun flatten(excludingInactive: Boolean = false): List<ProtoAccount> {
@@ -45,11 +53,7 @@ class Category(val name: String, val desc: String, val reporting: Reporting,
     }
 
     fun add(entry: Entry) {
-        entries.add(
-                entry.apply {
-                    this.id = nextEntryIndex++
-                }
-        )
+        entries.add(entry.apply { id = nextEntryIndex++ })
     }
 
     fun toDataMap(): Map<Long, Double> {
@@ -60,10 +64,10 @@ class Category(val name: String, val desc: String, val reporting: Reporting,
                 }
     }
 
-    fun deepCopy(reporting: Reporting, keepID: Boolean = false): Category {
+    fun deepCopy(reporting: Reporting, keepID: Boolean = true, resultTransfer: Boolean = true): Category {
         return Category(name, desc, reporting, consolidationCategory).apply {
             this@Category.entries.forEach {
-                if (it.id > RESULT_TRANSFER_ENTRY_ID) it.deepCopy(this, true)
+                if (resultTransfer || it.id > RESULT_TRANSFER_ENTRY_ID) it.deepCopy(this, true)
             }
             isWritable = this@Category.isWritable
             nextEntryIndex = this@Category.nextEntryIndex
@@ -104,7 +108,6 @@ class Category(val name: String, val desc: String, val reporting: Reporting,
 
 
     fun summarizeResult() {
-
         transferEntry.clear()
         val re = entries.filter { it.isActive }.map {
             it.accounts.filter { x -> x.reportingType == ReportingType.EXPENSE_LOSS || x.reportingType == ReportingType.REVENUE_GAIN }
@@ -121,7 +124,6 @@ class Category(val name: String, val desc: String, val reporting: Reporting,
                 transferEntry.add(it.copyWith(re, it.decimalPrecision) as Account)
             }
         }
-
         if (Math.abs(oci) != 0.0) {
             this.reporting.oci?.let {
                 transferEntry.add(it.copyWith(oci, it.decimalPrecision) as Account)

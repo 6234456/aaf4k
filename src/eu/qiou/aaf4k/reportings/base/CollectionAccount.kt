@@ -8,13 +8,13 @@ import java.time.LocalDate
 
 data class CollectionAccount(override val id: Long, override val name: String,
                              override val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION,
-                             override val unit: ProtoUnit = CurrencyUnit(),
+                             override val unit: ProtoUnit = CurrencyUnit(decimalPrecision = decimalPrecision),
                              override val desc: String = "",
                              override val timeParameters: TimeParameters? = null,
                              override val entity: Entity? = null,
                              override val isStatistical: Boolean = false,
                              override val validateUntil: LocalDate? = null,
-                             override val reportingType: ReportingType = ReportingType.AUTO, override val displayUnit: ProtoUnit = CurrencyUnit()
+                             override val reportingType: ReportingType = ReportingType.AUTO, override val displayUnit: ProtoUnit = unit
 ) : ProtoCollectionAccount {
 
     override val subAccounts: MutableList<ProtoAccount> = mutableListOf()

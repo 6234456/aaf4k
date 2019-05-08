@@ -9,7 +9,6 @@ abstract class ProtoUnit(open val scalar: UnitScalar = UnitScalar.UNIT, var loca
 
 
     open fun convertTo(unit: ProtoUnit): (Double) -> Double {
-        val f: (Double) -> Double  = { n -> n * (this.scalar.scalar  / unit.scalar.scalar) }
-        return f
+        return { n -> n * (scalar.scalar / unit.scalar.scalar) }
     }
 }

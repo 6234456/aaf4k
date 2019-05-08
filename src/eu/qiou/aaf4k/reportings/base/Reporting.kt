@@ -19,7 +19,11 @@ import java.util.*
 class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccount by core {
 
     companion object {
-        private const val INIT_KAPCONS_CAT_ID = 0
+        const val ERSTKONS_CAT_ID = 0
+        const val FOLGEKONS_CAT_ID = 1
+        const val SCHULDKONS_CAT_ID = 2
+        const val AEKONS_CAT_ID = 3
+        const val ZGE_CAT_ID = 4
         private const val PRESERVED_ID = 10
     }
 
@@ -82,13 +86,20 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                 }.filterValues { it > 1 }
     }
 
+    // keep all the first level child even with a null value
     fun shorten(): Reporting {
         val whiteList = categories.fold(sortedList()) { acc, protoCategory ->
             acc + protoCategory.flatten(true)
-        }.filter { it.value != 0L }.toSet()
+        }.filter { it.value != 0L }.map { it.id }.toSet()
 
-        return Reporting(core.shorten(whiteList = whiteList) as ProtoCollectionAccount)
+        return Reporting(this.core.shorten(whiteList = whiteList) as ProtoCollectionAccount).apply {
+            this@Reporting.categories.forEach { it.deepCopy(this) }
+            nextCategoryIndex = this@Reporting.nextCategoryIndex
+            consCategoriesAdded = this@Reporting.consCategoriesAdded
+            reclAdjCategoriesAdded = this@Reporting.reclAdjCategoriesAdded
+        }
     }
+
 
     override fun deepCopy(): ProtoAccount {
         return Reporting(core.deepCopy() as CollectionAccount).apply {
@@ -106,7 +117,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
     fun generate(clearCategories: Boolean = false): Reporting {
         return (deepCopy() as Reporting).apply {
             update(this@Reporting.mergeCategories())
-            if (clearCategories) this.categories.clear()
+            if (clearCategories) this.clearCategories()
         }
     }
 
@@ -141,6 +152,17 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
     val diffSchuKons = sortedList().find { it.reportingType == ReportingType.DIFF_CONS_RECEIVABLE_PAYABLE }
     val diffAEKons = sortedList().find { it.reportingType == ReportingType.DIFF_CONS_REVENUE_EXPENSE }
 
+    val categoryInitEquityCons
+        get() = categories.find { it.id == ERSTKONS_CAT_ID }
+    val categorySubsequentEquityCons
+        get() = categories.find { it.id == FOLGEKONS_CAT_ID }
+    val categoryPayablesReceivabelsCons
+        get() = categories.find { it.id == SCHULDKONS_CAT_ID }
+    val categoryRevenueExpenseCons
+        get() = categories.find { it.id == AEKONS_CAT_ID }
+    val categoryUnrealisedGainCons
+        get() = categories.find { it.id == ZGE_CAT_ID }
+
     fun prepareConsolidation(locale: Locale? = null) {
         if (!consCategoriesAdded && !reclAdjCategoriesAdded) {
 
@@ -149,11 +171,11 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
             else
                 ResourceBundle.getBundle("aaf4k", locale)
 
-            Category(msg.getString("erstKons"), msg.getString("erstKons"), this, ConsolidationCategory.INIT_EQUITY)
-            Category(msg.getString("folgKons"), msg.getString("folgKons"), this, ConsolidationCategory.SUBSEQUENT_EQUITY)
-            Category(msg.getString("schuKons"), msg.getString("schuKons"), this, ConsolidationCategory.PAYABLES_RECEIVABLES)
-            Category(msg.getString("aeKons"), msg.getString("aeKons"), this, ConsolidationCategory.REVENUE_EXPENSE)
-            Category(msg.getString("zwischenGewinnE"), msg.getString("zwischenGewinnE"), this, ConsolidationCategory.UNREALIZED_PROFIT_AND_LOSS)
+            Category(msg.getString("erstKons"), msg.getString("erstKons"), this, ConsolidationCategory.INIT_EQUITY).apply { id = ERSTKONS_CAT_ID; this@Reporting.nextCategoryIndex-- }
+            Category(msg.getString("folgKons"), msg.getString("folgKons"), this, ConsolidationCategory.SUBSEQUENT_EQUITY).apply { id = FOLGEKONS_CAT_ID; this@Reporting.nextCategoryIndex-- }
+            Category(msg.getString("schuKons"), msg.getString("schuKons"), this, ConsolidationCategory.PAYABLES_RECEIVABLES).apply { id = SCHULDKONS_CAT_ID; this@Reporting.nextCategoryIndex-- }
+            Category(msg.getString("aeKons"), msg.getString("aeKons"), this, ConsolidationCategory.REVENUE_EXPENSE).apply { id = AEKONS_CAT_ID; this@Reporting.nextCategoryIndex-- }
+            Category(msg.getString("zwischenGewinnE"), msg.getString("zwischenGewinnE"), this, ConsolidationCategory.UNREALIZED_PROFIT_AND_LOSS).apply { id = ZGE_CAT_ID; this@Reporting.nextCategoryIndex-- }
 
             consCategoriesAdded = true
         }

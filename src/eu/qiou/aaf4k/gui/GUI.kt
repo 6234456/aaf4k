@@ -60,7 +60,6 @@ class GUI : Application() {
         Locale.setDefault(locale)
 
         val reporting = reporting
-        val reportingNull = reporting.nullify() as Reporting
 
         val accountShown: (ProtoAccount) -> String = { "${it.id} ${it.name}${if (it is ProtoCollectionAccount) "-" + it.superAccounts[0].name else ""}" }
         val suggestions = reporting.sortedList().toSet().map { accountShown(it) to it.id }.toMap()
@@ -597,7 +596,7 @@ class GUI : Application() {
                                                                                         if (file.exists())
                                                                                             file.delete()
                                                                                     }
-                                                                                    reporting.toXl("data/demo.xls", t = Template.Theme.DEFAULT, locale = GUI.locale)
+                                                                                    reporting.shorten().toXl("data/demo.xls", t = Template.Theme.DEFAULT, locale = locale)
                                                                                     println("exported")
                                                                                 }
                                                                             },
@@ -607,7 +606,7 @@ class GUI : Application() {
                                                                                         if (file.exists())
                                                                                             file.delete()
                                                                                     }
-                                                                                    reporting.toXl("data/demo.xlsx", t = Template.Theme.DEFAULT, locale = GUI.locale)
+                                                                                    reporting.shorten().toXl("data/demo.xlsx", t = Template.Theme.DEFAULT, locale = locale)
                                                                                     println("exported")
                                                                                 }
                                                                             }
