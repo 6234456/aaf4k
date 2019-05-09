@@ -77,7 +77,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test</artifactId>
+            <artifactId>kotlin-test-junit</artifactId>
             <version>${kotlin.version}</version>
             <scope>test</scope>
         </dependency>
@@ -89,30 +89,22 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src</sourceDirectory>
+        <sourceDirectory>src/main/java</sourceDirectory>
 
         <resources>
+
             <resource>
-                <directory>tmp</directory>
-                <excludes>
-                    <exclude>*.pdf</exclude>
-                </excludes>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>src/main/resources/locale</directory>
+            </resource>
+            <resource>
+                <directory>src/main/resources/stylesheet</directory>
             </resource>
 
             <resource>
                 <directory>data/cn</directory>
-            </resource>
-
-            <resource>
-                <directory>locale</directory>
-            </resource>
-
-            <resource>
-                <directory>script</directory>
-            </resource>
-
-            <resource>
-                <directory>stylesheet</directory>
             </resource>
 
             <resource>

@@ -2,6 +2,7 @@
 *.iml
 *.credentials
 credentials/*
+target/*
 *.xlsx
 *.xls
 *.xlsm

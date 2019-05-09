@@ -1,11 +1,10 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.time.TimeSpan
+import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.UnitScalar
 import org.junit.Test
 import java.time.LocalDate
-
 import java.util.*
 
 class CurrencyUnitTest {

@@ -5,7 +5,7 @@ import javafx.scene.layout.GridPane
 
 
 // Int : the index of the Control type, ControlGroup this
-class ControlGroup(val methodAdd: List<(Int, ControlGroup) -> Control>, private val startCol: Int = 0, private val startRow: Int = 0) {
+class ControlGroup(private val methodAdd: List<(Int, ControlGroup) -> Control>, private val startCol: Int = 0, private val startRow: Int = 0) {
 
 
     val elements = 0.until(methodAdd.size).map {
@@ -53,7 +53,7 @@ class ControlGroup(val methodAdd: List<(Int, ControlGroup) -> Control>, private 
         }
     }
 
-    private var length: Int = elements[0].size
+    private val length: Int
         get() = elements[0].size
 
 }

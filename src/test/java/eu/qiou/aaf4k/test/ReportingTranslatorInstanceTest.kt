@@ -37,7 +37,7 @@ class ReportingTranslatorInstanceTest {
         val p = ReportingPackage(e)
         p.localReportingOf(e)
         p.localReportingOf(f).apply {
-            val c = this.categories[1] as Category
+            val c = this.categories[1]
             Entry("trail", c).apply {
                 this.add(1800, 23.4)
             }

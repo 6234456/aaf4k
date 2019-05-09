@@ -19,9 +19,5 @@ class EnumerationUnit(val unitSingular:String, var unitPlural:String = unitSingu
         return f
     }
 
-    override fun convertTo(unit: ProtoUnit): (Double) -> Double {
-        return super.convertTo(unit)
-    }
-
 
 }

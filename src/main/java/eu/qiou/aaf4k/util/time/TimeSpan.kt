@@ -120,17 +120,17 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
     fun getContainingYear():TimeSpan {
         if(! isInOneYear()) throw Exception("${this} expands across multiple years")
-        return TimeSpan.forYear(this.start.year)
+        return forYear(this.start.year)
     }
 
     fun getContainingHalfYear():TimeSpan {
         if(! isInOneHalfYear()) throw Exception("${this} expands across multiple half-years")
-        return TimeSpan.forHalfYear(this.start.year, this.start.month.value <= 6)
+        return forHalfYear(this.start.year, this.start.month.value <= 6)
     }
 
     fun getContainingMonth():TimeSpan {
         if(! isInOneMonth()) throw Exception("${this} expands across multiple months")
-        return TimeSpan.forMonth(this.start.year, this.start.monthValue)
+        return forMonth(this.start.year, this.start.monthValue)
     }
 
     fun getContainingWeek():TimeSpan {
@@ -141,7 +141,7 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
     fun getContainingQuarter():TimeSpan {
         if(! isInOneQuarter()) throw Exception("${this} expands across multiple quarters")
-        return TimeSpan.forQuarter(this.start.year, Math.ceil(this.start.monthValue * 1.0 / 3.0).toInt() )
+        return forQuarter(this.start.year, Math.ceil(this.start.monthValue * 1.0 / 3.0).toInt())
     }
 
     override fun toString(): String {

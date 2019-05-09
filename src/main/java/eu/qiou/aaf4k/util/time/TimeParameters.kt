@@ -66,7 +66,7 @@ data class TimeParameters(val timeSpan: TimeSpan? = null, val timePoint: LocalDa
         if (this.start.year != this.end.year)
             throw Exception("The time span over 1 year!")
 
-        return TimeParameters.forYear(this.start.year)
+        return forYear(this.start.year)
     }
 
     fun containingMonth(): TimeParameters {
@@ -74,7 +74,7 @@ data class TimeParameters(val timeSpan: TimeSpan? = null, val timePoint: LocalDa
         if ((this.start.year != this.end.year) or (this.start.monthValue != this.end.monthValue))
             throw Exception("The time span over 1 month!")
 
-        return TimeParameters.forMonth(this.start.year, this.start.monthValue)
+        return forMonth(this.start.year, this.start.monthValue)
     }
 
     override fun toJSON(): String {

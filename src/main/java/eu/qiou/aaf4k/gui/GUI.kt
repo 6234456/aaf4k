@@ -56,6 +56,9 @@ class GUI : Application() {
     @Suppress("UNCHECKED_CAST")
     override fun start(primaryStage: Stage?) {
 
+        val css = "file:///" + File("src/main/resources/stylesheet/main.css")
+                .absolutePath.replace("\\", "/")
+
         val msg = ResourceBundle.getBundle("aaf4k", locale)
         Locale.setDefault(locale)
 
@@ -112,8 +115,7 @@ class GUI : Application() {
                         ButtonType.CANCEL
                 )
 
-                dialogPane.stylesheets.add("file:///" + File("stylesheet/main.css")
-                        .absolutePath.replace("\\", "/"))
+                dialogPane.stylesheets.add(css)
 
                 val rootPane = GridPane()
 
@@ -688,7 +690,7 @@ class GUI : Application() {
                         )
                     }
             ).apply {
-                stylesheets.add("file:///" + File("stylesheet/main.css").absolutePath.replace("\\", "/"))
+                stylesheets.add(css)
             }
 
             title = msg.getString("reporting")

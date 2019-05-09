@@ -146,7 +146,7 @@ object Algorithm {
     }
 
     fun lcm(a: Int, b: Int):Long{
-        return Algorithm.lcm(a.toLong(), b.toLong())
+        return lcm(a.toLong(), b.toLong())
     }
 
     fun lcm(a:Long, b:Long):Long {
