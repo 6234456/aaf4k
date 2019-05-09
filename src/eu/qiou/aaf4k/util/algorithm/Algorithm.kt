@@ -1,8 +1,7 @@
-package eu.qiou.aaf4k.algorithm
+package eu.qiou.aaf4k.util.algorithm
 
 import eu.qiou.aaf4k.util.mkString
 import java.math.BigInteger
-import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.random.Random
 

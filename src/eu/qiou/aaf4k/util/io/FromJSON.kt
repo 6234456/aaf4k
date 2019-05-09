@@ -2,8 +2,6 @@ package eu.qiou.aaf4k.util.io
 
 import eu.qiou.aaf4k.reportings.base.*
 import eu.qiou.aaf4k.reportings.base.Account.Companion.parseReportingType
-import eu.qiou.aaf4k.reportings.model.Address
-import eu.qiou.aaf4k.reportings.model.Person
 import eu.qiou.aaf4k.util.time.TimeAttribute
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.time.TimeSpan

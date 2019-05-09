@@ -1,6 +1,5 @@
 package eu.qiou.aaf4k.util.time
 
-import eu.qiou.aaf4k.reportings.model.Drilldownable
 import java.time.LocalDate
 import java.time.Period
 import java.time.temporal.ChronoUnit
@@ -13,31 +12,23 @@ import java.util.*
  * @since    1.0.0
  * @version  1.0.0
  */
-data class TimeSpan(val start: LocalDate, val end: LocalDate):Drilldownable {
+data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
     var drillDownTo = Pair<Long, ChronoUnit>(1, ChronoUnit.MONTHS)
     var rollUpTo = setOf<Pair<Long, ChronoUnit>>(Pair(1, ChronoUnit.YEARS))
 
     private constructor():this(LocalDate.now(), LocalDate.now())
 
-    override fun add(child: Drilldownable, index: Int?): Drilldownable {
-        throw Exception("TimeSpan immutable!")
-    }
-
-    override fun remove(child: Drilldownable): Drilldownable {
-        throw Exception("TimeSpan immutable!")
-    }
-
 
     init {
         assert(start.compareTo(end) <= 0)
     }
 
-    override fun getChildren(): Collection<TimeSpan>? {
+    fun getChildren(): Collection<TimeSpan> {
         return this.drillDown(drillDownTo.first, drillDownTo.second)
     }
 
-    override fun getParents(): Collection<TimeSpan>? {
+    fun getParents(): Collection<TimeSpan>? {
         return rollUp()
     }
 
@@ -46,11 +37,8 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate):Drilldownable {
         return date.compareTo(start) >= 0 && date.compareTo(end) <= 0
     }
 
-    override operator fun contains(span: Drilldownable):Boolean{
-        if (span is TimeSpan)
-            return span.start.compareTo(start) >= 0 && span.end.compareTo(end) <= 0
-
-        return false
+    operator fun contains(span: TimeSpan): Boolean {
+        return span.start.compareTo(start) >= 0 && span.end.compareTo(end) <= 0
     }
 
     operator fun plus(period: Period):TimeSpan {

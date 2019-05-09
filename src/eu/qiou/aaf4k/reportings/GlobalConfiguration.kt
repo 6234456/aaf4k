@@ -1,7 +1,6 @@
 package eu.qiou.aaf4k.reportings
 
 import eu.qiou.aaf4k.reportings.base.Entity
-import eu.qiou.aaf4k.reportings.model.ProtoEntity
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.UnitScalar
@@ -29,7 +28,6 @@ object GlobalConfiguration {
     val DEFAULT_CURRENCY_UNIT: CurrencyUnit = CurrencyUnit(scalar = UnitScalar.UNIT, currency = DEFAULT_FUNCTIONAL_CURRENCY)
 
     val DEFAULT_TIME_PARAMETERS = TimeParameters(2017)
-    val DEFAULT_ENTITY = ProtoEntity(0, "Demo GmbH", "Demo", "a fictive company")
     val DEFAULT_REPORTING_ENTITY = Entity(0, "Demo GmbH", "Demo", "a fictive company")
 
     val DEFAULT_FONT_NAME = "Bahnschrift"

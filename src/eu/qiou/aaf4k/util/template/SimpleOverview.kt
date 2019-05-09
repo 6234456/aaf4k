@@ -5,7 +5,7 @@ import eu.qiou.aaf4k.util.io.ExcelUtil
 
 class SimpleOverview(
         data: List<Map<String, *>> = listOf(),
-        entityName: String = GlobalConfiguration.DEFAULT_ENTITY.name,
+        entityName: String = GlobalConfiguration.DEFAULT_REPORTING_ENTITY.name,
         projectName: String = GlobalConfiguration.DEFAULT_PROJECT_NAME,
         workingPaperName: String = "",
         processedBy: String = GlobalConfiguration.DEFAULT_PROCESSOR_NAME,

@@ -44,8 +44,8 @@
     -fx-text-fill: white;
 }
 
-.list-cell.inactive {
-    -fx-background-color: grey;
+.inactive {
+    -fx-text-fill: orange;
 }
 
 .table-view {

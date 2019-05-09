@@ -1,4 +1,4 @@
-package eu.qiou.aaf4k.algorithm.crypto
+package eu.qiou.aaf4k.util.algorithm.crypto
 
 interface Decipherable {
     fun encode(msg: String):List<Long>

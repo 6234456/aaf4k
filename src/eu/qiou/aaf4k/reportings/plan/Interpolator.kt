@@ -1,4 +1,4 @@
-package eu.qiou.aaf4k.accounting.plan
+package eu.qiou.aaf4k.reportings.plan
 
 import eu.qiou.aaf4k.util.roundUpTo
 import eu.qiou.aaf4k.util.time.TimeSpan

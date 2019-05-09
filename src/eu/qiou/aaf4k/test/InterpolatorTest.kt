@@ -1,8 +1,8 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.accounting.plan.InterpolationBase
-import eu.qiou.aaf4k.accounting.plan.InterpolationType
-import eu.qiou.aaf4k.accounting.plan.Interpolator
+import eu.qiou.aaf4k.reportings.plan.InterpolationBase
+import eu.qiou.aaf4k.reportings.plan.InterpolationType
+import eu.qiou.aaf4k.reportings.plan.Interpolator
 import eu.qiou.aaf4k.util.time.TimeSpan
 import org.junit.Test
 import java.time.temporal.ChronoUnit

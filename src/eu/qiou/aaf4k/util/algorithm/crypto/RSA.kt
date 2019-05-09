@@ -1,7 +1,7 @@
-package eu.qiou.aaf4k.algorithm.crypto
+package eu.qiou.aaf4k.util.algorithm.crypto
 
-import eu.qiou.aaf4k.algorithm.Algorithm
-import eu.qiou.aaf4k.algorithm.powOf
+import eu.qiou.aaf4k.util.algorithm.Algorithm
+import eu.qiou.aaf4k.util.algorithm.powOf
 
 class RSA(val p:Long, val q:Long, val k:Long): Decipherable{
     val m = p * q

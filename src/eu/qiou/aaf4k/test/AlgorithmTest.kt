@@ -1,10 +1,10 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.algorithm.Algorithm
-import eu.qiou.aaf4k.algorithm.Algorithm.euler_phi
-import eu.qiou.aaf4k.algorithm.Algorithm.factorialPrime
-import eu.qiou.aaf4k.algorithm.Algorithm.multicongruence
-import eu.qiou.aaf4k.algorithm.crypto.RSA
+import eu.qiou.aaf4k.util.algorithm.Algorithm
+import eu.qiou.aaf4k.util.algorithm.Algorithm.euler_phi
+import eu.qiou.aaf4k.util.algorithm.Algorithm.factorialPrime
+import eu.qiou.aaf4k.util.algorithm.Algorithm.multicongruence
+import eu.qiou.aaf4k.util.algorithm.crypto.RSA
 import org.junit.Assert
 import org.junit.Test
 import java.math.BigInteger

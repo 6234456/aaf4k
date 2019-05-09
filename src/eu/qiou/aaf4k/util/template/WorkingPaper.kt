@@ -4,7 +4,7 @@ import eu.qiou.aaf4k.reportings.GlobalConfiguration
 
 abstract class WorkingPaper(val headings: List<Template.HeadingFormat>,
                             var data: List<Map<String, *>> = listOf(),
-                            var entityName: String = GlobalConfiguration.DEFAULT_ENTITY.name,
+                            var entityName: String = GlobalConfiguration.DEFAULT_REPORTING_ENTITY.name,
                             var projectName: String = GlobalConfiguration.DEFAULT_PROJECT_NAME,
                             var workingPaperName: String = "",
                             var processedBy: String = GlobalConfiguration.DEFAULT_PROCESSOR_NAME,

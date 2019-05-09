@@ -1,6 +1,6 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.accounting.plan.DepreciationPlan
+import eu.qiou.aaf4k.reportings.plan.DepreciationPlan
 import eu.qiou.aaf4k.util.roundUpTo
 import org.junit.Test
 import java.time.LocalDate

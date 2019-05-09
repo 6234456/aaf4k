@@ -10,7 +10,7 @@ import kotlin.reflect.full.createInstance
 //the hierarchy is separated by period
 class Hierarchy(private val name: String, private var index: String = "A0") {
     companion object {
-        private var unifyFileName: (String) -> String = { "${GlobalConfiguration.DEFAULT_PROJECT_NAME}_${GlobalConfiguration.DEFAULT_ENTITY.abbreviation}_${it.replace("""[*$%|/\\]+""".toRegex(), "_")}".take(100) }
+        private var unifyFileName: (String) -> String = { "${GlobalConfiguration.DEFAULT_PROJECT_NAME}_${GlobalConfiguration.DEFAULT_REPORTING_ENTITY.abbreviation}_${it.replace("""[*$%|/\\]+""".toRegex(), "_")}".take(100) }
     }
 
     class Doc(val template: WorkingPaper, fileName: String, index: String) {

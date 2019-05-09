@@ -2,8 +2,6 @@ package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.gui.GUI
 import eu.qiou.aaf4k.reportings.base.*
-import eu.qiou.aaf4k.reportings.model.Address
-import eu.qiou.aaf4k.reportings.model.Person
 import eu.qiou.aaf4k.util.groupNearby
 import eu.qiou.aaf4k.util.io.*
 import eu.qiou.aaf4k.util.template.Template

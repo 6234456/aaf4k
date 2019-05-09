@@ -1,4 +1,4 @@
-package eu.qiou.aaf4k.reportings.model
+package eu.qiou.aaf4k.reportings.base
 
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.mkString
