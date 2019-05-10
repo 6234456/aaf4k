@@ -66,9 +66,10 @@ class GUITest {
     @Test
     fun open3() {
         val f = AccountingFrame.inflate(123, "cn_cas1_2018")
-        GUI.locale = Locale.CHINESE
+        GUI.locale = Locale.ENGLISH
         GUI.open(f.toReporting(123, "Demo2", TimeParameters.forYear(2018)).apply {
             prepareConsolidation(Locale.CHINESE)
+            println(this.categories.map {  "${it.id} " + it.name})
         })
     }
 

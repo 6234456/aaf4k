@@ -4,8 +4,9 @@ import eu.qiou.aaf4k.util.i18n.Message
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.mergeReduce
 import eu.qiou.aaf4k.util.strings.CollectionToString
+import java.util.*
 
-class Category(val name: String, val desc: String, val reporting: Reporting,
+class Category(name: String, val desc: String, val reporting: Reporting,
                val consolidationCategory: ConsolidationCategory? = null) : JSONable {
     companion object {
         /*
@@ -21,6 +22,18 @@ class Category(val name: String, val desc: String, val reporting: Reporting,
     val entries: MutableList<Entry> = mutableListOf()
     val timeParameters = reporting.timeParameters
     var isWritable: Boolean = true
+
+    val name = name
+     get(): String{
+        return when(id){
+            Reporting.AEKONS_CAT_ID -> Message(Locale.getDefault()).of("aeKons")
+            Reporting.ERSTKONS_CAT_ID -> Message(Locale.getDefault()).of("erstKons")
+            Reporting.FOLGEKONS_CAT_ID -> Message(Locale.getDefault()).of("folgKons")
+            Reporting.ZGE_CAT_ID -> Message(Locale.getDefault()).of("zwischenGewinnE")
+            Reporting.SCHULDKONS_CAT_ID -> Message(Locale.getDefault()).of("schuKons")
+            else -> field
+        }
+    }
 
     var id: Int = UNINITIALIZED_ID
         set(value) {

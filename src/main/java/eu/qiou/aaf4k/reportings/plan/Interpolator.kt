@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit
  * @param decimalPosition the positions after the decimal point, 2 by default. The difference is rounded up in the last period
  */
 
-class Interpolator(val interpolationBase: InterpolationBase = InterpolationBase.START, val interpolationType: InterpolationType = InterpolationType.PROPORTIONAL, val growth: Double, val period: TimeSpan, val interval: ChronoUnit = ChronoUnit.MONTHS, val numberOfInterval: Long = 1, val decimalPosition: Int = 2) {
+class Interpolator(val interpolationBase: InterpolationBase = InterpolationBase.START, val interpolationType: InterpolationType = InterpolationType.PROPORTIONAL, val growth: Double, val period: TimeSpan, val interval: ChronoUnit = period.drillDownTo.unit, val numberOfInterval: Long = period.drillDownTo.amount, val decimalPosition: Int = 2) {
     private val periods = period.drillDown(numberOfInterval, interval)
 
     fun parse(): (Double) -> Map<TimeSpan, Double> {

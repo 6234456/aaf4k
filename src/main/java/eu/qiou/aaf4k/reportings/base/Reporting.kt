@@ -196,7 +196,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
     }
 
     fun fx(targetCurrency: CurrencyUnit) {
-        if (reclAdjCategoriesAdded && this.displayUnit != targetCurrency) {
+        if (reclAdjCategoriesAdded && this.unit != targetCurrency) {
             //TODO
         }
     }

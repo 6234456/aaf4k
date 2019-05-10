@@ -136,7 +136,7 @@ interface ProtoAccount : JSONable, Identifiable {
     fun notStatistical(): List<ProtoAccount> {
         if (!isStatistical) {
             if (this is ProtoCollectionAccount) {
-                return subAccounts.fold(listOf<ProtoAccount>()) { acc, protoAccount ->
+                return subAccounts.fold(listOf()) { acc, protoAccount ->
                     acc + protoAccount.notStatistical()
                 }
             }

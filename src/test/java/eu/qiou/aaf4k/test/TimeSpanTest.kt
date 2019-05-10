@@ -10,7 +10,7 @@ class TimeSpanTest {
 
     @Test
     fun getChildren() {
-        timeSpan.drillDownTo = Pair(1, ChronoUnit.MONTHS)
+        timeSpan.drillDownTo = TimeSpan.ChronoSpan(1, ChronoUnit.MONTHS)
         println(timeSpan.getChildren())
     }
 

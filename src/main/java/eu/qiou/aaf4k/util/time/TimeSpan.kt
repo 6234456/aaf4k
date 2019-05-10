@@ -14,18 +14,20 @@ import java.util.*
  */
 data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
-    var drillDownTo = Pair<Long, ChronoUnit>(1, ChronoUnit.MONTHS)
-    var rollUpTo = setOf<Pair<Long, ChronoUnit>>(Pair(1, ChronoUnit.YEARS))
+    data class ChronoSpan(val amount:Long = 1, val unit: ChronoUnit = ChronoUnit.MONTHS)
+
+    var drillDownTo = ChronoSpan(1, ChronoUnit.MONTHS)
+    var rollUpTo = setOf<ChronoSpan>(ChronoSpan(1, ChronoUnit.YEARS))
 
     private constructor():this(LocalDate.now(), LocalDate.now())
 
 
     init {
-        assert(start.compareTo(end) <= 0)
+        assert(start <= end)
     }
 
-    fun getChildren(): Collection<TimeSpan> {
-        return this.drillDown(drillDownTo.first, drillDownTo.second)
+    fun getChildren(): List<TimeSpan> {
+        return this.drillDown()
     }
 
     fun getParents(): Collection<TimeSpan>? {
@@ -34,11 +36,11 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
 
     operator fun contains(date: LocalDate):Boolean{
-        return date.compareTo(start) >= 0 && date.compareTo(end) <= 0
+        return date in start..end
     }
 
     operator fun contains(span: TimeSpan): Boolean {
-        return span.start.compareTo(start) >= 0 && span.end.compareTo(end) <= 0
+        return span.start >= start && span.end <= end
     }
 
     operator fun plus(period: Period):TimeSpan {
@@ -61,17 +63,17 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
         return TimeSpan(start.minus(period), end.minus(period))
     }
 
-    fun rollForward(unit: ChronoUnit = drillDownTo.second): TimeSpan {
+    fun rollForward(unit: ChronoUnit = drillDownTo.unit): TimeSpan {
         return this.plus(drillDown(1, unit).size.toLong(), unit)
     }
 
-    fun drillDown(interval: Long, unit: ChronoUnit): ArrayList<TimeSpan> {
+    fun drillDown(interval: Long = drillDownTo.amount, unit: ChronoUnit = drillDownTo.unit): ArrayList<TimeSpan> {
         val res = ArrayList<TimeSpan>()
         var start = start
 
         var tmp: LocalDate
 
-        while (start.compareTo(end) <= 0) {
+        while (start <= end) {
             tmp = start.plus(interval, unit)
             res.add(TimeSpan(start, tmp.minus(1, ChronoUnit.DAYS)))
             start = tmp
@@ -82,12 +84,12 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
     fun rollUp(): List<TimeSpan> {
         return rollUpTo.map{
             when(it) {
-                Pair<Long, ChronoUnit>(1, ChronoUnit.YEARS) -> getContainingYear()
-                Pair<Long, ChronoUnit>(6, ChronoUnit.MONTHS) ->getContainingHalfYear()
-                Pair<Long, ChronoUnit>(4, ChronoUnit.MONTHS) ->getContainingQuarter()
-                Pair<Long, ChronoUnit>(1, ChronoUnit.MONTHS) ->getContainingMonth()
-                Pair<Long, ChronoUnit>(1, ChronoUnit.WEEKS) ->getContainingWeek()
-                else -> throw Exception("Unknow Unit: ${it}.")
+                ChronoSpan(1, ChronoUnit.YEARS) -> getContainingYear()
+                ChronoSpan(6, ChronoUnit.MONTHS) ->getContainingHalfYear()
+                ChronoSpan(4, ChronoUnit.MONTHS) ->getContainingQuarter()
+                ChronoSpan(1, ChronoUnit.MONTHS) ->getContainingMonth()
+                ChronoSpan(1, ChronoUnit.WEEKS) ->getContainingWeek()
+                else -> throw Exception("Unknown Unit: $it.")
             }
         }
     }
@@ -182,13 +184,11 @@ operator fun ChronoUnit.times(n: Int):Period = when{
     else -> throw Exception("unimplemented method")
 }
 
-operator fun LocalDate.plus(period: Period): LocalDate = this.plus(period)
-operator fun LocalDate.minus(period: Period) = this.minus(period)
 
 fun LocalDate.isEndOfMonth() = this.plusDays(1).month != this.month
-fun LocalDate.toEndOfMonth() = this.plusMonths(1).withDayOfMonth(1).minusDays(1)
+fun LocalDate.toEndOfMonth() = this.plusMonths(1).withDayOfMonth(1).minusDays(1)!!
 
-fun LocalDate.startOfNextMonth() = this.withDayOfMonth(1).plusMonths(1)
+fun LocalDate.startOfNextMonth() = this.withDayOfMonth(1).plusMonths(1)!!
 fun LocalDate.endOfNextMonth() = this.startOfNextMonth().minusDays(1)
 
 fun LocalDate.to(ends: LocalDate, withIntervalUnit: ChronoUnit = ChronoUnit.YEARS, withIntervalAmount: Int = 1): List<LocalDate> {

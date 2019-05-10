@@ -7,16 +7,20 @@ class ExcelDataLoader(var path:String, var sheetIndex: Int = 0, var sheetName: S
     override fun load(): MutableMap<Long, Double> {
         val res: MutableMap<Long, Double> = mutableMapOf()
         val f:(Row) -> Unit = {
+            if (! (hasHeading && it.rowNum < 1)){
+                val idCol = keyCol - 1
+                val valueCol = valCol - 1
 
-            if (it.getCell(0) != null && it.getCell(1) != null && it.getCell(0).stringCellValue.trim().length > 0 ){
-                var c1 = it.getCell(0).numericCellValue.toLong()
-                var c2 = it.getCell(1).numericCellValue
+                if (it.getCell(idCol) != null && it.getCell(valueCol) != null && it.getCell(idCol).stringCellValue.isNotBlank()){
+                    val c1 = it.getCell(idCol).numericCellValue.toLong()
+                    val c2 = it.getCell(valueCol).numericCellValue
 
-                res.put(c1, c2)
+                    res[c1] = c2
+                }
             }
         }
 
-        ExcelUtil.loopThroughRows(path=path,sheetIndex = sheetIndex, sheetName = sheetName, callback = f)
+        ExcelUtil.loopThroughRows(path=path, sheetIndex = sheetIndex, sheetName = sheetName, callback = f)
 
         return res
     }

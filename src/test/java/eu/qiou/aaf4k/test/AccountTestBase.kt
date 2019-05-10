@@ -24,6 +24,9 @@ class AccountTestBase {
         println(account3.value)
         println(account3.deepCopy())
 
+        assert(account.copyWith(1212.34, 2).value == 121234L)
+        assert(account.copyWith(1212.34, 0).value == 1212L)
+
     }
 
     @Test
