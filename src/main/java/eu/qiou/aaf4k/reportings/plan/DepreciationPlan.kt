@@ -26,8 +26,7 @@ class DepreciationPlan(
     }
 
     private val method = if (customRate != null) DepreciationMethod.CUSTOMIZED_ANNUAL_RATE else method
-    private val numberOfPeriods = if (customRate != null) customRate.fold(0) { acc, pair -> acc + pair.first }
-    else numberOfPeriods
+    private val numberOfPeriods = customRate?.fold(0) { acc, pair -> acc + pair.first } ?: numberOfPeriods
     private val residualPercentage = if (customRate != null) 1 - customRate.fold(0.0) { acc, pair -> acc + pair.second * pair.first }
     else residualPercentage
 

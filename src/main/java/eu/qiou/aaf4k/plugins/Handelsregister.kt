@@ -21,7 +21,7 @@ object Handelsregister {
         with(
                 requestFactory.buildPostRequest(
                         GenericUrl("https://www.handelsregisterbekanntmachungen.de/?aktion=suche"),
-                        ByteArrayContent.fromString(null, "suchart=detail&land=${gericht.land}&gericht=${gericht.id}&seite=${page}&fname=${URLEncoder.encode(name, "UTF-8")}&gegenstand=0&anzv=50&order=4")
+                        ByteArrayContent.fromString(null, "suchart=detail&land=${gericht.land}&gericht=${gericht.id}&seite=$page&fname=${URLEncoder.encode(name, "UTF-8")}&gegenstand=0&anzv=50&order=4")
                 )
         ) {
             with(Jsoup.parse(this.execute().parseAsString())) {
@@ -33,11 +33,11 @@ object Handelsregister {
 
     fun collect(name: String, gericht: Amtsgericht): List<String> {
         var cnt = 0
-        var res: List<String> = listOf()
+        val res: MutableList<String> = mutableListOf()
         while (true) {
             val l = get(name, gericht, cnt)
 
-            if (l.size == 0)
+            if (l.isEmpty())
                 break
 
             res += l

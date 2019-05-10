@@ -3,8 +3,8 @@ package eu.qiou.aaf4k.util.algorithm.crypto
 import eu.qiou.aaf4k.util.algorithm.Algorithm
 import eu.qiou.aaf4k.util.algorithm.powOf
 
-class RSA(val p:Long, val q:Long, val k:Long): Decipherable{
-    val m = p * q
+class RSA(p: Long, q: Long, val k: Long) : Decipherable {
+    private val m = p * q
     private val factorial = mapOf(p to 1, q to 1)
     private val phi = Algorithm.euler_phi(m, factorial)
     private val numberOfDigits = Algorithm.totalDigit(m) - 1
@@ -62,9 +62,7 @@ class RSA(val p:Long, val q:Long, val k:Long): Decipherable{
             }
         }
 
-        println(res)
-
-        return res.map { Algorithm.modPow(it, k, m) } + listOf<Long>(prefixingZero.toLong())
+        return res.map { Algorithm.modPow(it, k, m) } + listOf(prefixingZero.toLong())
     }
 
     override fun decode(i: List<Long>): String {
@@ -76,7 +74,7 @@ class RSA(val p:Long, val q:Long, val k:Long): Decipherable{
             if (Algorithm.totalDigit(l) >= 2){
                 Algorithm.splitNumberAt(l, 2, true).let {
                     x ->
-                    x.first.let {
+                    x.first.let { it ->
                         if (it in 65..122 || it == 32L){
                             res.append(it.toChar())
                             return processLong(x.second)
@@ -84,11 +82,11 @@ class RSA(val p:Long, val q:Long, val k:Long): Decipherable{
                             Algorithm.splitNumberAt(l, 3, true).let {
                                 x ->
                                 x.first.let {
-                                    if (it in 65..122 || it == 32L){
+                                    return if (it in 65..122 || it == 32L) {
                                         res.append(it.toChar())
-                                        return processLong(x.second)
+                                        processLong(x.second)
                                     }else {
-                                        return l
+                                        l
                                     }
                                 }
                             }

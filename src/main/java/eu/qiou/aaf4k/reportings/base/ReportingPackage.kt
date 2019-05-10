@@ -7,7 +7,7 @@ import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import java.util.*
 
 class ReportingPackage(targetReportingTmpl: Reporting,
-                       val intercompanyAccountPolicy: ((Entity, ProtoAccount) -> InterCompanyPolicy?)? = null
+                       private val intercompanyAccountPolicy: ((Entity, ProtoAccount) -> InterCompanyPolicy?)? = null
 ) {
 
     private val components: MutableMap<Entity, Reporting> = mutableMapOf()
@@ -109,7 +109,7 @@ class ReportingPackage(targetReportingTmpl: Reporting,
         targetReporting.prepareConsolidation(locale)
         targetReporting.toXl(path, t, locale, shtNameOverview, shtNameAdjustments, components)
 
-        components.forEach { k, v ->
+        components.forEach { (k, v) ->
             val overview = "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameOverview"
             val adj = "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameAdjustments"
             val (_, data1) = v.toXl(path, t, locale, overview, adj)
@@ -118,7 +118,7 @@ class ReportingPackage(targetReportingTmpl: Reporting,
 
         val (sht, _) = ExcelUtil.getWorksheet(path, sheetName = shtNameOverview)
 
-        data.forEach { i, d ->
+        data.forEach { (i, d) ->
             ExcelUtil.unload(d, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toLong() else -1 }, 0, i, { false }, { c, v ->
                 c.cellFormula = v
             }, sht)

@@ -209,7 +209,7 @@ class AlgorithmTest {
     @Test
     fun RSATest(){
         val a = RSA(12553,13007,79921)
-        val msg = "Qiou Is Great ddddddddd"
+        val msg = "Qiou Is Great dddddddddsdf sd"
         println(msg.toCharArray().map { it.toInt() })
         println(a.decode(a.encode(msg)))
         println(a.decode(a.encode(msg)).toCharArray().map { it.toInt() })

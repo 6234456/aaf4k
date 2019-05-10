@@ -24,6 +24,8 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         const val SCHULDKONS_CAT_ID = 2
         const val AEKONS_CAT_ID = 3
         const val ZGE_CAT_ID = 4
+        const val ADJ_CAT_ID = 5
+        const val RCL_CAT_ID = 6
         private const val PRESERVED_ID = 10
     }
 
@@ -188,8 +190,8 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
             else
                 ResourceBundle.getBundle("aaf4k", locale)
 
-            Category(msg.getString("adjustment"), msg.getString("adjustment"), this)
-            Category(msg.getString("reclassification"), msg.getString("reclassification"), this)
+            Category(msg.getString("adjustment"), msg.getString("adjustment"), this).apply { id == ADJ_CAT_ID; this@Reporting.nextCategoryIndex-- }
+            Category(msg.getString("reclassification"), msg.getString("reclassification"), this).apply { id == RCL_CAT_ID; this@Reporting.nextCategoryIndex-- }
 
             reclAdjCategoriesAdded = true
         }
@@ -263,6 +265,8 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         val descStr = msg.getString("desc")
         val amount = msg.getString("amount")
 
+        val headingHeight = 50f
+        val rowHeight = 24f
 
         val startRow = 1
         var cnt = startRow
@@ -367,9 +371,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                         writeAccountToXl(x, sht, indent + 1)
                     }
 
-                    if (l >= 1 && account.levels() == 2) {
-                        sht.groupRow(cnt - l + 1, cnt - 1)
-                    }
+                    sht.groupRow(cnt - l + 1, cnt - 1)
                 }
         }
 
@@ -417,7 +419,12 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                             .build())
                     sht.setColumnWidth(it.columnIndex, 4000)
                 }
-                heightInPoints = 50f
+                heightInPoints = headingHeight
+            }
+
+            sht.iterator().forEach {
+                if (it.rowNum > 0)
+                    it.heightInPoints = rowHeight
             }
 
             //booking
@@ -443,7 +450,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                             }
                     )
 
-                    heightInPoints = 50f
+                    heightInPoints = headingHeight
                 }
 
                 val bookingFormat = ExcelUtil.StyleBuilder(w).fromStyle(dark!!, false)
@@ -454,6 +461,8 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                     e.entries.filter { it.isActive }.forEach {
                         it.accounts.forEach { acc ->
                             shtCat.createRow(cnt++).apply {
+                                heightInPoints = rowHeight
+
                                 this.createCell(0).setCellValue(it.category.id.toString())
                                 this.createCell(1).setCellValue(acc.id.toString())
                                 this.createCell(2).setCellValue(acc.name)

@@ -175,7 +175,7 @@ object FromJSON {
                     entity = entity(json["entity"] as JSONObject),
                     timeParameters = timeParameters(json["timeParameters"] as JSONObject)
                 ).apply {
-                    (json["structure"] as JSONArray).forEach {
+                    (json["core"] as JSONArray).forEach {
                         add(account(it as JSONObject))
                     }
                 }
