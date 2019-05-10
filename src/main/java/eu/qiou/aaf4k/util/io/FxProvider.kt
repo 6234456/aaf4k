@@ -7,26 +7,23 @@ abstract class FxProvider {
 
     abstract fun fetchFxFromSource(target: ForeignExchange): Double
 
-    /**
-     * TODO implement baseFx for other classes
-     */
     open fun baseFx(target: ForeignExchange): Map<java.time.LocalDate, Double> {
-        return HashMap<java.time.LocalDate, Double>()
+        return HashMap()
     }
 
     fun fetch(target: ForeignExchange, useCache: Boolean = true): Double {
-        if (target.functionalCurrency.equals(target.reportingCurrency))
+        if (target.functionalCurrency == target.reportingCurrency)
             return 1.0
 
         if (useCache) {
             if (cache.containsKey(target)) {
-                return cache.get(target)!!
+                return cache[target]!!
             }
         }
 
         val res = fetchFxFromSource(target)
 
-        cache.put(target, res)
+        cache[target] = res
         return res
     }
 
@@ -37,6 +34,4 @@ abstract class FxProvider {
     fun toXls(target: ForeignExchange, file: String) {
         ExcelUtil.writeData(path = file, data = baseFx(target), header = listOf("Date", "Value"), sheetName = "${target.functionalCurrency.currencyCode}-${target.reportingCurrency.currencyCode}")
     }
-
-
 }

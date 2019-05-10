@@ -49,7 +49,7 @@ object SZSEDiscloure {
     private fun getPdfLinks(obj: JSONObject): Map<String, String> {
         return JSONUtil.query<JSONArray>(obj, "data").map { v ->
             (v as JSONObject).let {
-                it.get("title").toString() to "http://disc.static.szse.cn/download" + it.get("attachPath").toString()
+                it["title"].toString() to "http://disc.static.szse.cn/download" + it["attachPath"].toString()
             }
         }.toMap()
     }
@@ -71,11 +71,11 @@ object SZSEDiscloure {
                 else -> throw UnsupportedOperationException()
             }.toRegex()
 
-            res = res.filterKeys { regQuarter.containsMatchIn(it) }
+            res = res.filterKeys { it1 -> regQuarter.containsMatchIn(it1) }
 
             if (quarter == 4) {
                 val regTmp = "半年度".toRegex()
-                res = res.filterKeys { !regTmp.containsMatchIn(it) }
+                res = res.filterKeys { it1 -> !regTmp.containsMatchIn(it1) }
             }
         }
 
@@ -100,18 +100,18 @@ object SZSEDiscloure {
 
     fun getEntityInfoById(query: String, cnt: Int = 60): Map<String, EntityInfo> {
 
-        val requestData = """ticker=${query}&limit=${cnt}&date=365"""
+        val requestData = """ticker=$query&limit=$cnt&date=365"""
         val url = GenericUrl("http://xbrl.cninfo.com.cn/do/stockreserch/getcompanybyprefix")
         val request = requestFactory.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
 
         request.headers.contentType = "application/x-www-form-urlencoded"
         return request.execute().parseAsString().split(",").map {
             val t = it.split("#")
-            val tmp = updateGeneralDesc(t.get(2))
-            t.get(0) to EntityInfo(t.get(0), t.get(1), t.get(3), t.get(4), orgName = t.get(2), orgNameEN = tmp.get("英文名称")!!
-                    , location = tmp.get("办公地址")!!, url = tmp.get("公司网址")!!, email = tmp.get("电子信箱")!!, boardSecretary = tmp.get("董事会秘书姓名")!!
-                    , emailBoardSecretary = tmp.get("董事会秘书电子信箱")!!, registeredCaptial = NumberFormat.getInstance().parse(tmp.get("注册资本(万元)")!!).toDouble(), securityDelegator = tmp.get("证券事务代表姓名")!!
-                    , auditor = tmp.get("会计师事务所")!!
+            val tmp = updateGeneralDesc(t[2])
+            t[0] to EntityInfo(t[0], t[1], t[3], t[4], orgName = t[2], orgNameEN = tmp.getValue("英文名称")
+                    , location = tmp.getValue("办公地址"), url = tmp.getValue("公司网址"), email = tmp.getValue("电子信箱"), boardSecretary = tmp.getValue("董事会秘书姓名")
+                    , emailBoardSecretary = tmp.getValue("董事会秘书电子信箱"), registeredCaptial = NumberFormat.getInstance().parse(tmp.getValue("注册资本(万元)")).toDouble(), securityDelegator = tmp.getValue("证券事务代表姓名")
+                    , auditor = tmp.getValue("会计师事务所")
             )
         }.toMap()
     }
@@ -141,7 +141,7 @@ object SZSEDiscloure {
     //http://xbrl.cninfo.com.cn/do/dividend/getdividendhistory?ticker=000002&page=1
 
     fun getEntityFacets(SECCode: String): String {
-        val requestData = """ticker=${SECCode}"""
+        val requestData = """ticker=$SECCode"""
         val url = GenericUrl("http://xbrl.cninfo.com.cn/do/generalinfo/getcompanygeneralinfo")
         val request = requestFactory.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
 
@@ -159,7 +159,7 @@ object SZSEDiscloure {
         }
 
         override fun equals(other: Any?): Boolean {
-            return other is EntityInfo && other.SECCode.equals(this.SECCode)
+            return other is EntityInfo && other.SECCode == this.SECCode
         }
 
     }

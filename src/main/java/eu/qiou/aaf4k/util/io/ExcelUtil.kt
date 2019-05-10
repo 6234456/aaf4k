@@ -23,7 +23,6 @@ object ExcelUtil {
 
     // the float numbers in the spreadsheet should be formatted, or by default in will be parsed to Int
     fun parseXlFormatString(s: String): (Number) -> String {
-
         if (s == "General")
             return parseXlFormatString("#")
 
@@ -39,7 +38,7 @@ object ExcelUtil {
                 if (indexOfSharp == -1) {
                     p1 + if (hasDecimalPoint && decimal == 0) "." else ""
                 } else {
-                    val pos = with(p1.takeLast(decimal - indexOfSharp)) { length - (1 + indexOfLast { it != '0' }) }
+                    val pos = with(p1.takeLast(decimal - indexOfSharp)) { length - (1 + indexOfLast { it1 -> it1 != '0' }) }
                     p1.dropLast(if (pos == decimal) pos + 1 else pos)
                 }
             }
@@ -117,7 +116,7 @@ object ExcelUtil {
         return f.exists() && !f.isDirectory
     }
 
-    fun createWorkbookIfNotExists(path: String, callback: (Workbook) -> Unit = {}) {
+    private fun createWorkbookIfNotExists(path: String, callback: (Workbook) -> Unit = {}) {
 
         if (fileExists(path)) {
             processWorkbook(path, callback)
@@ -196,7 +195,7 @@ object ExcelUtil {
                 )
 
                 if (data.containsKey(k)) {
-                    processCell(row.getCell(targCol) ?: row.createCell(targCol), data[k]!!)
+                    processCell(row.getCell(targCol) ?: row.createCell(targCol), data.getValue(k))
                 }
             }
         }
@@ -225,7 +224,7 @@ object ExcelUtil {
     /**
      *  Update the style of the cell in place
      */
-    class Update(val cell: Cell) {
+    class Update(private val cell: Cell) {
         private val wb = cell.sheet.workbook
         private val createHelper = wb.creationHelper
         private var colorIndex: XSSFColor? = null
@@ -379,7 +378,7 @@ object ExcelUtil {
 
     //due to the limitation of HSSF, font should be possibly re-used
     //if defaultFont is set, it will be applied without creating a new instance
-    class StyleBuilder(val wb: Workbook) {
+    class StyleBuilder(private val wb: Workbook) {
 
         private val createHelper = wb.creationHelper
         private var cellStyle = wb.createCellStyle()
@@ -531,10 +530,10 @@ object ExcelUtil {
         fun multiLineInCell(multiline: Boolean, lines: Int = 2): StyleBuilder {
             cellStyle.wrapText = multiline
 
-            if (multiline)
-                multilines = lines
+            multilines = if (multiline)
+                lines
             else
-                multilines = 1
+                1
 
             return this
         }
@@ -571,49 +570,46 @@ object ExcelUtil {
 
             fun get(rgb: Triple<Int, Int, Int>): Short {
 
-                if (m.containsKey(rgb)) {
-                    return m.get(rgb)!!
-                }
-                else {
+                return if (m.containsKey(rgb)) {
+                    m[rgb]!!
+                } else {
                     if (index == lastIndex) {
                         throw Exception("All the replaceable slots are taken!")
                     }
                     m[rgb] = replaceableHSSFColors[index++]
-                    return get(rgb)
+                    get(rgb)
                 }
             }
         }
     }
 
-    fun setCellValue(cell: Cell, value: Any) {
-        when {
-            value is Int -> {
-                cell.setCellValue(value.toDouble())
-            }
-            value is Double -> {
-                cell.setCellValue(value.toDouble())
-                cell.setCellType(CellType.NUMERIC)
-            }
-            value is Boolean -> {
-                cell.setCellValue(value)
-                cell.setCellType(CellType.BOOLEAN)
-            }
-            value is Date -> {
-                cell.setCellValue(value)
-                cell.setCellType(CellType.NUMERIC)
-            }
-            value is Calendar -> {
-                cell.setCellValue(value)
-                cell.setCellType(CellType.NUMERIC)
-            }
-            value is LocalDate -> {
-                cell.setCellValue(java.sql.Date.valueOf(value))
-                cell.setCellType(CellType.NUMERIC)
-            }
-            else -> {
-                cell.setCellValue(value.toString())
-                cell.setCellType(CellType.STRING)
-            }
+    fun setCellValue(cell: Cell, value: Any) = when (value) {
+        is Int -> {
+            cell.setCellValue(value.toDouble())
+        }
+        is Double -> {
+            cell.setCellValue(value.toDouble())
+            cell.setCellType(CellType.NUMERIC)
+        }
+        is Boolean -> {
+            cell.setCellValue(value)
+            cell.setCellType(CellType.BOOLEAN)
+        }
+        is Date -> {
+            cell.setCellValue(value)
+            cell.setCellType(CellType.NUMERIC)
+        }
+        is Calendar -> {
+            cell.setCellValue(value)
+            cell.setCellType(CellType.NUMERIC)
+        }
+        is LocalDate -> {
+            cell.setCellValue(java.sql.Date.valueOf(value))
+            cell.setCellType(CellType.NUMERIC)
+        }
+        else -> {
+            cell.setCellValue(value.toString())
+            cell.setCellType(CellType.STRING)
         }
     }
 
@@ -630,17 +626,15 @@ object ExcelUtil {
                     }
                 }
 
-                data.forEach { t, u ->
+                data.forEach { (t, u) ->
                     val row = it.createRow(r++)
                     var c = startCol + 1
 
                     setCellValue(row.createCell(startCol), t.toString())
-                    when {
-                        u is Iterable<*> -> u.forEach { i ->
-                            setCellValue(row.createCell(c++), i!!)
-                        }
-                        else -> setCellValue(row.createCell(c), u!!)
+                    if (u is Iterable<*>) u.forEach { i ->
+                        setCellValue(row.createCell(c++), i!!)
                     }
+                    else setCellValue(row.createCell(c), u!!)
                 }
             }
             createWorksheetIfNotExists(path, sheetName, f)

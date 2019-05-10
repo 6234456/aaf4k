@@ -23,10 +23,9 @@ fun Iterable<Number>.irr(): Double {
         Math.abs(n1) < Math.abs(n2)
     }
 
-    var tmp = 0.0
+    var tmp: Double
 
     while (true) {
-
         if (cnt == maxSteps)
             throw Error("maximal loop reached!")
 

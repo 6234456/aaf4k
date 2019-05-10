@@ -5,7 +5,7 @@ import java.util.*
 
 class EnumerationUnit(val unitSingular:String, var unitPlural:String = unitSingular, var unitNull:String = unitSingular):ProtoUnit() {
     override fun format(locale: Locale): (Number) -> String {
-        val f : (Number) -> String = { a->
+        return { a ->
             val b = a.toInt()
 
             when{
@@ -15,9 +15,5 @@ class EnumerationUnit(val unitSingular:String, var unitPlural:String = unitSingu
                 else -> throw Exception("Illegal Parameter: $a less than zero")
             }
         }
-
-        return f
     }
-
-
 }

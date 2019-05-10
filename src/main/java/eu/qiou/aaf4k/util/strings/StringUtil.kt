@@ -5,8 +5,8 @@ import java.nio.charset.Charset
 
 object StringUtil {
     fun repeatString(times: Int, token: String ="\t"):String{
-        if(times <= 0) return ""
-        else return token + repeatString(times - 1, token)
+        return if (times <= 0) ""
+        else token + repeatString(times - 1, token)
     }
 }
 

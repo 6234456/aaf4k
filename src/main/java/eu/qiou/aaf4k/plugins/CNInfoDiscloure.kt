@@ -56,7 +56,7 @@ object CNInfoDiscloure {
                 requestFactory
                         .buildPostRequest(
                                 GenericUrl("http://www.cninfo.com.cn/information/stock/${type.typeName}_.jsp?stockCode=${reg.replace(code, "")}"),
-                                ByteArrayContent.fromString(null, "yyyy=${yyyy}&mm=${mm}&cwzb=${type.typeName}")
+                                ByteArrayContent.fromString(null, "yyyy=$yyyy&mm=$mm&cwzb=${type.typeName}")
                         )
         ) {
             this.headers.contentType = "application/x-www-form-urlencoded"
@@ -68,17 +68,17 @@ object CNInfoDiscloure {
                     val codet = Regex("""\/(\w+?\.html)(?:(?:"|')?;?)$""").find(this.getElementsByTag("script").get(0).html())!!.groupValues[1]
 
                     with(Jsoup.parse(
-                            requestFactory.buildGetRequest(GenericUrl("http://www.cninfo.com.cn/information/${type.typeName}/${codet}"))
+                            requestFactory.buildGetRequest(GenericUrl("http://www.cninfo.com.cn/information/${type.typeName}/$codet"))
                                     .execute().parseAsString()
                     )
-                            .getElementsByClass("zx_left").get(0).getElementsByTag("td")
+                            .getElementsByClass("zx_left")[0].getElementsByTag("td")
                             .map { it.text().recode("ISO-8859-1", "GB2312") }
                             .chunked(2))
                     {
                         return this.filterIndexed { i, _ -> i % 2 == 0 } + this.filterIndexed { i, _ -> i % 2 == 1 }
                     }
                 } else {
-                    with(this.getElementsByClass("zx_left").get(0).getElementsByTag("td")
+                    with(this.getElementsByClass("zx_left")[0].getElementsByTag("td")
                             .map { it.text() }
                             .chunked(2))
                     {

@@ -9,9 +9,9 @@ import java.time.LocalDate
 
 object Handelsregister {
     var requestFactory = NetHttpTransport().createRequestFactory()
-    val urlPart = """'([^']+)'""".toRegex()
-    val root = """https://www.handelsregisterbekanntmachungen.de/skripte/hrb.php?"""
-    val dateReg = """(\d{2}).(\d{2}).(\d{4})""".toRegex()
+    private val urlPart = """'([^']+)'""".toRegex()
+    private const val root = """https://www.handelsregisterbekanntmachungen.de/skripte/hrb.php?"""
+    private val dateReg = """(\d{2}).(\d{2}).(\d{4})""".toRegex()
 
     fun clear() {
         requestFactory = null
@@ -21,7 +21,7 @@ object Handelsregister {
         with(
                 requestFactory.buildPostRequest(
                         GenericUrl("https://www.handelsregisterbekanntmachungen.de/?aktion=suche"),
-                        ByteArrayContent.fromString(null, "suchart=detail&land=${gericht.land}&gericht=${gericht.id}&seite=${page}&fname=${URLEncoder.encode(name, "UTF-8")}&gegenstand=0&anzv=50&order=4")
+                        ByteArrayContent.fromString(null, "suchart=detail&land=${gericht.land}&gericht=${gericht.id}&seite=$page&fname=${URLEncoder.encode(name, "UTF-8")}&gegenstand=0&anzv=50&order=4")
                 )
         ) {
             with(Jsoup.parse(this.execute().parseAsString())) {
@@ -33,11 +33,11 @@ object Handelsregister {
 
     fun collect(name: String, gericht: Amtsgericht): List<String> {
         var cnt = 0
-        var res: List<String> = listOf()
+        val res: MutableList<String> = mutableListOf()
         while (true) {
             val l = get(name, gericht, cnt)
 
-            if (l.size == 0)
+            if (l.isEmpty())
                 break
 
             res += l
@@ -49,9 +49,8 @@ object Handelsregister {
     }
 
     fun walk(name: String, gericht: Amtsgericht): Map<LocalDate, String> {
-
-        return collect(name, gericht).map {
-            with(requestFactory.buildGetRequest(GenericUrl(it))) {
+        return collect(name, gericht).map { s ->
+            with(requestFactory.buildGetRequest(GenericUrl(s))) {
                 with(Jsoup.parse(this.execute().parseAsString())) {
                     this.select("tbody > tr > td")
                             .map { it.text().trim() }.filter { it.isNotBlank() }

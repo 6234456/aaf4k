@@ -19,23 +19,23 @@ object ECBFxProvider : FxProvider() {
 
     override fun fetchFxFromSource(target: ForeignExchange): Double {
         val res = parseURL(target)
-        if (target.reportingCurrency.equals(Currency.getInstance("EUR")))
+        if (target.reportingCurrency == Currency.getInstance("EUR"))
             return 1 / res
 
         return res
     }
 
-    override fun baseFx(target: ForeignExchange): Map<java.time.LocalDate, Double> {
+    override fun baseFx(target: ForeignExchange): Map<LocalDate, Double> {
         if (target.timeParameters.timeAttribute == TimeAttribute.TIME_SPAN) {
             val url = buildURL(target)
             val v1 = hashMapOf<Int, Double>()
 
             JSONUtil.fetch<JSONObject>(url, false, "dataSets.0.series.0:0:0:0:0.observations").forEach { k, x ->
-                v1.put(k.toString().toInt(), (x as JSONArray).get(0) as Double)
+                v1[k.toString().toInt()] = (x as JSONArray)[0] as Double
             }
 
             return JSONUtil.fetch<JSONArray>(url, false, "structure.dimensions.observation.0.values").map { v ->
-                java.time.LocalDate.parse((v as JSONObject).get("name").toString())
+                LocalDate.parse((v as JSONObject)["name"].toString())
             }
                     .zip(
                             v1.toSortedMap().values
@@ -70,9 +70,9 @@ object ECBFxProvider : FxProvider() {
         var baseCurrency = target.functionalCurrency.currencyCode
         val targetCurrency = target.reportingCurrency.currencyCode
 
-        if (!(baseCurrency.equals("EUR") || targetCurrency.equals("EUR"))) {
+        if (!(baseCurrency == "EUR" || targetCurrency == "EUR")) {
             throw Exception("Only EUR related exchange rate supported.")
-        } else if (baseCurrency.equals("EUR")) {
+        } else if (baseCurrency == "EUR") {
             baseCurrency = targetCurrency
         }
 

@@ -22,13 +22,12 @@ object CollectionToString {
             level: Int = 0,
             asSingleToStr: C.(Int) -> String,
             asParentToStr: P.() -> String,
-            trappings: (eu.qiou.aaf4k.reportings.base.Drilldownable<*, *>,
-                        C) -> String = { _, _ -> "" },
+            trappings: (Drilldownable<*, *>, C) -> String = { _, _ -> "" },
             parent: P? = null): String {
-        val s = (if (parent != null) trappings(parent as eu.qiou.aaf4k.reportings.base.Drilldownable<*, *>, drilldownable) else "")
+        val s = (if (parent != null) trappings(parent as Drilldownable<*, *>, drilldownable) else "")
 
         return (("\t" * level) + s) +
-                if ((drilldownable is eu.qiou.aaf4k.reportings.base.Drilldownable<*, *> && drilldownable.hasChildren())) {
+                if ((drilldownable is Drilldownable<*, *> && drilldownable.hasChildren())) {
                     (drilldownable as P).asParentToStr() + " : {\n" + drilldownable.getChildren().fold("") { acc: String, childType ->
                         acc + structuredToStr(childType as C, level + 1, asSingleToStr, asParentToStr, trappings, drilldownable) + "\n"
                     } + "\t" * level + "}"

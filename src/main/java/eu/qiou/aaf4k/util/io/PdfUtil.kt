@@ -30,7 +30,7 @@ object PdfUtil {
                 stripper.extractRegions(ele)
                 val tmpMap: MutableMap<String, String> = mutableMapOf()
                 regions.forEach{
-                        tmpMap.put(it.key, stringProcessor(stripper.getTextForRegion(it.key)))
+                    tmpMap[it.key] = stringProcessor(stripper.getTextForRegion(it.key))
                 }
                 res.add(tmpMap)
         }
@@ -38,7 +38,7 @@ object PdfUtil {
         return res
     }
 
-    fun readFile(file: File):PDDocument{
+    private fun readFile(file: File): PDDocument {
         return  PDDocument.load(file)
     }
 

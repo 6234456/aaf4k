@@ -31,6 +31,8 @@ class Category(name: String, val desc: String, val reporting: Reporting,
             Reporting.FOLGEKONS_CAT_ID -> Message(Locale.getDefault()).of("folgKons")
             Reporting.ZGE_CAT_ID -> Message(Locale.getDefault()).of("zwischenGewinnE")
             Reporting.SCHULDKONS_CAT_ID -> Message(Locale.getDefault()).of("schuKons")
+            Reporting.ADJ_CAT_ID -> Message(Locale.getDefault()).of("adjustment")
+            Reporting.RCL_CAT_ID -> Message(Locale.getDefault()).of("reclassification")
             else -> field
         }
     }

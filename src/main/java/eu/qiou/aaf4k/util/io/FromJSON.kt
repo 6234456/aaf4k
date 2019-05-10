@@ -32,7 +32,7 @@ object FromJSON {
                     decimalPrecision = (json["decimalPrecision"] as Long).toInt(),
                     isStatistical = json["isStatistical"] as Boolean,
                     validateUntil = date,
-                    reportingType = parseReportingType(json.get("reportingType") as String)
+                    reportingType = parseReportingType(json["reportingType"] as String)
             ).apply {
                 (json["subAccounts"] as JSONArray).forEach {
                     account(it as JSONObject)
@@ -89,74 +89,72 @@ object FromJSON {
                     entry(it, this)
             }
 
-            this.isWritable = (json.get("isWritable") as Boolean?) ?: true
+            this.isWritable = (json["isWritable"] as Boolean?) ?: true
             //this.nextEntryIndex = (json.get("nextEntryIndex") as Long?)?.toInt() ?: 1
         }
     }
 
     fun person(json: JSONObject): Person {
-        val dob = json.get("dateOfBirth")
+        val dob = json["dateOfBirth"]
 
         val date = if (dob == null) null else LocalDate.parse(dob as String)
 
         return Person(
-                id = (json.get("id") as Long).toInt(),
-                familyName = json.get("familyName") as String,
-                givenName = json.get("givenName") as String,
-                isMale = json.get("isMale") as Boolean,
+                id = (json["id"] as Long).toInt(),
+                familyName = json["familyName"] as String,
+                givenName = json["givenName"] as String,
+                isMale = json["isMale"] as Boolean,
                 dateOfBirth = date,
-                email = (json.get("email") as JSONArray).map {
+                email = (json["email"] as JSONArray).map {
                     it as String
                 }.toMutableList(),
-                phone = (json.get("phone") as JSONArray).map {
+                phone = (json["phone"] as JSONArray).map {
                     it as String
                 }.toMutableList(),
-                title = (json.get("title") as JSONArray).map {
+                title = (json["title"] as JSONArray).map {
                     it as String
                 }.toMutableList()
         )
     }
 
     fun timeParameters(json: JSONObject): TimeParameters {
-        val type = parseTimeAttribute(json.get("type") as Long)
-
-        return when (type) {
-            TimeAttribute.TIME_POINT -> TimeParameters(timePoint = LocalDate.parse(json.get("end") as String))
+        return when (parseTimeAttribute(json["type"] as Long)) {
+            TimeAttribute.TIME_POINT -> TimeParameters(timePoint = LocalDate.parse(json["end"] as String))
             TimeAttribute.TIME_SPAN -> TimeParameters(timeSpan =
-            TimeSpan(LocalDate.parse(json.get("start") as String), LocalDate.parse(json.get("end") as String)))
+            TimeSpan(LocalDate.parse(json["start"] as String), LocalDate.parse(json["end"] as String)))
             TimeAttribute.CONSTANT -> TimeParameters(null, null)
         }
     }
 
     fun address(json: JSONObject): Address {
         return Address(
-                id = (json.get("id") as Long).toInt(),
-                country = Locale.Builder().setRegion(json.get("country") as String).build(),
-                province = json.get("province") as String,
-                city = json.get("city") as String,
-                zipCode = json.get("zipCode") as String,
-                street = json.get("street") as String,
-                number = json.get("number") as String
+                id = (json["id"] as Long).toInt(),
+                country = Locale.Builder().setRegion(json["country"] as String).build(),
+                province = json["province"] as String,
+                city = json["city"] as String,
+                zipCode = json["zipCode"] as String,
+                street = json["street"] as String,
+                number = json["number"] as String
         )
     }
 
     fun entity(json: JSONObject): Entity {
 
-        val p = json.get("contactPerson")
+        val p = json["contactPerson"]
         val ps = if (p == null) null else person(p as JSONObject)
 
-        val a = json.get("address")
+        val a = json["address"]
         val ads = if (a == null) null else address(a as JSONObject)
 
-        val c = json.get("child")
+        val c = json["child"]
         val child = if (c == null) null else (c as JSONArray)
-                .map { entity((it as JSONObject).get("key") as JSONObject) to it.get("value") as Double }.toMap()
+                .map { entity((it as JSONObject)["key"] as JSONObject) to it["value"] as Double }.toMap()
 
         return Entity(
-                id = json.get("id") as Long,
-                name = json.get("name") as String,
-                desc = json.get("desc") as String,
-                abbreviation = json.get("abbreviation") as String,
+                id = json["id"] as Long,
+                name = json["name"] as String,
+                desc = json["desc"] as String,
+                abbreviation = json["abbreviation"] as String,
                 contactPerson = ps,
                 address = ads
         ).apply {
@@ -175,7 +173,7 @@ object FromJSON {
                     entity = entity(json["entity"] as JSONObject),
                     timeParameters = timeParameters(json["timeParameters"] as JSONObject)
                 ).apply {
-                    (json["structure"] as JSONArray).forEach {
+                    (json["core"] as JSONArray).forEach {
                         add(account(it as JSONObject))
                     }
                 }
@@ -186,7 +184,6 @@ object FromJSON {
                 }
             }
         }
-
     }
 
 

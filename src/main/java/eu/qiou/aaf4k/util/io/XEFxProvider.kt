@@ -25,7 +25,7 @@ object XEFxProvider : FxProvider() {
         val targetCurrency = target.reportingCurrency.currencyCode
 
         val document = Jsoup.connect(url).get()
-        val element = document.select("#historicalRateTbl tbody tr td a").filter { it.html().trim().equals(targetCurrency) }.get(0)
+        val element = document.select("#historicalRateTbl tbody tr td a").filter { it.html().trim() == targetCurrency }[0]
 
         return element.parent().siblingElements()[1].html().toDouble()
     }

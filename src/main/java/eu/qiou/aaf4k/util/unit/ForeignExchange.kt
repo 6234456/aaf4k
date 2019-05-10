@@ -17,7 +17,7 @@ data class ForeignExchange(val functionalCurrency: Currency = DEFAULT_FUNCTIONAL
     constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timePoint: LocalDate):this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = TimeParameters(timePoint))
     constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timeParameters: TimeParameters) : this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = timeParameters)
 
-    var rate: Long? = null
+    private var rate: Long? = null
     var decimalPrecision: Int = 5
 
     var displayRate: Double? = null
@@ -36,8 +36,8 @@ data class ForeignExchange(val functionalCurrency: Currency = DEFAULT_FUNCTIONAL
         }
     }
 
-    fun fetch(src: FxProvider = ForeignExchange.source, forceRefresh: Boolean = ForeignExchange.forceRefresh): Double {
-        if (functionalCurrency.equals(reportingCurrency)){
+    fun fetch(src: FxProvider = source, forceRefresh: Boolean = ForeignExchange.forceRefresh): Double {
+        if (functionalCurrency == reportingCurrency) {
             displayRate = 1.0
             return 1.0
         }
@@ -46,7 +46,7 @@ data class ForeignExchange(val functionalCurrency: Currency = DEFAULT_FUNCTIONAL
     }
 
     override fun toString(): String {
-        return "Exchange rate ${if(timePoint == null) "in ${timeSpan}" else  "on ${timePoint}"} of ${functionalCurrency.currencyCode}:${reportingCurrency.currencyCode} is ${String.format(DEFAULT_LOCALE, "%.${decimalPrecision}f", displayRate)}"
+        return "Exchange rate ${if (timePoint == null) "in $timeSpan" else "on $timePoint"} of ${functionalCurrency.currencyCode}:${reportingCurrency.currencyCode} is ${String.format(DEFAULT_LOCALE, "%.${decimalPrecision}f", displayRate)}"
     }
 
     companion object {

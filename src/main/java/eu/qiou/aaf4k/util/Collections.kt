@@ -11,7 +11,7 @@ fun <K, V> Map<K, V>.mergeReduce(other: Map<K, V>, reduce: (V, V) -> V): Map<K, 
     return result
 }
 
-fun Iterable<Any>.mkString(separator: String = ", ", prefix: String = "[", affix: String = "]") = eu.qiou.aaf4k.util.strings.CollectionToString.mkString(this, separator, prefix, affix)
+fun Iterable<Any>.mkString(separator: String = ", ", prefix: String = "[", affix: String = "]") = CollectionToString.mkString(this, separator, prefix, affix)
 
 
 fun Iterable<JSONable>.mkJSON() = CollectionToString.mkJSON(this)
@@ -53,12 +53,12 @@ fun <R, T> Iterable<T>.groupNearby(operation: (T) -> R): List<List<T>> {
     val cnt = this.count()
     var tmp = mutableListOf<T>()
     return with(this.map { t -> operation(t) }) {
-        this.foldIndexed(mutableListOf<List<T>>()) { index, acc, r ->
+        this.foldIndexed(mutableListOf()) { index, acc, r ->
             tmp.add(this@groupNearby.elementAt(index))
             if (index < cnt - 1) {
                 if (r != this[index + 1]) {
                     acc.add(tmp)
-                    tmp = mutableListOf<T>()
+                    tmp = mutableListOf()
                 }
             } else {
                 acc.add(tmp)

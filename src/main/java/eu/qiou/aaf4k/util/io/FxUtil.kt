@@ -22,7 +22,7 @@ object FxUtil {
     }
 
     private fun setDisplayRateAndReturn(foreignExchange: ForeignExchange, value:Double):Double {
-        cache.put(foreignExchange, value)
+        cache[foreignExchange] = value
 
         foreignExchange.displayRate = value
         return value

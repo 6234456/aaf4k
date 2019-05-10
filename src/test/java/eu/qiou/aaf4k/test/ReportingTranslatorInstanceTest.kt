@@ -35,7 +35,7 @@ class ReportingTranslatorInstanceTest {
         })
 
         val p = ReportingPackage(e)
-        p.localReportingOf(e)
+        p.localReportingOf(e, locale = Locale.ENGLISH)
         p.localReportingOf(f).apply {
             val c = this.categories[1]
             Entry("trail", c).apply {
@@ -43,7 +43,8 @@ class ReportingTranslatorInstanceTest {
             }
         }
 
-        p.toXl("data/packages.xls", t = Template.Theme.LAVANDA)
+        Locale.setDefault(Locale.GERMAN)
+        p.toXl("data/packages.xls", t = Template.Theme.BLACK_WHITE, locale = Locale.GERMAN)
 
     }
 
@@ -84,32 +85,41 @@ class ReportingTranslatorInstanceTest {
         }
 
         rePackage.localReportingOf(
-            (r.update(
-                mapOf(
-                        112203L to 2345.65,
-                        112204L to 2345.65
-                )
-            ) as Reporting
-        ))
+                (r.apply {
+                    update(
+                            mapOf(
+                                    112203L to 2345.65,
+                                    112204L to 2345.65
+                            ))
+                }
+                        )
+        )
 
-        rePackage.localReportingOf(e.toReporting(1, "B GmbH", entity = e2).update(
-                mapOf(
-                        112202L to -2345.65,
-                        112204L to 2345.65
-                )
-        ) as Reporting)
-        rePackage.localReportingOf(e.toReporting(2, "C GmbH", entity = e3).update(
-                mapOf(
-                        112203L to -2345.65,
-                        112202L to -2348.65
-                )
-        ) as Reporting)
+        rePackage.localReportingOf(e.toReporting(1, "B GmbH", entity = e2).apply {
+            update(
+                    mapOf(
+                            112202L to -2345.65,
+                            112204L to 2345.65
+                    )
+            )
+        }
+        )
+        rePackage.localReportingOf(e.toReporting(2, "C GmbH", entity = e3).apply {
+            update(
+                    mapOf(
+                            112203L to -2345.65,
+                            112202L to -2348.65
+                    )
+            )
+        }
+        )
 
         rePackage.eliminateIntercompanyTransactions()
 
         rePackage.carryForward(rePackage1)
 
-      rePackage.toXl("data/package2.xlsx")
+        rePackage.toXl("data/package2.xlsx")
+    }
     }
 
 
@@ -120,5 +130,5 @@ class ReportingTranslatorInstanceTest {
 
         println(reg.containsMatchIn(s))
     }
-}
+
 

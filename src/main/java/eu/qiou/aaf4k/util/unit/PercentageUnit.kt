@@ -3,8 +3,7 @@ package eu.qiou.aaf4k.util.unit
 import java.util.*
 
 
-class PercentageUnit : ProtoUnit {
-    private constructor()
+class PercentageUnit private constructor() : ProtoUnit() {
 
     companion object {
         private val percentageUnit = PercentageUnit()
@@ -15,7 +14,6 @@ class PercentageUnit : ProtoUnit {
     }
 
     override fun format(locale: Locale): (Number) -> String {
-        val f: (Number) -> String = { n -> String.format(locale, "%.2f%%", n)}
-        return f
+        return { n -> String.format(locale, "%.2f%%", n) }
     }
 }
