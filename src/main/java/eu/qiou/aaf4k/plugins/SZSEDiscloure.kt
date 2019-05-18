@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.plugins
 
 import com.google.api.client.http.ByteArrayContent
 import com.google.api.client.http.GenericUrl
+import com.google.api.client.http.HttpRequestFactory
 import com.google.api.client.http.javanet.NetHttpTransport
 import eu.qiou.aaf4k.util.io.JSONUtil
 import org.json.simple.JSONArray
@@ -17,7 +18,7 @@ import java.text.NumberFormat
  *  http://www.szse.cn/disclosure/listed/fixed/index.html
  */
 object SZSEDiscloure {
-    var requestFactory = NetHttpTransport().createRequestFactory()
+    private var requestFactory: HttpRequestFactory? = NetHttpTransport().createRequestFactory()
 
     fun clear() {
         requestFactory = null
@@ -27,9 +28,9 @@ object SZSEDiscloure {
      * @param index the stock-index of the listed company
      */
     private fun get(index: String): JSONObject {
-        val requestData = """ {"seDate":["",""],"stock":["${index}"],"channelCode":["fixed_disc"],"pageSize":30,"pageNum":1} """
+        val requestData = """ {"seDate":["",""],"stock":["$index"],"channelCode":["fixed_disc"],"pageSize":30,"pageNum":1} """
         val url = GenericUrl("http://www.szse.cn/api/disc/announcement/annList?random=${java.util.Random().nextFloat()}")
-        val request = requestFactory.buildPostRequest(url, ByteArrayContent.fromString("application/json", requestData))
+        val request = requestFactory!!.buildPostRequest(url, ByteArrayContent.fromString("application/json", requestData))
 
         with(request.headers) {
             this.accept = "application/json"
@@ -40,7 +41,7 @@ object SZSEDiscloure {
         return JSONParser().parse(request.execute().parseAsString()) as JSONObject
     }
 
-    private fun get(index: Int): JSONObject {
+    fun get(index: Int): JSONObject {
         return get(indexToCode(index))
     }
 
@@ -58,8 +59,8 @@ object SZSEDiscloure {
         var res = getPdfLinks(get(index))
 
         year?.let {
-            val regYear = "${it}".toRegex()
-            res = res.filterKeys { regYear.containsMatchIn(it) }
+            val regYear = "$it".toRegex()
+            res = res.filterKeys { i -> regYear.containsMatchIn(i) }
         }
 
         quarter?.let {
@@ -102,7 +103,7 @@ object SZSEDiscloure {
 
         val requestData = """ticker=$query&limit=$cnt&date=365"""
         val url = GenericUrl("http://xbrl.cninfo.com.cn/do/stockreserch/getcompanybyprefix")
-        val request = requestFactory.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
+        val request = requestFactory!!.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
 
         request.headers.contentType = "application/x-www-form-urlencoded"
         return request.execute().parseAsString().split(",").map {
@@ -110,7 +111,7 @@ object SZSEDiscloure {
             val tmp = updateGeneralDesc(t[2])
             t[0] to EntityInfo(t[0], t[1], t[3], t[4], orgName = t[2], orgNameEN = tmp.getValue("英文名称")
                     , location = tmp.getValue("办公地址"), url = tmp.getValue("公司网址"), email = tmp.getValue("电子信箱"), boardSecretary = tmp.getValue("董事会秘书姓名")
-                    , emailBoardSecretary = tmp.getValue("董事会秘书电子信箱"), registeredCaptial = NumberFormat.getInstance().parse(tmp.getValue("注册资本(万元)")).toDouble(), securityDelegator = tmp.getValue("证券事务代表姓名")
+                    , emailBoardSecretary = tmp.getValue("董事会秘书电子信箱"), registeredCapital = NumberFormat.getInstance().parse(tmp.getValue("注册资本(万元)")).toDouble(), securityDelegator = tmp.getValue("证券事务代表姓名")
                     , auditor = tmp.getValue("会计师事务所")
             )
         }.toMap()
@@ -120,7 +121,7 @@ object SZSEDiscloure {
     // http://xbrl.cninfo.com.cn/do/summary/companyinfo
     private fun updateGeneralDesc(orgName: String): Map<String, String> {
         with(
-                requestFactory.buildPostRequest(GenericUrl("http://xbrl.cninfo.com.cn/do/summary/companyinfo"),
+                requestFactory!!.buildPostRequest(GenericUrl("http://xbrl.cninfo.com.cn/do/summary/companyinfo"),
                         ByteArrayContent.fromString(null, "orgname=${URLEncoder.encode(orgName, "UTF-8")}"))
         ) {
             this.headers.contentType = "application/x-www-form-urlencoded"
@@ -143,7 +144,7 @@ object SZSEDiscloure {
     fun getEntityFacets(SECCode: String): String {
         val requestData = """ticker=$SECCode"""
         val url = GenericUrl("http://xbrl.cninfo.com.cn/do/generalinfo/getcompanygeneralinfo")
-        val request = requestFactory.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
+        val request = requestFactory!!.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
 
         request.headers.contentType = "application/x-www-form-urlencoded"
         return request.execute().parseAsString()
@@ -152,7 +153,7 @@ object SZSEDiscloure {
     data class EntityInfo(val SECCode: String, val SECName: String, val industry1: String, val industry2: String,
                           val orgName: String, val orgNameEN: String, val location: String, val url: String,
                           val email: String, val boardSecretary: String, val emailBoardSecretary: String,
-                          val registeredCaptial: Double, val securityDelegator: String, val auditor: String
+                          val registeredCapital: Double, val securityDelegator: String, val auditor: String
     ) {
         override fun hashCode(): Int {
             return SECCode.toInt().hashCode()

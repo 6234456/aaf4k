@@ -30,4 +30,9 @@ class SZSEDiscloureTest {
                 )
                 )[8])
     }
+
+    @Test
+    fun trail2() {
+        println(SZSEDiscloure.get(10).map { it.value })
+    }
 }

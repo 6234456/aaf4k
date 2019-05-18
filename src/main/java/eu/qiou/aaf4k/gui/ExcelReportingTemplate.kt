@@ -4,9 +4,9 @@ import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Sheet
 
-class ExcelReportingTemplate(val tpl: String,
-                             val prefix: String = "[", val affix: String = "]",
-                             val shtName: String? = null, val shtIndex: Int = 0, val fmt: String = "%.2f") {
+class ExcelReportingTemplate(private val tpl: String,
+                             private val prefix: String = "[", private val affix: String = "]",
+                             val shtName: String? = null, private val shtIndex: Int = 0, val fmt: String = "%.2f") {
 
     fun export(data: Map<*, *>, path: String, filter: (Sheet) -> Boolean = { if (shtName != null) it.sheetName == shtName else it.workbook.getSheetIndex(it) == shtIndex }) {
         val (wb, ips) = ExcelUtil.getWorkbook(tpl)
