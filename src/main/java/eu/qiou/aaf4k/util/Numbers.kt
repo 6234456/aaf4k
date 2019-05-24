@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.util
 
+import kotlin.math.abs
 import kotlin.math.sign
 
 fun Number.roundUpTo(place: Int): Double {
@@ -67,3 +68,5 @@ fun Iterable<Number>.npv(r: Double, startFromP0: Boolean = true): Double {
                 acc + e
             } / if (startFromP0) 1.0 else (1.0 + r)
 }
+
+fun Number.withinTolerance(tolerance: Double, other: Number): Boolean = abs((this.toDouble() - other.toDouble()) / this.toDouble()) <= abs(tolerance)

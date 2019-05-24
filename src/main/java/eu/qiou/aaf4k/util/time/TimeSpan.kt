@@ -216,6 +216,9 @@ fun LocalDate.ofNext(terms: Int, withIntervalUnit: ChronoUnit = ChronoUnit.YEARS
     for (cnt in 1..terms) {
         res.add(tmp)
         tmp = this + (withIntervalUnit * (withIntervalAmount * cnt))
+
+        if (this.isEndOfMonth() && withIntervalUnit == ChronoUnit.MONTHS)
+            tmp = tmp.toEndOfMonth()
     }
 
     return res
