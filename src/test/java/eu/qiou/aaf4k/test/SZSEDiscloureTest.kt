@@ -1,7 +1,9 @@
 package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.plugins.SZSEDiscloure
+import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.io.PdfUtil
+import eu.qiou.aaf4k.util.template.Template
 import org.junit.Test
 import java.awt.Rectangle
 import java.net.URL
@@ -13,7 +15,24 @@ class SZSEDiscloureTest {
         // 000612
         // http://disc.static.szse.cn/download
         // SZSEDiscloure.getPdfLinks("000612")
-        println(SZSEDiscloure.getEntityInfoById("04"))
+
+        val d = SZSEDiscloure.getEntityInfoById("600", 2000).filter { it.value.auditor.contains("立信") }.map {
+            mapOf(
+                    "id" to it.key,
+                    "name" to it.value.orgName,
+                    "nameEN" to it.value.orgNameEN,
+                    "pdf" to SZSEDiscloure.getPdfLinks(it.value.SECCode, 2018, 4, true)
+            )
+        }
+
+        Template(listOf(
+                Template.HeadingFormat(value = "id", formatData = ExcelUtil.DataFormat.STRING.format),
+                Template.HeadingFormat(value = "name", formatData = ExcelUtil.DataFormat.STRING.format, columnWidth = 48),
+                Template.HeadingFormat(value = "nameEN", formatData = ExcelUtil.DataFormat.STRING.format),
+                Template.HeadingFormat(value = "pdf", formatData = ExcelUtil.DataFormat.STRING.format)
+        ), d).build("data/trail10.xlsx")
+
+
     }
     @Test
     fun getPdf() {

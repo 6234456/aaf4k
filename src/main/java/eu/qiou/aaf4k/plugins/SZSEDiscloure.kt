@@ -9,6 +9,7 @@ import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
 import org.jsoup.Jsoup
+import java.io.Serializable
 import java.net.URLEncoder
 import java.text.NumberFormat
 
@@ -109,9 +110,13 @@ object SZSEDiscloure {
         return request.execute().parseAsString().split(",").map {
             val t = it.split("#")
             val tmp = updateGeneralDesc(t[2])
-            t[0] to EntityInfo(t[0], t[1], t[3], t[4], orgName = t[2], orgNameEN = tmp.getValue("英文名称")
+            t[0] to EntityInfo(t[0], t[0], t[1], t[3], t[4], orgName = t[2], orgNameEN = tmp.getValue("英文名称")
                     , location = tmp.getValue("办公地址"), url = tmp.getValue("公司网址"), email = tmp.getValue("电子信箱"), boardSecretary = tmp.getValue("董事会秘书姓名")
-                    , emailBoardSecretary = tmp.getValue("董事会秘书电子信箱"), registeredCapital = NumberFormat.getInstance().parse(tmp.getValue("注册资本(万元)")).toDouble(), securityDelegator = tmp.getValue("证券事务代表姓名")
+                    , emailBoardSecretary = tmp.getValue("董事会秘书电子信箱"), registeredCapital = try {
+                NumberFormat.getInstance().parse(tmp.getValue("注册资本(万元)")).toDouble()
+            } catch (e: Exception) {
+                0.0
+            }, securityDelegator = tmp.getValue("证券事务代表姓名")
                     , auditor = tmp.getValue("会计师事务所")
             )
         }.toMap()
@@ -149,19 +154,18 @@ object SZSEDiscloure {
         request.headers.contentType = "application/x-www-form-urlencoded"
         return request.execute().parseAsString()
     }
+}
 
-    data class EntityInfo(val SECCode: String, val SECName: String, val industry1: String, val industry2: String,
-                          val orgName: String, val orgNameEN: String, val location: String, val url: String,
-                          val email: String, val boardSecretary: String, val emailBoardSecretary: String,
-                          val registeredCapital: Double, val securityDelegator: String, val auditor: String
-    ) {
-        override fun hashCode(): Int {
-            return SECCode.toInt().hashCode()
-        }
+data class EntityInfo(val SECCode: String, val orgCode: String, val SECName: String, val industry1: String, val industry2: String,
+                      val orgName: String, val orgNameEN: String, val location: String, val url: String,
+                      val email: String, val boardSecretary: String, val emailBoardSecretary: String,
+                      val registeredCapital: Double, val securityDelegator: String, val auditor: String, val sz: Boolean = true
+) : Serializable {
+    override fun hashCode(): Int {
+        return SECCode.toInt().hashCode()
+    }
 
-        override fun equals(other: Any?): Boolean {
-            return other is EntityInfo && other.SECCode == this.SECCode
-        }
-
+    override fun equals(other: Any?): Boolean {
+        return other is EntityInfo && other.SECCode == this.SECCode
     }
 }

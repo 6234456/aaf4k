@@ -5,7 +5,11 @@ import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.javanet.NetHttpTransport
 import eu.qiou.aaf4k.util.strings.recode
 import eu.qiou.aaf4k.util.time.TimeSpan
+import org.json.simple.JSONArray
+import org.json.simple.JSONObject
+import org.json.simple.parser.JSONParser
 import org.jsoup.Jsoup
+import java.text.NumberFormat
 
 object CNInfoDiscloure {
     var requestFactory = NetHttpTransport().createRequestFactory()
@@ -38,6 +42,117 @@ object CNInfoDiscloure {
             }
         }
     }
+
+    fun getEntityInfoById(query: String, cnt: Int = 60): Map<String, EntityInfo?> {
+        val requestData = """keyWord=$query&maxNum=$cnt"""
+        val url = GenericUrl("http://www.cninfo.com.cn/new/information/topSearch/query")
+        val request = requestFactory!!.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
+
+        with(request.headers) {
+            this.accept = "application/json"
+            this.userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36"
+            this.set("Referer", "http://www.szse.cn/disclosure/listed/fixed/index.html")
+        }
+
+        with(JSONParser().parse(request.execute().parseAsString()) as JSONArray) {
+            with(this.filter {
+                it as JSONObject
+                it["category"] == "A股"
+            }) {
+                if (this.size == 0)
+                    return mapOf()
+
+                return this.map {
+                    it as JSONObject
+                    val k = it["code"]!!.toString()
+                    k to get(k)
+                }.toMap()
+            }
+        }
+    }
+
+    fun isSZ(code: String, orgId: String): Boolean {
+
+        // http://www.cninfo.com.cn/new/newInterface/marketOverview?secCode=600100&orgId=gssh0600100&secType=szshe
+
+        val url = GenericUrl("http://www.cninfo.com.cn/new/disclosure/stock?orgId=$orgId&stockCode=$code")
+        val request = requestFactory!!.buildGetRequest(url)
+
+        return !Jsoup.parse(request.execute().parseAsString()).select("script").map { it.data() }.any { it.contains("\"sse\"") }
+    }
+
+
+    //http://www.cninfo.com.cn/new/disclosure/stock?orgId=$orgId&stockCode=$code
+    //<script type="text/javascript">
+    //var stockCode = "600100";
+    //var orgId = "gssh0600100";
+    //var plate = "sse"
+    //</script>
+    fun isSZ(entityInfo: EntityInfo): Boolean {
+        return isSZ(entityInfo.SECCode, entityInfo.orgCode)
+    }
+
+    private fun get(code: String): EntityInfo? {
+        val requestData = """stockCode=$code"""
+        val url = GenericUrl("http://www.cninfo.com.cn/data/cube/profile")
+        val request = requestFactory!!.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
+
+        with(request.headers) {
+            this.userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36"
+            this.set("Referer", "http://www.szse.cn/disclosure/listed/fixed/index.html")
+        }
+
+        with(try {
+            JSONParser().parse(request.execute().parseAsString()) as JSONArray
+        } catch (e: Exception) {
+            null
+        }) {
+
+            if (this == null)
+                return null
+
+            if (this.size == 0)
+                return null
+
+            return this[0]!!.let {
+                it as JSONObject
+                EntityInfo(code, it["orgid"].toString(), it["orgname"].toString(), it["f030v"].toString(),
+                        it["f034v"].toString(), it["orgname"].toString(), it["f001v"].toString(),
+                        it["f004v"].toString(), it["f011v"].toString(), it["f012v"].toString(),
+                        it["f022v"].toString(),
+                        it["f021v"].toString(),
+                        try {
+                            NumberFormat.getInstance().parse(it["f010d"].toString()).toDouble()
+                        } catch (e: Exception) {
+                            0.0
+                        },
+                        it["f018v"].toString(),
+                        it["f039v"].toString(), isSZ(code, it["orgid"].toString())
+                )
+            }
+        }
+    }
+
+
+    fun getPdfLinks(entityInfo: EntityInfo, year: Int, pageSize: Int = 30, contentSearch: String = ""): String? {
+        val requestData = """pageNum=1&pageSize=$pageSize&plate=${if (entityInfo.sz) "szmb" else "shmb"}&tabName=fulltext&column=szse&stock=${entityInfo.SECCode},${entityInfo.orgCode}&searchkey=$contentSearch&secid=&category=category_ndbg_szsh&seDate=${year}-01-01 ~ ${year + 1}-12-31"""
+        val url = GenericUrl("http://www.cninfo.com.cn/new/hisAnnouncement/query")
+        val request = requestFactory!!.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
+
+        val v = ((JSONParser().parse(request.execute().parseAsString()) as JSONObject)["announcements"]!! as JSONArray).filter {
+            it as JSONObject
+            val x = it.get("announcementTitle")!!.toString()
+            !(x.contains("英文版") || x.contains("摘要") || x.contains("已取消")) && x.contains(year.toString())
+        }
+
+        if (v.isEmpty()) return null
+
+        if (v.size != 1) throw Exception("The result is not unique, please examine the annual report of $year for ${entityInfo.SECName}")
+
+        return "http://static.cninfo.com.cn/" + (v[0] as JSONObject)["adjunctUrl"].toString()
+    }
+
+
 
     enum class FSType(val typeName: String) {
         INCOME_STMT("incomestatements"),
