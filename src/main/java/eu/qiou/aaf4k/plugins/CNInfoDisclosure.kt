@@ -5,13 +5,15 @@ import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.javanet.NetHttpTransport
 import eu.qiou.aaf4k.util.strings.recode
 import eu.qiou.aaf4k.util.time.TimeSpan
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
 import org.jsoup.Jsoup
 import java.text.NumberFormat
 
-object CNInfoDiscloure {
+object CNInfoDisclosure {
     var requestFactory = NetHttpTransport().createRequestFactory()
 
     fun clear() {
@@ -43,7 +45,7 @@ object CNInfoDiscloure {
         }
     }
 
-    fun getEntityInfoById(query: String, cnt: Int = 60): Map<String, EntityInfo?> {
+    suspend fun getEntityInfoById(query: String, cnt: Int = 60): Map<String, EntityInfo?> {
         val requestData = """keyWord=$query&maxNum=$cnt"""
         val url = GenericUrl("http://www.cninfo.com.cn/new/information/topSearch/query")
         val request = requestFactory!!.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
@@ -59,14 +61,21 @@ object CNInfoDiscloure {
                 it as JSONObject
                 it["category"] == "A股"
             }) {
-                if (this.size == 0)
-                    return mapOf()
+                if (this.isEmpty()) return mapOf()
 
-                return this.map {
+                val res: MutableMap<String, EntityInfo?> = mutableMapOf()
+                this.forEach {
                     it as JSONObject
-                    val k = it["code"]!!.toString()
-                    k to get(k)
-                }.toMap()
+                    val e = GlobalScope.async {
+                        get(it["code"]!!.toString())
+                    }
+
+                    e.await()?.let { info ->
+                        println("Entity: ${info.SECCode}_${info.SECName}")
+                        res[info.SECCode] = info
+                    }
+                }
+                return res
             }
         }
     }
@@ -107,12 +116,7 @@ object CNInfoDiscloure {
         } catch (e: Exception) {
             null
         }) {
-
-            if (this == null)
-                return null
-
-            if (this.size == 0)
-                return null
+            if (this == null || this.isEmpty()) return null
 
             return this[0]!!.let {
                 it as JSONObject
@@ -147,7 +151,7 @@ object CNInfoDiscloure {
 
         if (v.isEmpty()) return null
 
-        if (v.size != 1) throw Exception("The result is not unique, please examine the annual report of $year for ${entityInfo.SECName}")
+        //if (v.size != 1) throw Exception("The result is not unique, please examine the annual report of $year for ${entityInfo.SECName}")
 
         return "http://static.cninfo.com.cn/" + (v[0] as JSONObject)["adjunctUrl"].toString()
     }
@@ -180,7 +184,7 @@ object CNInfoDiscloure {
                 if (this.getElementsByClass("zx_left").count() == 0) {
                     //the format for the latest period
                     // http://www.cninfo.com.cn/information/balancesheet/szmb000011.html
-                    val codet = Regex("""\/(\w+?\.html)(?:(?:"|')?;?)$""").find(this.getElementsByTag("script").get(0).html())!!.groupValues[1]
+                    val codet = Regex("""/(\w+?\.html)(?:["']?;?)$""").find(this.getElementsByTag("script").get(0).html())!!.groupValues[1]
 
                     with(Jsoup.parse(
                             requestFactory.buildGetRequest(GenericUrl("http://www.cninfo.com.cn/information/${type.typeName}/$codet"))
