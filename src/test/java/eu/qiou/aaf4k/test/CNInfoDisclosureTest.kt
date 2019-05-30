@@ -1,12 +1,9 @@
 package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.plugins.CNInfoDisclosure
-import eu.qiou.aaf4k.plugins.EntityInfo
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import kotlin.system.measureTimeMillis
 
@@ -34,10 +31,10 @@ class CNInfoDisclosureTest {
     fun trail() = runBlocking {
         // 001001  000571
         val v = measureTimeMillis {
-            CNInfoDisclosure.getEntityInfoById("0", 200).filter { it.value?.auditor?.contains("立信") ?: false }
+            CNInfoDisclosure.getEntityInfoById("1", 200000) { !it.contains("0") }.filter {
+                it.value?.auditor?.contains("立信") ?: false
+            }
         }
-
-
 
         println("load finished in $v")
 /*
@@ -57,23 +54,16 @@ class CNInfoDisclosureTest {
     @Test
     fun trail1() = runBlocking {
         // 001001  000571
-        val v = CNInfoDisclosure.getEntityInfoById("0", 2000)
+        val j = measureTimeMillis {
+            val v = CNInfoDisclosure.getEntityInfoById("0", 20000)
+            ObjectOutputStream(FileOutputStream("data/sec.obj")).writeObject(v)
+        }
 
-        ObjectOutputStream(FileOutputStream("data/sec.obj")).writeObject(v)
-
-        //println(ObjectInputStream(FileInputStream("data/sec.obj")).readObject() as Map<String, EntityInfo?>)
+        println(j)
     }
 
     @Test
-    fun trail2() {
-        // 001001  000571
-
-        println((ObjectInputStream(FileInputStream("data/sec.obj")).readObject() as Map<String, EntityInfo?>).map { x ->
-            x.value?.let {
-                CNInfoDisclosure.getPdfLinks(it, 2018)
-            }
-        })
+    fun pdf() = runBlocking {
+        println(CNInfoDisclosure.getEntityInfoById("002056"))
     }
-
-
 }

@@ -159,7 +159,7 @@ object SZSEDiscloure {
 data class EntityInfo(val SECCode: String, val orgCode: String, val SECName: String, val industry1: String, val industry2: String,
                       val orgName: String, val orgNameEN: String, val location: String, val url: String,
                       val email: String, val boardSecretary: String, val emailBoardSecretary: String,
-                      val registeredCapital: Double, val securityDelegator: String, val auditor: String, val sz: Boolean = true
+                      val registeredCapital: Double, val securityDelegator: String, val auditor: String, val sz: Boolean = true, val fs: String = ""
 ) : Serializable {
     override fun hashCode(): Int {
         return SECCode.toInt().hashCode()

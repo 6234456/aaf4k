@@ -7,6 +7,7 @@ import eu.qiou.aaf4k.util.strings.recode
 import eu.qiou.aaf4k.util.time.TimeSpan
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
@@ -15,6 +16,7 @@ import java.text.NumberFormat
 
 object CNInfoDisclosure {
     var requestFactory = NetHttpTransport().createRequestFactory()
+    var year: Int = 2018  // year for the annual financial statments
 
     fun clear() {
         requestFactory = null
@@ -23,7 +25,7 @@ object CNInfoDisclosure {
     // http://www.cninfo.com.cn/information/management/szmb000002.html
     fun management(code: String): List<List<String>> {
         with(
-                requestFactory.buildGetRequest(GenericUrl("http://www.cninfo.com.cn/information/management/${code}.html"))
+                requestFactory.buildGetRequest(GenericUrl("http://www.cninfo.com.cn/information/management/$code.html"))
         ) {
             with(Jsoup.parse(this.execute().parseAsString())) {
                 return this.getElementsByClass("zx_data3").map { it.ownText().recode("ISO-8859-1", "GB2312") }.chunked(4).zip(
@@ -45,7 +47,7 @@ object CNInfoDisclosure {
         }
     }
 
-    suspend fun getEntityInfoById(query: String, cnt: Int = 60): Map<String, EntityInfo?> {
+    suspend fun getEntityInfoById(query: String, cnt: Int = 60, filter: (String) -> Boolean = { true }): Map<String, EntityInfo?> {
         val requestData = """keyWord=$query&maxNum=$cnt"""
         val url = GenericUrl("http://www.cninfo.com.cn/new/information/topSearch/query")
         val request = requestFactory!!.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
@@ -63,42 +65,41 @@ object CNInfoDisclosure {
             }) {
                 if (this.isEmpty()) return mapOf()
 
-                val res: MutableMap<String, EntityInfo?> = mutableMapOf()
-                this.forEach {
+                val res = this.map {
                     it as JSONObject
-                    val e = GlobalScope.async {
-                        get(it["code"]!!.toString())
-                    }
-
-                    e.await()?.let { info ->
-                        println("Entity: ${info.SECCode}_${info.SECName}")
-                        res[info.SECCode] = info
+                    val v = it["code"]!!.toString()
+                    GlobalScope.async {
+                        if (filter(v)) get(v) else null
                     }
                 }
-                return res
+
+                return runBlocking {
+                    res.map {
+                        it.await().apply {
+                            if (this != null)
+                                println("$SECCode $SECName $fs")
+                        }
+                    }.filter {
+                        it != null
+                    }.map {
+                        it!!.SECCode to it
+                    }.toMap()
+                }
             }
         }
     }
 
-    fun isSZ(code: String, orgId: String): Boolean {
-
-        // http://www.cninfo.com.cn/new/newInterface/marketOverview?secCode=600100&orgId=gssh0600100&secType=szshe
-
+    private fun isSZ(code: String, orgId: String): Boolean {
+        //http://www.cninfo.com.cn/new/disclosure/stock?orgId=$orgId&stockCode=$code
+        //<script type="text/javascript">
+        //var stockCode = "600100";
+        //var orgId = "gssh0600100";
+        //var plate = "sse"
+        //</script>
         val url = GenericUrl("http://www.cninfo.com.cn/new/disclosure/stock?orgId=$orgId&stockCode=$code")
         val request = requestFactory!!.buildGetRequest(url)
 
         return !Jsoup.parse(request.execute().parseAsString()).select("script").map { it.data() }.any { it.contains("\"sse\"") }
-    }
-
-
-    //http://www.cninfo.com.cn/new/disclosure/stock?orgId=$orgId&stockCode=$code
-    //<script type="text/javascript">
-    //var stockCode = "600100";
-    //var orgId = "gssh0600100";
-    //var plate = "sse"
-    //</script>
-    fun isSZ(entityInfo: EntityInfo): Boolean {
-        return isSZ(entityInfo.SECCode, entityInfo.orgCode)
     }
 
     private fun get(code: String): EntityInfo? {
@@ -120,7 +121,12 @@ object CNInfoDisclosure {
 
             return this[0]!!.let {
                 it as JSONObject
-                EntityInfo(code, it["orgid"].toString(), it["orgname"].toString(), it["f030v"].toString(),
+
+                val id = it["orgid"].toString()
+                val sz = isSZ(code, id)
+                val pdf = getPdfLinks(code, id, sz, year)
+
+                EntityInfo(code, id, it["orgname"].toString(), it["f030v"].toString(),
                         it["f034v"].toString(), it["orgname"].toString(), it["f001v"].toString(),
                         it["f004v"].toString(), it["f011v"].toString(), it["f012v"].toString(),
                         it["f022v"].toString(),
@@ -131,29 +137,27 @@ object CNInfoDisclosure {
                             0.0
                         },
                         it["f018v"].toString(),
-                        it["f039v"].toString(), isSZ(code, it["orgid"].toString())
+                        it["f039v"].toString(), sz, pdf ?: ""
                 )
             }
         }
     }
 
 
-    fun getPdfLinks(entityInfo: EntityInfo, year: Int, pageSize: Int = 30, contentSearch: String = ""): String? {
-        val requestData = """pageNum=1&pageSize=$pageSize&plate=${if (entityInfo.sz) "szmb" else "shmb"}&tabName=fulltext&column=szse&stock=${entityInfo.SECCode},${entityInfo.orgCode}&searchkey=$contentSearch&secid=&category=category_ndbg_szsh&seDate=${year}-01-01 ~ ${year + 1}-12-31"""
+    fun getPdfLinks(SECCode: String, orgCode: String, sz: Boolean, year: Int, pageSize: Int = 30, contentSearch: String = ""): String? {
+        val requestData = """pageNum=1&pageSize=$pageSize&plate=${if (sz) "sz" else "shmb"}&tabName=fulltext&column=szse&stock=${SECCode},${orgCode}&searchkey=$contentSearch&secid=&category=category_ndbg_szsh&seDate=${year}-01-01 ~ ${year + 1}-12-31"""
         val url = GenericUrl("http://www.cninfo.com.cn/new/hisAnnouncement/query")
         val request = requestFactory!!.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
 
-        val v = ((JSONParser().parse(request.execute().parseAsString()) as JSONObject)["announcements"]!! as JSONArray).filter {
+        return ((JSONParser().parse(request.execute().parseAsString()) as JSONObject)["announcements"]!! as JSONArray).filter {
             it as JSONObject
             val x = it.get("announcementTitle")!!.toString()
             !(x.contains("英文版") || x.contains("摘要") || x.contains("已取消")) && x.contains(year.toString())
+        }.let {
+            if (it.isEmpty()) null
+            else "http://static.cninfo.com.cn/" + (it[0] as JSONObject)["adjunctUrl"].toString()
         }
 
-        if (v.isEmpty()) return null
-
-        //if (v.size != 1) throw Exception("The result is not unique, please examine the annual report of $year for ${entityInfo.SECName}")
-
-        return "http://static.cninfo.com.cn/" + (v[0] as JSONObject)["adjunctUrl"].toString()
     }
 
 
@@ -184,10 +188,10 @@ object CNInfoDisclosure {
                 if (this.getElementsByClass("zx_left").count() == 0) {
                     //the format for the latest period
                     // http://www.cninfo.com.cn/information/balancesheet/szmb000011.html
-                    val codet = Regex("""/(\w+?\.html)(?:["']?;?)$""").find(this.getElementsByTag("script").get(0).html())!!.groupValues[1]
+                    val codec = Regex("""/(\w+?\.html)(?:["']?;?)$""").find(this.getElementsByTag("script")[0].html())!!.groupValues[1]
 
                     with(Jsoup.parse(
-                            requestFactory.buildGetRequest(GenericUrl("http://www.cninfo.com.cn/information/${type.typeName}/$codet"))
+                            requestFactory.buildGetRequest(GenericUrl("http://www.cninfo.com.cn/information/${type.typeName}/$codec"))
                                     .execute().parseAsString()
                     )
                             .getElementsByClass("zx_left")[0].getElementsByTag("td")
