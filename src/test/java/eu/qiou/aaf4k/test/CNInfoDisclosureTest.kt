@@ -1,10 +1,11 @@
 package eu.qiou.aaf4k.test
 
 import eu.qiou.aaf4k.plugins.CNInfoDisclosure
+import eu.qiou.aaf4k.plugins.EntityInfo
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import java.io.FileOutputStream
-import java.io.ObjectOutputStream
+import java.io.FileInputStream
+import java.io.ObjectInputStream
 import kotlin.system.measureTimeMillis
 
 class CNInfoDisclosureTest {
@@ -56,7 +57,7 @@ class CNInfoDisclosureTest {
         // 001001  000571
         val j = measureTimeMillis {
             val v = CNInfoDisclosure.getEntityInfoById("0", 20000)
-            ObjectOutputStream(FileOutputStream("data/sec.obj")).writeObject(v)
+            //  ObjectOutputStream(FileOutputStream("data/sec.obj")).writeObject(v)
         }
 
         println(j)
@@ -64,6 +65,18 @@ class CNInfoDisclosureTest {
 
     @Test
     fun pdf() = runBlocking {
-        println(CNInfoDisclosure.getEntityInfoById("002056"))
+        println(CNInfoDisclosure.downloadFS(CNInfoDisclosure.getEntityInfoById("600568").values.elementAt(0)!!))
     }
+
+    @Test
+    fun pdf0() {
+        val v = (ObjectInputStream(FileInputStream("data/sec.obj")).readObject() as Map<String, EntityInfo>).filter {
+            it.value.SECName.contains("东湖高")
+        }.map { "${it.value.SECCode}_${it.value.SECName}  ${it.value.auditor}" }
+
+        println("totally: ${v.size}")
+        println(v)
+    }
+
+
 }

@@ -12,6 +12,10 @@ import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
 import org.jsoup.Jsoup
+import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.text.NumberFormat
 
 object CNInfoDisclosure {
@@ -45,6 +49,11 @@ object CNInfoDisclosure {
                 ).toMap()
             }
         }
+    }
+
+    fun downloadFS(info: EntityInfo, path: String? = null) {
+        Files.copy(URL(info.fs).openStream(), Paths.get(path
+                ?: "data/tmp/${info.SECCode}_${info.SECName}.pdf"), StandardCopyOption.REPLACE_EXISTING)
     }
 
     suspend fun getEntityInfoById(query: String, cnt: Int = 60, filter: (String) -> Boolean = { true }): Map<String, EntityInfo?> {
