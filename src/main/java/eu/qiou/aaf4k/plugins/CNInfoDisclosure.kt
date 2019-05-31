@@ -5,6 +5,7 @@ import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.javanet.NetHttpTransport
 import eu.qiou.aaf4k.util.strings.recode
 import eu.qiou.aaf4k.util.time.TimeSpan
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -51,9 +52,14 @@ object CNInfoDisclosure {
         }
     }
 
-    fun downloadFS(info: EntityInfo, path: String? = null) {
-        Files.copy(URL(info.fs).openStream(), Paths.get(path
-                ?: "data/tmp/${info.SECCode}_${info.SECName}.pdf"), StandardCopyOption.REPLACE_EXISTING)
+    fun downloadFS(info: EntityInfo, path: String? = null): Deferred<EntityInfo> {
+        return GlobalScope.async {
+            if (info.fs.isNotBlank())
+                Files.copy(URL(info.fs).openStream(), Paths.get(path
+                        ?: "data/tmp/${info.SECCode}_${info.SECName}.pdf"), StandardCopyOption.REPLACE_EXISTING)
+
+            info
+        }
     }
 
     suspend fun getEntityInfoById(query: String, cnt: Int = 60, filter: (String) -> Boolean = { true }): Map<String, EntityInfo?> {
