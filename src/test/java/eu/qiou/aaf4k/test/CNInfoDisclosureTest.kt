@@ -68,7 +68,7 @@ class CNInfoDisclosureTest {
     fun trail1() = runBlocking {
         // 001001  000571
         val j = measureTimeMillis {
-            val v = CNInfoDisclosure.getEntityInfoById("0", 20000)
+            val v = CNInfoDisclosure.getEntityInfoById("0", 20000).values + CNInfoDisclosure.getEntityInfoById("8", 20000) { !it.contains("0") }.values
             ObjectOutputStream(FileOutputStream("data/sec.obj")).writeObject(v)
         }
 
@@ -84,15 +84,15 @@ class CNInfoDisclosureTest {
     // download with multi-thread
     @Test
     fun pdf0() = runBlocking {
-        val v = (ObjectInputStream(FileInputStream("data/sec.obj")).readObject() as Map<String, EntityInfo>).filter {
-            it.value.auditor.contains("立信")
+        val v = (ObjectInputStream(FileInputStream("data/sec.obj")).readObject() as List<EntityInfo>).filter {
+            it.auditor.contains("立信")
         }
 
         println("totally: ${v.size}")
-
+/*
         v.map {
-            if (it.value.SECCode > "300642")
-                it.value.downloadFS()
+            if (it.SECCode > "300642")
+                it.downloadFS()
             else
                 null
         }.forEach {
@@ -100,6 +100,8 @@ class CNInfoDisclosureTest {
                 println("${x.SECCode} ${x.SECName}")
             }
         }
+
+        */
     }
 
     // search page for the info
