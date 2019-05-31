@@ -5,7 +5,6 @@ import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.javanet.NetHttpTransport
 import eu.qiou.aaf4k.util.strings.recode
 import eu.qiou.aaf4k.util.time.TimeSpan
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -13,10 +12,6 @@ import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
 import org.jsoup.Jsoup
-import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import java.text.NumberFormat
 
 object CNInfoDisclosure {
@@ -52,16 +47,6 @@ object CNInfoDisclosure {
         }
     }
 
-    fun downloadFS(info: EntityInfo, path: String? = null): Deferred<EntityInfo> {
-        return GlobalScope.async {
-            if (info.fs.isNotBlank())
-                Files.copy(URL(info.fs).openStream(), Paths.get(path
-                        ?: "data/tmp/${info.SECCode}_${info.SECName}.pdf"), StandardCopyOption.REPLACE_EXISTING)
-
-            info
-        }
-    }
-
     suspend fun getEntityInfoById(query: String, cnt: Int = 60, filter: (String) -> Boolean = { true }): Map<String, EntityInfo?> {
         val requestData = """keyWord=$query&maxNum=$cnt"""
         val url = GenericUrl("http://www.cninfo.com.cn/new/information/topSearch/query")
@@ -76,15 +61,30 @@ object CNInfoDisclosure {
         with(JSONParser().parse(request.execute().parseAsString()) as JSONArray) {
             with(this.filter {
                 it as JSONObject
-                it["category"] == "A股"
+                it["category"] == "A股" || it["category"] == "股份报价"
             }) {
                 if (this.isEmpty()) return mapOf()
 
                 val res = this.map {
                     it as JSONObject
                     val v = it["code"]!!.toString()
+                    val org = it["orgId"]!!.toString()
+                    val cate = it["category"]!!.toString()
                     GlobalScope.async {
-                        if (filter(v)) get(v) else null
+                        if (filter(v)) {
+                            if (cate == "股份报价") {
+                                // http://www.cninfo.com.cn/new/newInterface/marketOverview
+                                with(JSONParser().parse(requestFactory!!.buildGetRequest(GenericUrl("http://www.cninfo.com.cn/new/newInterface/marketOverview?secCode=$v&orgId=$org&secType=notb"))
+                                        .execute().parseAsString()) as JSONObject) {
+
+                                    EntityInfo(v, org, it["zwjc"].toString(), "", "", this["secName"].toString(), "",
+                                            this["address"].toString(), "", "", "", "",
+                                            0.0, "",
+                                            "", false,
+                                            getPdfLinks(v, org, false, year, isQuotation = true) ?: "")
+                                }
+                            } else get(v)
+                        } else null
                     }
                 }
 
@@ -159,8 +159,9 @@ object CNInfoDisclosure {
     }
 
 
-    fun getPdfLinks(SECCode: String, orgCode: String, sz: Boolean, year: Int, pageSize: Int = 30, contentSearch: String = ""): String? {
-        val requestData = """pageNum=1&pageSize=$pageSize&plate=${if (sz) "sz" else "shmb"}&tabName=fulltext&column=szse&stock=${SECCode},${orgCode}&searchkey=$contentSearch&secid=&category=category_ndbg_szsh&seDate=${year}-01-01 ~ ${year + 1}-12-31"""
+    fun getPdfLinks(SECCode: String, orgCode: String, sz: Boolean, year: Int, pageSize: Int = 30, contentSearch: String = "", isQuotation: Boolean = false): String? {
+        val requestData = if (isQuotation) """pageNum=1&pageSize=$pageSize&plate=&tabName=fulltext&column=neeq&stock=${SECCode},${orgCode}&searchkey=$contentSearch&secid=&category=category_dqgg_gfzr&seDate=${year}-01-01 ~ ${year + 1}-12-31"""
+        else """pageNum=1&pageSize=$pageSize&plate=${if (sz) "sz" else "shmb"}&tabName=fulltext&column=szse&stock=${SECCode},${orgCode}&searchkey=$contentSearch&secid=&category=category_ndbg_szsh&seDate=${year}-01-01 ~ ${year + 1}-12-31"""
         val url = GenericUrl("http://www.cninfo.com.cn/new/hisAnnouncement/query")
         val request = requestFactory!!.buildPostRequest(url, ByteArrayContent.fromString(null, requestData))
 
