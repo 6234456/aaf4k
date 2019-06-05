@@ -88,3 +88,30 @@ fun <K, V, R> Map<K, V>.mapKeysIndexed(operation: (Map.Entry<K, V>, Int) -> R): 
 fun <K, V, R> Iterable<R>.replaceValueBasedOnIndex(map: Map<K, V>): Map<K, R> = map.replaceValueBasedOnIndex(this)
 
 fun <K> Iterable<K>.toIndexedMap(): Map<Int, K> = this.mapIndexed { i, k -> i to k }.toMap()
+
+fun <K> Iterable<K>.permutation(): List<List<K>> = when (this.count()) {
+    0 -> listOf()
+    1 -> listOf(listOf(this.first()))
+    2 -> listOf(listOf(this.first(), this.last()), listOf(this.last(), this.first()))
+    else -> this.map { this.minusElement(it).permutation().map { x -> x + it } }.reduce { acc, list -> acc + list }
+}
+
+fun <K> Iterable<K>.rotate(n: Int = 1): List<K> = when (this.count()) {
+    0 -> listOf()
+    1 -> listOf(this.first())
+    else -> when {
+        n == 0 -> this.map { it }
+        n < count() -> this.drop(n) + this.take(n)
+        else -> this.rotate(n.rem(count()))
+        // TODO: negative rotate
+    }
+}
+
+
+// iterable with distinct elements, take n sample out of them, return the possible combination
+fun <K> Iterable<K>.sample(n: Int): List<List<K>> = when {
+    n >= this.count() -> listOf(this.map { it })
+    n <= 0 -> listOf()
+    n == 1 -> this.map { listOf(it) }
+    else -> listOf()
+}
