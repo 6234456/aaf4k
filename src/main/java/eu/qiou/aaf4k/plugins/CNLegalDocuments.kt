@@ -1,14 +1,18 @@
 package eu.qiou.aaf4k.plugins
 
 
-import org.openqa.selenium.NoSuchElementException
 import org.openqa.selenium.firefox.FirefoxDriver
 
 
 class CNLegalDocuments {
     init {
-        System.setProperty("webdriver.gecko.driver", "/home/yang/Documents/geckodriver")
-        System.setProperty("webdriver.firefox.bin", "/usr/bin/firefox")
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            System.setProperty("webdriver.gecko.driver", "C:\\Users\\qiou\\Documents\\geckodriver.exe")
+            System.setProperty("webdriver.firefox.bin", "C:\\Program Files\\Mozilla Firefox\\firefox.exe")
+        } else {
+            System.setProperty("webdriver.gecko.driver", "/home/yang/Documents/geckodriver")
+            System.setProperty("webdriver.firefox.bin", "/usr/bin/firefox")
+        }
     }
 
     // location 天津市
@@ -43,8 +47,6 @@ class CNLegalDocuments {
 
         webDriver.get(url)
 
-        val mainWindow = webDriver.windowHandle
-
         fun f() {
             val v = webDriver.findElementsByCssSelector(".wstitle a")
 
@@ -78,19 +80,11 @@ class CNLegalDocuments {
                         }
 
                         println(webDriver.currentUrl)
-                        // tdFBRQ
-                        val date = try {
-                            webDriver.findElementById("tdFBRQ").text
-                        } catch (
-                                e: NoSuchElementException
-                        ) {
-                            ""
-                        }
                         // contentTitle
                         println(try {
                             webDriver.findElementById("contentTitle").text
                         } catch (
-                                e: NoSuchElementException
+                                e: Exception
                         ) {
                             ""
                         })
