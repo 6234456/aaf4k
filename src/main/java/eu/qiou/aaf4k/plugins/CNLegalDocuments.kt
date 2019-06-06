@@ -15,6 +15,11 @@ class CNLegalDocuments {
         }
     }
 
+    private fun truncatCoreURL(url: String): String {
+        val pos = url.indexOf("&KeyWord=")
+        return if (pos < 0) url else url.take(pos)
+    }
+
     // location 天津市
     // category 民事
     // courtLevel 基层 中级 高级 最高
@@ -47,6 +52,7 @@ class CNLegalDocuments {
 
         webDriver.get(url)
 
+        // process the current page
         fun f() {
             val v = webDriver.findElementsByCssSelector(".wstitle a")
 
@@ -79,7 +85,7 @@ class CNLegalDocuments {
                             Thread.sleep(800)
                         }
 
-                        println(webDriver.currentUrl)
+                        println(truncatCoreURL(webDriver.currentUrl))
                         // contentTitle
                         println(try {
                             webDriver.findElementById("contentTitle").text
@@ -89,7 +95,7 @@ class CNLegalDocuments {
                             ""
                         })
 
-                        //webDriver.close()
+                        webDriver.close()
                     }
                 }
                 //   webDriver.close()
