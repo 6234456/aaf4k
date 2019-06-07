@@ -1,8 +1,6 @@
 package eu.qiou.aaf4k.plugins
 
-
 import org.openqa.selenium.firefox.FirefoxDriver
-
 
 class CNLegalDocuments {
     init {
