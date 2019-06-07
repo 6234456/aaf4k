@@ -1,6 +1,5 @@
 package eu.qiou.aaf4k.test
 
-import eu.qiou.aaf4k.util.permutation
 import eu.qiou.aaf4k.util.rotate
 import eu.qiou.aaf4k.util.sample
 import org.junit.Test
@@ -11,10 +10,6 @@ class CollectionsTest {
     fun permutation() {
         val l0 = listOf<Int>()
         val l1 = listOf<Int>(1, 2, 3, 4, 5)
-
-        println(l0.permutation())
-        println(l1.permutation().size == 5 * 4 * 3 * 2 * 1)
-        println(l1.permutation().map { it[0] + it[1] }.toSortedSet())
 
         println(l1.rotate(4))
         println(l1.rotate(1))

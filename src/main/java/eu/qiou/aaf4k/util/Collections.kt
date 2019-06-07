@@ -89,11 +89,44 @@ fun <K, V, R> Iterable<R>.replaceValueBasedOnIndex(map: Map<K, V>): Map<K, R> = 
 
 fun <K> Iterable<K>.toIndexedMap(): Map<Int, K> = this.mapIndexed { i, k -> i to k }.toMap()
 
-fun <K> Iterable<K>.permutation(): List<List<K>> = when (this.count()) {
+private fun <K> Iterable<K>.permutationDistinct(): List<List<K>> = when (this.count()) {
     0 -> listOf()
     1 -> listOf(listOf(this.first()))
     2 -> listOf(listOf(this.first(), this.last()), listOf(this.last(), this.first()))
     else -> this.map { this.minusElement(it).permutation().map { x -> x + it } }.reduce { acc, list -> acc + list }
+}
+
+fun <K> Iterable<K>.permutation(): List<List<K>> {
+    val f = this.frequency()
+    val unique = f.filterValues { it == 1 }.keys
+    val uniquePermutation = unique.permutationDistinct()
+
+    if (unique.size == this.count()) return uniquePermutation
+
+    return f.filterValues { it > 1 }.toList().fold(uniquePermutation) { acc, pair ->
+        if (acc.isEmpty()) acc.insert(pair.first, pair.second) as List<List<K>>
+        else acc.map { it.insert(pair.first, pair.second) }.reduce { acc1, list -> acc1 + list }
+    }
+}
+
+fun <K> Iterable<K>.insert(element: K, times: Int): List<List<K>> {
+    // n elements of this Iterable n + 1 positions
+    return when (this.count()) {
+        0 -> listOf(0.until(times).map { element })
+        else -> (0..times).fold(mutableListOf()) { acc, i ->
+            // i is the times k already inserted before the first element
+            val trailing = 0.until(i).map { element } + this.first()
+            acc.addAll(this.drop(1).insert(element, times - i).map { trailing + it })
+            acc
+        }
+    }
+}
+
+fun <K> Iterable<K>.frequency(): Map<K, Int> {
+    return this.fold(mutableMapOf()) { acc, k ->
+        acc[k] = 1 + acc.getOrDefault(k, 0)
+        acc
+    }
 }
 
 fun <K> Iterable<K>.rotate(n: Int = 1): List<K> = when (this.count()) {
