@@ -101,6 +101,60 @@
             <artifactId>kotlin-reflect</artifactId>
             <version>1.3.31</version>
         </dependency>
+
+
+        <!--
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-base</artifactId>
+                    <version>12</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-controls</artifactId>
+                    <version>12</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx</artifactId>
+                    <version>12</version>
+                    <type>pom</type>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-graphics</artifactId>
+                    <version>12</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-fxml</artifactId>
+                    <version>12</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-web</artifactId>
+                    <version>12</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-media</artifactId>
+                    <version>12</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-swing</artifactId>
+                    <version>12</version>
+                </dependency>
+
+              -->
+
     </dependencies>
 
     <build>
